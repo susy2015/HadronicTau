@@ -1,0 +1,4 @@
+/uscms_data/d3/mandal13/hadtau1.root
+/uscms_data/d3/mandal13/hadtau2.root
+/uscms_data/d3/mandal13/hadtau3.root
+/uscms_data/d3/mandal13/hadtau4.root

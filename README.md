@@ -1,12 +1,14 @@
-Make a directory named HadronicTau/Tool inside susy2015 directory. checkout the files from here.
+Check out SUSY recipe as described in Twiki page
+
+Make a directory named HadronicTau/Tool inside CMSSW_7_2_0/src/ directory. checkout the files from susy2015/HadronicTau/Tool github.
+
+Go to HadronicTau/Tool/
 
 do following
 
 mkdir obj
 
 make
-
-Go to HadronicTau/Tool
 
 and then do:
 

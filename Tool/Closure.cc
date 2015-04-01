@@ -42,14 +42,20 @@ void passBaselineFunc(NTupleReader &tr)
   int nMuons = AnaFunctions::countMuons(tr.getVec<TLorentzVector>("muonsLVec"), tr.getVec<double>("muonsRelIso"), tr.getVec<double>("muonsMtw"), AnaConsts::muonsArr);
   int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesRelIso"), tr.getVec<double>("elesMtw"), AnaConsts::elesArr);
   //  int nIsoTrks = AnaFunctions::countIsoTrks(tr.getVec<TLorentzVector>("loose_isoTrksLVec"), tr.getVec<double>("loose_isoTrks_iso"), tr.getVec<double>("loose_isoTrks_mtw"), AnaConsts::isoTrksArr);
+
   //Calculate number of jets and b-tagged jets
   int cntCSVS = AnaFunctions::countCSVS(tr.getVec<TLorentzVector>("jetsLVec"), tr.getVec<double>("recoJetsBtag_0"), AnaConsts::cutCSVS, AnaConsts::bTagArr);
-  //  int cntNJetsPt50Eta24 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt50Eta24Arr);
+  //    int cntNJetsPt50Eta24 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt50Eta24Arr);
   int cntNJetsPt30Eta24 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt30Eta24Arr);
-  // int cntNJetsPt30 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt30Arr);
+  int cntNJetsPt30 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt30Arr);
+
   //Calculate deltaPhi
   std::vector<double> * dPhiVec = new std::vector<double>();
   (*dPhiVec) = AnaFunctions::calcDPhi(tr.getVec<TLorentzVector>("jetsLVec"), tr.getVar<double>("metphi"), 3, AnaConsts::dphiArr);
+
+  std::vector<TLorentzVector> *jetsLVec_forTagger = new std::vector<TLorentzVector>(); std::vector<double> *recoJetsBtag_forTagger = new std::vector<double>();
+  AnaFunctions::prepareJetsForTagger(tr.getVec<TLorentzVector>("jetsLVec"), tr.getVec<double>("recoJetsBtag_0"), (*jetsLVec_forTagger), (*recoJetsBtag_forTagger));
+
 
   //Pass lepton veto?
   bool passLeptVeto = true;
@@ -58,7 +64,7 @@ void passBaselineFunc(NTupleReader &tr)
 
   //Pass number of jets?
   bool passnJets = true;
-  //if( cntNJetsPt50Eta24 < AnaConsts::nJetsSelPt50Eta24 ){ passBaseline = false; passBaseline_nolepveto = false; passnJets = false;}
+  //if( cntNJetsPt50Eta24 < AnaConsts::nJetsSelPt50Eta24 ){ passBaseline = false; passnJets = false;}
   if( cntNJetsPt30Eta24 < AnaConsts::nJetsSelPt30Eta24 ){ passBaseline = false; passnJets = false;}
 
   //Pass deltaPhi?
@@ -73,6 +79,36 @@ void passBaselineFunc(NTupleReader &tr)
   bool passMET = true;
   if( tr.getVar<double>("met") < AnaConsts::defaultMETcut ){ passBaseline = false; passMET = false; }
 
+    //Calculate top tagger related variables.
+  //Note that to save speed, only do the calculation after previous base line requirements.
+  int bestTopJetIdx = -1;
+  bool remainPassCSVS = false;
+  int pickedRemainingCombfatJetIdx = -1;
+  double bestTopJetMass = -1;
+  int nTopCandSortedCnt = 0;
+  double MT2 = -1;
+  double mTcomb = -1;
+  if( passBaseline && cntNJetsPt30 >= AnaConsts::nJetsSel )
+    {
+      type3Ptr->processEvent((*jetsLVec_forTagger), (*recoJetsBtag_forTagger), metLVec);
+      bestTopJetIdx = type3Ptr->bestTopJetIdx;
+      remainPassCSVS = type3Ptr->remainPassCSVS;
+      pickedRemainingCombfatJetIdx = type3Ptr->pickedRemainingCombfatJetIdx;
+      if( bestTopJetIdx != -1 ) bestTopJetMass = type3Ptr->bestTopJetLVec.M();
+      nTopCandSortedCnt = type3Ptr->nTopCandSortedCnt;
+      MT2 = type3Ptr->MT2;
+      mTcomb = type3Ptr->mTbJet + 0.5*type3Ptr->mTbestTopJet;
+    }
+
+  //Pass top tagger requirement?
+  bool passTagger = true;
+  //bestTopJetIdx != -1 means at least 1 top candidate!
+  if( bestTopJetIdx == -1 ){ passBaseline = false; passTagger = false; }
+  if( ! remainPassCSVS ){ passBaseline = false; passTagger = false; }
+  if( pickedRemainingCombfatJetIdx == -1 && jetsLVec_forTagger->size()>=6 ){ passBaseline = false; passTagger = false; }
+  if( ! (bestTopJetMass > AnaConsts::lowTopCut_ && bestTopJetMass < AnaConsts::highTopCut_ ) ){ passBaseline = false; passTagger = false; }
+
+
   //register new var
 
   tr.registerDerivedVar("nMuons_CUT2", nMuons);
@@ -85,6 +121,9 @@ void passBaselineFunc(NTupleReader &tr)
   tr.registerDerivedVar("passnJets", passnJets);
   tr.registerDerivedVar("passdPhis", passdPhis);
   tr.registerDerivedVar("passBJets", passBJets);
+  tr.registerDerivedVar("passTagger", passTagger);
+
+
 }
 
 // === Main Function ===================================================
@@ -106,6 +145,7 @@ int main(int argc, char* argv[]) {
     }
 
   NTupleReader tr(fChain);
+  AnaFunctions::prepareTopTagger();
   tr.registerFunction(&passBaselineFunc);
   BaseHistgram myBaseHistgram;
   myBaseHistgram.BookHistgram(outFileName);
@@ -129,6 +169,7 @@ int main(int argc, char* argv[]) {
     double ht=tr.getVar<double>("ht");
     vector<int> W_tau_prongsVec = tr.getVec<int>("W_tau_prongsVec");
 
+
     //Prediction part
     //Control sample
 
@@ -148,6 +189,7 @@ int main(int argc, char* argv[]) {
       }
 
     if( nMuons == 1 && nElectrons == 0 ) {
+
 	  const double muPt = isomuonsLVec.at(0).Pt();
 	  const double muEta = isomuonsLVec.at(0).Eta();
 	  const double muPhi = isomuonsLVec.at(0).Phi();
@@ -280,7 +322,17 @@ int main(int argc, char* argv[]) {
 	if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ) ){
 	  passbJets = false;
 	}
+	
+	//top tagger input
+	TLorentzVector metLVec_pre; metLVec_pre.SetPtEtaPhiM(simmet, 0, simmetPhi, 0);
+        int comb30_pre = AnaFunctions::countJets(combNJetVec, AnaConsts::pt30Arr);
+	std::vector<TLorentzVector> *jetsLVec_forTagger_pre = new std::vector<TLorentzVector>(); std::vector<double> *recoJetsBtag_forTagger_pre = new std::vector<double>();
+	AnaFunctions::prepareJetsForTagger(combNJetVec, tr.getVec<double>("recoJetsBtag_0"), (*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre));
 
+	int bestTopJetIdx_pre = -1;
+	bool remainPassCSVS_pre = false;
+	int pickedRemainingCombfatJetIdx_pre = -1;
+	double bestTopJetMass_pre = -1;
 
 
       //Apply baseline cut
@@ -289,7 +341,26 @@ int main(int argc, char* argv[]) {
       	if(simmet<AnaConsts::defaultMETcut) continue;
 	if(!passdeltaPhi) continue;
 	if(!passbJets) continue;
+      	//Apply Top tagger
+	if(comb30_pre >= AnaConsts::nJetsSel ){
+	  type3Ptr->processEvent((*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre), metLVec_pre);
+	  bestTopJetIdx_pre = type3Ptr->bestTopJetIdx;
+	  remainPassCSVS_pre = type3Ptr->remainPassCSVS;
+	  pickedRemainingCombfatJetIdx_pre = type3Ptr->pickedRemainingCombfatJetIdx;
+	  if( bestTopJetIdx_pre != -1 ) bestTopJetMass_pre = type3Ptr->bestTopJetLVec.M();
+	}
 
+	
+
+		bool passTopTagger = true;
+	//bestTopJetIdx_pre != -1 means at least 1 top candidate!
+	if( bestTopJetIdx_pre == -1 ){passTopTagger = false; }
+	if( ! remainPassCSVS_pre ){passTopTagger = false; }
+	if( pickedRemainingCombfatJetIdx_pre == -1 && jetsLVec_forTagger_pre->size()>=6 ){passTopTagger = false; }
+	if( ! (bestTopJetMass_pre > AnaConsts::lowTopCut_ && bestTopJetMass_pre < AnaConsts::highTopCut_ ) ){ passTopTagger = false; }
+
+	if(!passTopTagger) continue;
+      
       //correction factor:
       const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                          
       const double corrBRTauToMu = Efficiency::taumucor(Efficiency::Ptbin1(muPt));//correction from tauonic mu contamination
@@ -309,15 +380,16 @@ int main(int argc, char* argv[]) {
 
       //Expectation part 
       // Select only events where the W decayed into a hadronically decaying tau
+
     bool passBaseline = tr.getVar<bool>("passBaseline");
     bool passLeptVeto = tr.getVar<bool>("passLeptVeto");
     bool passnJets = tr.getVar<bool>("passnJets");
     bool passMET = tr.getVar<bool>("passMET");
     bool passdPhis = tr.getVar<bool>("passdPhis");
     bool passBJets = tr.getVar<bool>("passBJets");
+    bool passTagger = tr.getVar<bool>("passTagger");
 
     int nJets = tr.getVar<int>("cntNJetsPt30Eta24");
-
 
     if(W_tau_prongsVec.size()==0)continue;
 
@@ -326,6 +398,7 @@ int main(int argc, char* argv[]) {
     if(!passMET)continue;
     if(!passdPhis)continue;
     if(!passBJets)continue;
+    if(!passTagger) continue;
 
     myBaseHistgram.hTrueHt->Fill(ht);
     myBaseHistgram.hTruemet->Fill(met);

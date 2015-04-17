@@ -35,3 +35,4 @@ bool FillChain(TChain *chain, const TString &inputFileList)
   return true;
 }
 std::vector<TLorentzVector> combjet (const std::vector<TLorentzVector> &seljet, const std::vector<TLorentzVector> &simjet);
+std::vector<double>combJetBtag(const std::vector<double> &cleanJetBtag, const std::vector<TLorentzVector> &seljet, const std::vector<TLorentzVector> &simjet);

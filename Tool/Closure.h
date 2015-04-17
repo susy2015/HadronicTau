@@ -68,7 +68,6 @@ bool FillChain(TChain *chain, const TString &inputFileList)
   std::cout << "No. of Entries in this tree : " << chain->GetEntries() << std::endl;
   return true;
 }
-
 double htJetPtMin(){ return 50;}
 double htJetEtaMax() {return 2.4;}
 double mhtJetPtMin(){return 30;}
@@ -76,3 +75,4 @@ double mhtJetEtaMax() {return 5;}
 double nJetPtMin(){return 30;}
 double nJetEtaMax() {return 2.4;}
 std::vector<TLorentzVector> combjet (const std::vector<TLorentzVector> &seljet, const std::vector<TLorentzVector> &simjet);
+std::vector<double>combJetBtag(const std::vector<double> &selJetBtag, const std::vector<TLorentzVector> &seljet, const std::vector<TLorentzVector> &simjet);

@@ -60,11 +60,11 @@ TauResponse::TauResponse(const char *fileName) {
 
 
 unsigned int TauResponse::ptBin(double pt) {
-  if( pt < ptMin() ) {
+  /*  if( pt < ptMin() ) {
     std::cerr << "\n\nERROR in TauResponse::ptBin" << std::endl;
     std::cerr << "  No response available for pt = " << pt << " < " << ptMin() << std::endl;
     throw std::exception();
-  }
+    }*/
 
   unsigned int bin = 0;
   if( pt > 30. )  bin = 1;

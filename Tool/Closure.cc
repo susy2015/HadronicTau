@@ -152,6 +152,7 @@ int main(int argc, char* argv[]) {
 
   TauResponse tauResp(respTempl);
 
+  const double minAbsEta = AnaConsts::muonsArr[0], maxAbsEta = AnaConsts::muonsArr[1], minPt = AnaConsts::muonsArr[2], maxPt = AnaConsts::muonsArr[3], maxRelIso = AnaConsts::muonsArr[4], maxMtw = AnaConsts::muonsArr[5];
 
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
@@ -161,7 +162,9 @@ int main(int argc, char* argv[]) {
     k++;
     vector<TLorentzVector> muonsLVec = tr.getVec<TLorentzVector>("muonsLVec");
     vector<double> muonsRelIso = tr.getVec<double>("muonsRelIso");
+    vector<double> muonsMtw = tr.getVec<double>("muonsMtw");
     vector<TLorentzVector> jetsLVec = tr.getVec<TLorentzVector>("jetsLVec");
+    vector<double> recoJetsBtag_0 = tr.getVec<double>("recoJetsBtag_0");
     int nElectrons = tr.getVar<int>("nElectrons_CUT2");
     int nMuons = tr.getVar<int>("nMuons_CUT2");
     double met=tr.getVar<double>("met");
@@ -178,7 +181,16 @@ int main(int argc, char* argv[]) {
       isomuonsLVec.clear();      
 
       for(unsigned im=0; im<muonsLVec.size(); im++){                                                                                   
-	if(muonsRelIso.at(im)<0.2){
+	double muonRelIso=muonsRelIso.at(im);
+	double muonMtw=muonsMtw.at(im);
+	double permuonpt =  muonsLVec.at(im).Pt();
+	double permuoneta = muonsLVec.at(im).Eta();
+	if( (minAbsEta == -1 || fabs(permuoneta) >= minAbsEta )
+	  && ( maxAbsEta == -1 || fabs(permuoneta) < maxAbsEta )
+	  && ( minPt == -1 || permuonpt >= minPt )
+	  && ( maxPt == -1 || permuonpt < maxPt )
+	  && ( maxRelIso == -1 || muonRelIso < maxRelIso)
+	    && (maxMtw == -1 || muonMtw < maxMtw)){
 	  const double muPt1 = muonsLVec.at(im).Pt();
 	  const double muEta1 = muonsLVec.at(im).Eta();
 	  const double muPhi1 = muonsLVec.at(im).Phi();
@@ -215,10 +227,12 @@ int main(int argc, char* argv[]) {
       int muJetIdx = -1;
       const float deltaRMax = 0.2;
       const unsigned nObj = jetsLVec.size();
-      if( !utils::findMatchedObject(muJetIdx,muEta,muPhi,jetseta,jetsphi,nObj,deltaRMax) ) continue;
-      // Calculate RA2 selection-variables from "cleaned" jets                                                                                
+      utils::findMuMatchedObject(muJetIdx,muEta,muPhi,jetseta,jetsphi,nObj,deltaRMax);
+      // Calculate RA2 selection-variables from "cleaned" jets
       vector<TLorentzVector> selNJetVec;
+      vector<double>selJetBTag;
       selNJetVec.clear();
+      selJetBTag.clear();
       double selHt   = 0.;
       double selMhtX = 0.;
       double selMhtY = 0.;
@@ -237,7 +251,7 @@ int main(int argc, char* argv[]) {
 	double M = jetsLVec.at(jetIdx).M();
 	TLorentzVector selLVec; selLVec.SetPtEtaPhiM(Pt, Eta, Phi, M);
 	selNJetVec.push_back(selLVec);
-
+	selJetBTag.push_back(recoJetsBtag_0.at(jetIdx));
          // Calculate MHT and HT                                                                                                              
 	if( jetsLVec.at(jetIdx).Pt() > htJetPtMin() && fabs(jetsLVec.at(jetIdx).Eta()) < htJetEtaMax()) {
           selHt += jetsLVec.at(jetIdx).Pt();
@@ -302,8 +316,11 @@ int main(int argc, char* argv[]) {
       //recompute jetVec
 
       vector<TLorentzVector> combNJetVec;
+      vector<double> combJetsBtag_0;
       combNJetVec.clear();
+      combJetsBtag_0.clear();
       combNJetVec = combjet(selNJetVec, simNJetVec);
+      combJetsBtag_0 = combJetBtag(selJetBTag, selNJetVec, simNJetVec);  
       int combNJet = AnaFunctions::countJets(combNJetVec, AnaConsts::pt30Eta24Arr);
 
       //recompute deltaphi
@@ -317,7 +334,7 @@ int main(int argc, char* argv[]) {
 
 	//recompute bjet
 
-	int cnt1CSVS = AnaFunctions::countCSVS(combNJetVec, tr.getVec<double>("recoJetsBtag_0"), AnaConsts::cutCSVS, AnaConsts::bTagArr);
+	int cnt1CSVS = AnaFunctions::countCSVS(combNJetVec, combJetsBtag_0, AnaConsts::cutCSVS, AnaConsts::bTagArr);
 	bool passbJets = true;
 	if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ) ){
 	  passbJets = false;
@@ -327,8 +344,7 @@ int main(int argc, char* argv[]) {
 	TLorentzVector metLVec_pre; metLVec_pre.SetPtEtaPhiM(simmet, 0, simmetPhi, 0);
         int comb30_pre = AnaFunctions::countJets(combNJetVec, AnaConsts::pt30Arr);
 	std::vector<TLorentzVector> *jetsLVec_forTagger_pre = new std::vector<TLorentzVector>(); std::vector<double> *recoJetsBtag_forTagger_pre = new std::vector<double>();
-	AnaFunctions::prepareJetsForTagger(combNJetVec, tr.getVec<double>("recoJetsBtag_0"), (*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre));
-
+	AnaFunctions::prepareJetsForTagger(combNJetVec, combJetsBtag_0, (*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre));
 	int bestTopJetIdx_pre = -1;
 	bool remainPassCSVS_pre = false;
 	int pickedRemainingCombfatJetIdx_pre = -1;
@@ -413,7 +429,7 @@ int main(int argc, char* argv[]) {
 vector<TLorentzVector> combjet (const vector<TLorentzVector> &seljet, const vector<TLorentzVector> &simjet){
   vector<TLorentzVector> combNJet;
   combNJet.clear();
-  unsigned int idx;  
+  unsigned int idx = seljet.size();  
   for(unsigned int i=0; i<seljet.size(); i++){
     TLorentzVector comb;
     if(seljet.at(i).Pt()>simjet.at(0).Pt()){
@@ -440,4 +456,28 @@ vector<TLorentzVector> combjet (const vector<TLorentzVector> &seljet, const vect
     combNJet.push_back(comb);
   }
       return combNJet;
+}
+vector<double> combJetBtag(const vector<double> &selJetBtag, const vector<TLorentzVector> &seljet, const vector<TLorentzVector> &simjet){
+  vector<double>combJetBTag;
+  combJetBTag.clear();
+  unsigned int idx = selJetBtag.size();
+  for(unsigned int i=0; i<selJetBtag.size(); i++){
+    if(seljet.at(i).Pt()>simjet.at(0).Pt()){
+      combJetBTag.push_back(selJetBtag.at(i));
+    }
+    else{
+      combJetBTag.push_back(0);
+      idx = i;
+      break;
+    }
+  }
+  if(idx<selJetBtag.size()){
+    for(unsigned int j=idx; j<selJetBtag.size(); j++){
+      combJetBTag.push_back(selJetBtag.at(j));
+    }
+  }
+  if(combJetBTag.size()==selJetBtag.size()){
+    combJetBTag.push_back(0);
+  }
+  return combJetBTag;
 }

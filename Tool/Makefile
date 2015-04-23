@@ -16,7 +16,7 @@ LDFLAGS =
 LIBS = $(shell root-config --glibs)
 #OBJS = $(patsubst %, $(ODIR)/%, $(OBJ))
 
-PROGRAMS = tupleTest makePlots Template Closure Acc
+PROGRAMS = tupleTest Template Closure Acc
 
 all: $(PROGRAMS)
 
@@ -34,9 +34,6 @@ $(ODIR)/%.o : $(IDIR)/%.cc
 
 tupleTest: $(ODIR)/NTupleReader.o $(ODIR)/tupleReadTest.o
 	$(LD) $^ $(LIBS) -o $@
-
-makePlots: $(ODIR)/NTupleReader.o $(ODIR)/Plotter.o $(ODIR)/MakePlots.o
-	$(LD) $^ $(LIBS) -L .TupleDict_h.so -o $@
 
 Template: $(ODIR)/Template.o $(ODIR)/NTupleReader.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@

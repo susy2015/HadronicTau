@@ -24,9 +24,18 @@ class BaseHistgram
   TH1D *hPredHt;
   TH1D *hPredmet;
   TH1D *hPredNJets;
+  TH1D *hPredNbJets;
+  TH1D *hPredNTops;
+  TH1D *hPredMT2;
+  TH1D *hPredmTcomb;
+
   TH1D *hTrueHt;
   TH1D *hTruemet;
   TH1D *hTrueNJets;
+  TH1D *hTrueNbJets;
+  TH1D *hTrueNTops;
+  TH1D *hTrueMT2;
+  TH1D *hTruemTcomb;
   const TString title = "Hadronic-Tau Closure Test";
 };
 
@@ -39,13 +48,29 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hPredmet->Sumw2();
   hPredNJets = new TH1D("hPredNJets",title+";N_{jets};Events",10,4,14);
   hPredNJets->Sumw2();
+  hPredNbJets = new TH1D("hPredNbJets",title+";N_{bjets};Events",5, 0, 5);
+  hPredNbJets->Sumw2();
+  hPredNTops = new TH1D("hPredNTops",title+";N_{tops};Events",5, 0, 5);
+  hPredNTops->Sumw2();
+  hPredMT2 = new TH1D("hPredMT2",title+";M_{T2}[GeV];Events",50,0,500);
+  hPredMT2->Sumw2();
+  hPredmTcomb = new TH1D("hPredmTcomb",title+";M_{Tb}+0.5*M_{Tt}[GeV];Events",50,0,1000);
+  hPredmTcomb->Sumw2();
+
   hTrueHt = new TH1D("hTrueHt",title+";H_{T} [GeV];Events",25,200.,2000.);
   hTrueHt->Sumw2();
   hTruemet = new TH1D("hTruemet",title+";met [GeV];Events",50,200.,1200.);
   hTruemet->Sumw2();
   hTrueNJets = new TH1D("hTrueNJets",title+";N_{jets};Events",10,4,14);
   hTrueNJets->Sumw2();
- 
+  hTrueNbJets = new TH1D("hTrueNbJets",title+";N_{bjets};Events",5, 0, 5);
+  hTrueNbJets->Sumw2();
+  hTrueNTops = new TH1D("hTrueNTops",title+";N_{tops};Events",5, 0, 5);
+  hTrueNTops->Sumw2();
+  hTrueMT2 = new TH1D("hTrueMT2",title+";M_{T2}[GeV];Events",50,0,500);
+  hTrueMT2->Sumw2();
+  hTruemTcomb = new TH1D("hTruemTcomb",title+";M_{Tb}+0.5*M_{Tt}[GeV];Events",50,0,1000);
+  hTruemTcomb->Sumw2();
 }
 
 bool FillChain(TChain *chain, const TString &inputFileList)

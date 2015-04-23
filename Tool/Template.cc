@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     int tauJetIdx = -1;		// Will store the index of the jet matched to the tau
     const float deltaRMax = genTauPt < 50. ? 0.2 : 0.1; // Increase deltaRMax at low pt to maintain high-enought matching efficiency
     const unsigned nObj = jetspt.size();
-    if( !utils::findMatchedObject(tauJetIdx,genvisibleTauEta,genvisibleTauPhi,jetseta,jetsphi,nObj,deltaRMax) ) continue;
+    if( !utils::findTauMatchedObject(tauJetIdx,genvisibleTauEta,genvisibleTauPhi,jetseta,jetsphi,nObj,deltaRMax) ) continue;
     
 
     // Fill histogram with relative visible energy of the tau

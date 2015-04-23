@@ -3,8 +3,9 @@
 
 class Efficiency{
  public:
-
-  static double acc(){return 0.71; }
+// The acceptance is from a measurement after baseline
+// Stat. uncertainty of the number need to be provided as well
+  static double acc(){return 0.77;/*1079/1395*/}
   static double reco(int ptbin);
   static double iso(int ptbin);
   static double taumucor(int ptbin);

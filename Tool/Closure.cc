@@ -266,7 +266,8 @@ int main(int argc, char* argv[]) {
       const double & cleanMHtPhi = tr.getVar<double>("cleanMHtPhi");
 
       TLorentzVector selMhtLVec; selMhtLVec.SetPtEtaPhiM(cleanMHt, 0, cleanMHtPhi, 0);
-      TLorentzVector selmetLVec = metLVec+ muLVec;
+// Force the mass to be 0 for met and mht
+      TLorentzVector selmetLVec; selmetLVec.SetVectM( (metLVec+ muLVec).Vect(), 0 );
 
       int selNJetPt30Eta24 = AnaFunctions::countJets(cleanJetVec, AnaConsts::pt30Eta24Arr);
       int selNJetPt50Eta24 = AnaFunctions::countJets(cleanJetVec, AnaConsts::pt50Eta24Arr);
@@ -307,8 +308,7 @@ int main(int argc, char* argv[]) {
       // Taking into account the simulated tau jet, recompute                                                                                 
       // HT, MHT, and N(jets)                                                                                                                 
       double simHt = cleanHt;
-      TLorentzVector simMhtLVec = selMhtLVec;
-      TLorentzVector simmetLVec = selmetLVec;
+      TLorentzVector simMhtLVec;
 
       // If simulted tau-jet meets same criteria as as HT jets,                                                                               
       // recompute HT and MH
@@ -318,10 +318,10 @@ int main(int argc, char* argv[]) {
       }
 
       if( tauJetLVec.Pt() > mhtJetPtMin() && fabs(tauJetLVec.Eta()) < mhtJetEtaMax()) {
-        simMhtLVec -= tauJetLVec;
+        simMhtLVec.SetVectM( (selMhtLVec-tauJetLVec).Vect(), 0);
       }
       //recompute met                                                                                                                          
-      simmetLVec -= tauJetLVec;
+      TLorentzVector simmetLVec; simmetLVec.SetVectM( (selmetLVec - tauJetLVec).Vect(), 0);
 
       const double simMht = simMhtLVec.Pt();
 

@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
       bool passKinCuts = false;
       if(pergenmuLVec.Pt()>TauResponse::ptMin() && fabs(pergenmuLVec.Eta())<TauResponse::etaMax()) passKinCuts = true;
 
-      TLorentzVector cleanmetLVec = metLVec + usedmuLVec;
+      TLorentzVector cleanmetLVec; cleanmetLVec.SetVectM( (metLVec + usedmuLVec).Vect(), 0);
 
       // Get random number from tau-response template
       const double scale = tauResp.getRandom(usedmuLVec.Pt());
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
       // it's possible that the tau jet is the least energetic jet so that it's not added into the combNJetVec during the loop
       if( !includeTauJet ){ combJetVec.push_back(tauJetLVec); combJetsBtag.push_back(oriJetCSVS); }
 
-      TLorentzVector combmetLVec = cleanmetLVec - tauJetLVec;
+      TLorentzVector combmetLVec;  combmetLVec.SetVectM( (cleanmetLVec - tauJetLVec).Vect(), 0 );
 
       const double combmet = combmetLVec.Pt();
       const double combmetPhi = combmetLVec.Phi();

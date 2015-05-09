@@ -57,6 +57,21 @@ namespace utils {
     }
   }
 
+  void findMatchedObject(int &matchedObjIdx, const TLorentzVector &muLVec, const std::vector<TLorentzVector> &jetsLVec, float deltaRMax) {
+    matchedObjIdx = -1;
+    double deltaRMin = 100000.;
+    for(unsigned objIdx = 0; objIdx < jetsLVec.size(); ++objIdx) { // Loop over objects
+      const double dr = muLVec.DeltaR(jetsLVec.at(objIdx));
+      if( dr < deltaRMin ) {
+        deltaRMin = dr;
+        matchedObjIdx = objIdx;
+      }
+    } // End of loop over objects                                                                                                             
+    if( deltaRMin > deltaRMax ) {
+      matchedObjIdx = -1;
+    }
+  }
+
   double mt(double pt, double phi, double met, double metPhi) {
     const double dPhi = deltaPhi(phi,metPhi);                                
     return sqrt( 2.*pt*met*(1.-cos(dPhi)) );                                       

@@ -34,5 +34,5 @@ bool FillChain(TChain *chain, const TString &inputFileList)
   std::cout << "No. of Entries in this tree : " << chain->GetEntries() << std::endl;
   return true;
 }
-std::vector<TLorentzVector> combjet (const std::vector<TLorentzVector> &seljet, const std::vector<TLorentzVector> &simjet);
-std::vector<double>combJetBtag(const std::vector<double> &cleanJetBtag, const std::vector<TLorentzVector> &seljet, const std::vector<TLorentzVector> &simjet);
+
+

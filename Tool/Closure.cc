@@ -180,6 +180,7 @@ int main(int argc, char* argv[]) {
     const vector<TLorentzVector> &genDecayLVec = tr.getVec<TLorentzVector>("genDecayLVec");
     const vector<int> &genDecayIdxVec = tr.getVec<int>("genDecayIdxVec");
     const vector<int> &genDecayPdgIdVec = tr.getVec<int>("genDecayPdgIdVec");
+    const vector<int> &genDecayMomRefVec = tr.getVec<int>("genDecayMomRefVec");
     const vector<int> &W_emuVec = tr.getVec<int>("W_emuVec");
     const vector<int> &W_tau_emuVec = tr.getVec<int>("W_tau_emuVec");
     const vector<TLorentzVector> &jetsLVec = tr.getVec<TLorentzVector>("jetsLVec");
@@ -208,11 +209,6 @@ int main(int argc, char* argv[]) {
     // ] W->tau->had, W->qq
     // ] W->tau->had, W->e/mu (e or mu is lost)
     if(W_tau_prongsVec.size() !=0 && passBaseline_tru){
-// Currently only one signal region which is the baseline
-// In the future, this can extend to more regions
-       int iSR = 0;
-       trueVec[iSR] ++;
-
        myBaseHistgram.hTrueHt->Fill(ht);
        myBaseHistgram.hTruemet->Fill(met);
        myBaseHistgram.hTrueNJets->Fill(nJets_tru);
@@ -220,6 +216,32 @@ int main(int argc, char* argv[]) {
        myBaseHistgram.hTrueNTops->Fill(nTops_tru);
        myBaseHistgram.hTrueMT2->Fill(MT2_tru);
        myBaseHistgram.hTruemTcomb->Fill(mTcomb_tru);
+
+       std::vector<TLorentzVector> genTauLVec; std::vector<int> genTauIdx;
+       for(unsigned int ip=0; ip<W_tau_prongsVec.size(); ip++){
+          int idx = W_tau_prongsVec.at(ip);
+          int momIdx = genDecayMomRefVec.at(idx);
+          int tmpIdx = momIdx;
+          while( std::abs(genDecayPdgIdVec.at(tmpIdx)) != 15 ){
+             tmpIdx = genDecayMomRefVec.at(momIdx);
+             if( tmpIdx <0 ) break;
+          }
+          if( std::abs(genDecayPdgIdVec.at(tmpIdx)) != 15){ std::cout<<"WARNING ... tau prong mother is NOT a tau??"<<std::endl; continue; }
+          if( std::find(genTauIdx.begin(), genTauIdx.end(), momIdx) == genTauIdx.end() ){
+             genTauIdx.push_back(momIdx);
+             genTauLVec.push_back(genDecayLVec.at(momIdx));
+          }
+       }
+
+       int cntgenTauPtLG30 = 0;
+       for(unsigned int ig=0; ig<genTauLVec.size(); ig++){
+          if (genTauLVec.at(ig).Pt() > 30 ) cntgenTauPtLG30++;
+       }
+       if( !cntgenTauPtLG30 ) continue;
+// Currently only one signal region which is the baseline
+// In the future, this can extend to more regions
+       int iSR = 0;
+       trueVec[iSR] ++;
     }
 
     //Prediction part
@@ -240,7 +262,8 @@ int main(int argc, char* argv[]) {
 
       const TLorentzVector muLVec = isomuonsLVec.at(0);
       // Use only events where the muon is inside acceptance                                                                             
-      if( muLVec.Pt() < TauResponse::ptMin() ) continue;
+//      if( muLVec.Pt() < TauResponse::ptMin() ) continue;
+      if( muLVec.Pt() < 30 ) continue;
       if( fabs(muLVec.Eta()) > TauResponse::etaMax() ) continue;
 
 // Find events that contain W->tau->mu

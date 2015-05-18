@@ -48,7 +48,7 @@ void passBaselineFunc(NTupleReader &tr)
   int nIsoTrks = AnaFunctions::countIsoTrks(tr.getVec<TLorentzVector>("loose_isoTrksLVec"), tr.getVec<double>("loose_isoTrks_iso"), tr.getVec<double>("loose_isoTrks_mtw"), AnaConsts::isoTrksArr);
   */
   int nMuons = AnaFunctions::countMuons(tr.getVec<TLorentzVector>("muonsLVec"), tr.getVec<double>("muonsMiniIso"), tr.getVec<double>("muonsMtw"), AnaConsts::muonsMiniIsoArr);
-  int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesMiniIso"), tr.getVec<double>("elesMtw"), tr.getVec<unsigned int>("elesisEB"), AnaConsts::elesArr);
+  int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesRelIso"), tr.getVec<double>("elesMtw"), tr.getVec<unsigned int>("elesisEB"), AnaConsts::elesArr);
 
   //Calculate number of jets and b-tagged jets
   int cntCSVS = AnaFunctions::countCSVS(tr.getVec<TLorentzVector>("jetsLVec"), tr.getVec<double>("recoJetsBtag_0"), AnaConsts::cutCSVS, AnaConsts::bTagArr);
@@ -112,12 +112,12 @@ int main(int argc, char* argv[]) {
 
   //Add cleanjet function and miniIsolatio
   stopFunctions::cjh.setMuonIso("mini");
-  stopFunctions::cjh.setElecIso("mini");
+  //  stopFunctions::cjh.setElecIso("mini");
   tr.registerFunction(&stopFunctions::cleanJets);
 
   TauResponse tauResp(respTempl);
 
-  int genmu=0, accmu=0;
+  int genmu1=0, accmu1=0, genmu2=0, accmu2=0, genmu3=0, accmu3=0, genmu4=0, accmu4=0, genmu5=0, accmu5=0, genmu6=0, accmu6=0, genmu7=0, accmu7=0, genmu8=0, accmu8=0, genmu9=0, accmu9=0, genmu10=0, accmu10=0 ;
 
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
@@ -299,12 +299,51 @@ int main(int argc, char* argv[]) {
 
       if(!passTopTagger) continue;
 
-      genmu++;
-      if( passKinCuts ) accmu++;
+      if(nJetPt30Eta24==4){
+	genmu1++;
+	if( passKinCuts ) accmu1++;
+      }
+      if(nJetPt30Eta24==5){
+        genmu2++;
+        if( passKinCuts ) accmu2++;
+      }
+      if(nJetPt30Eta24==6){
+        genmu3++;
+        if( passKinCuts ) accmu3++;
+      }
+      if(nJetPt30Eta24==7){
+        genmu4++;
+        if( passKinCuts ) accmu4++;
+      }
+      if(nJetPt30Eta24==8){
+        genmu5++;
+        if( passKinCuts ) accmu5++;
+      }
+      if(nJetPt30Eta24==9){
+        genmu6++;
+        if( passKinCuts ) accmu6++;
+      }
+      if(nJetPt30Eta24==10){
+        genmu7++;
+        if( passKinCuts ) accmu7++;
+      }
+      if(nJetPt30Eta24>10){
+        genmu8++;
+        if( passKinCuts ) accmu8++;
+      }
     }
   }
   cout<<"ToTal Event: "<<k<<endl;
-  cout<<"Gen Mu: "<<genmu<<" "<<"Acc Mu: "<<accmu<<endl;
-  cout<<"Acceptance: "<<(float)accmu/genmu<<endl;
+  //  cout<<"Gen Mu: "<<genmu8<<" "<<"Acc Mu: "<<accmu8<<endl;
+  cout<<"Acceptance1: "<<(float)accmu1/genmu1<<endl;
+  cout<<"Acceptance2: "<<(float)accmu2/genmu2<<endl;
+  cout<<"Acceptance3: "<<(float)accmu3/genmu3<<endl;
+  cout<<"Acceptance4: "<<(float)accmu4/genmu4<<endl;
+  cout<<"Acceptance5: "<<(float)accmu5/genmu5<<endl;
+  cout<<"Acceptance6: "<<(float)accmu6/genmu6<<endl;
+  cout<<"Acceptance7: "<<(float)accmu7/genmu7<<endl;
+  cout<<"Acceptance8: "<<(float)accmu8/genmu8<<endl;
+  cout<<"Acceptance9: "<<(float)accmu9/genmu9<<endl;
+  cout<<"Acceptance10: "<<(float)accmu10/genmu10<<endl;
   return 0;
 }

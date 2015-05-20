@@ -30,6 +30,7 @@
 #include "TauResponse.h"
 #include "utils.h"
 #include "Efficiency.h"
+#include "TRandom3.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ void passBaselineFunc(NTupleReader &tr)
   TLorentzVector metLVec; metLVec.SetPtEtaPhiM(tr.getVar<double>("met"), 0, tr.getVar<double>("metphi"), 0);
   //Calculate number of leptons
   int nMuons = AnaFunctions::countMuons(tr.getVec<TLorentzVector>("muonsLVec"), tr.getVec<double>("muonsMiniIso"), tr.getVec<double>("muonsMtw"), AnaConsts::muonsMiniIsoArr);
-  int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesMiniIso"), tr.getVec<double>("elesMtw"), tr.getVec<unsigned int>("elesisEB"), AnaConsts::elesArr);
+  int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesRelIso"), tr.getVec<double>("elesMtw"), tr.getVec<unsigned int>("elesisEB"), AnaConsts::elesArr);
   //  int nIsoTrks = AnaFunctions::countIsoTrks(tr.getVec<TLorentzVector>("loose_isoTrksLVec"), tr.getVec<double>("loose_isoTrks_iso"), tr.getVec<double>("loose_isoTrks_mtw"), AnaConsts::isoTrksArr);
 
   //Calculate number of jets and b-tagged jets
@@ -160,6 +161,7 @@ int main(int argc, char* argv[]) {
 
   TauResponse tauResp(respTempl);
 
+  TRandom3 * rndm = new TRandom3();
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
 
@@ -294,6 +296,11 @@ int main(int argc, char* argv[]) {
       double oriJetCSVS = 0;
       if( rejectJetIdx_formuVec.at(isomuonsIdxVec.at(0)) != -1 ) oriJetCSVS = recoJetsBtag_0[rejectJetIdx_formuVec.at(isomuonsIdxVec.at(0))];
 
+      double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt));
+      double rno = rndm->Rndm();
+      if( rno < mistag) oriJetCSVS = 1.0;
+      //      cout<<mistag<<" "<<rno<<endl;      
+
       vector<TLorentzVector> combNJetVec;
       vector<double> combJetsBtag;
 
@@ -402,7 +409,7 @@ int main(int argc, char* argv[]) {
       //correction factor:
       const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                          
       const double corrBRTauToMu = Efficiency::taumucor(Efficiency::Ptbin1(muLVec.Pt()));//correction from tauonic mu contamination
-      const double corrMuAcc = 1./Efficiency::acc(); // Correction for muon acceptance                                                       
+      const double corrMuAcc = 1./Efficiency::acc(Efficiency::Njetbin(combNJetPt30Eta24)); // Correction for muon acceptance
       const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency             
       const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency 
       //The overall correction factor                                                                                                          

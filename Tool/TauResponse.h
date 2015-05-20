@@ -23,7 +23,7 @@ public:
   // distributions are valid. Corresponds to the
   // muon acceptance in the analysis.
   static double ptMin() { return ptMin(0); }
-  static double etaMax() { return 2.4; }
+  static double etaMax() { return 2.1; }
 
   // Pt bin edges
   static double ptMin(unsigned int ptBin);

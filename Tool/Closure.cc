@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
   tr.registerFunction(&passBaselineFunc);
 // Add cleanJets function
   stopFunctions::cjh.setMuonIso("mini");
-  stopFunctions::cjh.setElecIso("mini");
+  //  stopFunctions::cjh.setElecIso("mini");
   tr.registerFunction(&stopFunctions::cleanJets);
 
   BaseHistgram myBaseHistgram;
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
   TauResponse tauResp(respTempl);
 
-  TRandom3 * rndm = new TRandom3();
+  TRandom3 * rndm = new TRandom3(12345);
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
 
@@ -169,6 +169,7 @@ int main(int argc, char* argv[]) {
   std::cout<<"\nentries : "<<entries<<std::endl;
 
   std::vector<double> trueVec(nSR), predVec(nSR), pred_from_taumuVec(nSR);
+  int cnt_nomtw=0,cnt_mtw=0;
 
   // Loop over the events (tree entries)
   int k = 0;
@@ -248,8 +249,13 @@ int main(int argc, char* argv[]) {
       if( muLVec.Pt() < TauResponse::ptMin() ) continue;
       if( fabs(muLVec.Eta()) > TauResponse::etaMax() ) continue;
 
-// Find events that contain W->tau->mu
-// Note that any code using gen info should be checked if they work for data or not!
+      //mtW correction
+      const double mtw = calcMT(muLVec, metLVec);
+      bool pass_mtw = false;
+      if(mtw<100)pass_mtw = true;
+
+      // Find events that contain W->tau->mu
+      // Note that any code using gen info should be checked if they work for data or not!
       bool istaumu = false, istaumu_genRecoMatch = false;
       for(unsigned int ig=0; ig<W_tau_emuVec.size(); ig++){
          int genIdx = W_tau_emuVec.at(ig);
@@ -403,6 +409,10 @@ int main(int argc, char* argv[]) {
 
       if(!passTopTagger) continue;
       
+      //mtw count
+      cnt_nomtw++;
+      if(pass_mtw)cnt_mtw++;
+
       //Activity variable calculation:
       double muact = AnaFunctions::getMuonActivity(muLVec, jetsLVec, tr.getVec<double>("recoJetschargedHadronEnergyFraction"), tr.getVec<double>("recoJetschargedEmEnergyFraction"),AnaConsts::muonsAct);
 
@@ -438,6 +448,14 @@ int main(int argc, char* argv[]) {
     }//control sample loop
   }
   // --- Save the Histograms to File -----------------------------------
+  std::cout<<"lastbin:"<<myBaseHistgram.hPredmet->GetBinContent(myBaseHistgram.hPredmet->GetXaxis()->GetNbins())<<std::endl;
+  std::cout<<"overflow:"<<myBaseHistgram.hPredmet->GetBinContent(myBaseHistgram.hPredmet->GetXaxis()->GetNbins() + 1)<<std::endl;
+
+  drawOverFlowBin(myBaseHistgram.hPredmet);
+  drawOverFlowBin(myBaseHistgram.hTruemet);
+  std::cout<<"newlastbin:"<<myBaseHistgram.hPredmet->GetBinContent(myBaseHistgram.hPredmet->GetXaxis()->GetNbins())<<std::endl;
+  drawOverFlowBin(myBaseHistgram.hPredMT2);
+  drawOverFlowBin(myBaseHistgram.hTrueMT2);
   (myBaseHistgram.oFile)->Write();
 
 // This print out can be used to extract the corrBRTauToMu ratio
@@ -447,5 +465,6 @@ int main(int argc, char* argv[]) {
   }
   std::cout<<std::endl;
 
+  std::cout<<cnt_nomtw<<"  "<<cnt_mtw<<std::endl;
   return 0;
 }

@@ -31,6 +31,8 @@
 #include "TLorentzVector.h"
 #include "utils.h"
 #include "TauResponse.h"
+#include "Efficiency.h"
+#include "TRandom3.h"
 
 using namespace std;
 
@@ -117,7 +119,9 @@ int main(int argc, char* argv[]) {
 
   TauResponse tauResp(respTempl);
 
-  int genmu1=0, accmu1=0, genmu2=0, accmu2=0, genmu3=0, accmu3=0, genmu4=0, accmu4=0, genmu5=0, accmu5=0, genmu6=0, accmu6=0, genmu7=0, accmu7=0, genmu8=0, accmu8=0, genmu9=0, accmu9=0, genmu10=0, accmu10=0 ;
+  TRandom3 * rndm = new TRandom3(12345);
+
+  int genmu1=0, accmu1=0, genmu2=0, accmu2=0, genmu3=0, accmu3=0, genmu4=0, accmu4=0, genmu5=0, accmu5=0, genmu6=0, accmu6=0, genmu7=0, accmu7=0, genmu8=0, accmu8=0;
 
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
@@ -221,6 +225,11 @@ int main(int argc, char* argv[]) {
 // See comments for similar code in Closure.cc
       double oriJetCSVS = 0;
       if( muJetIdx != -1 ) oriJetCSVS = recoJetsBtag_0.at(muJetIdx);
+
+      double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt));
+      double rno = rndm->Rndm();
+      if( rno < mistag) oriJetCSVS = 1.0;
+    
 
       vector<TLorentzVector> combJetVec;
       vector<double> combJetsBtag;
@@ -343,7 +352,6 @@ int main(int argc, char* argv[]) {
   cout<<"Acceptance6: "<<(float)accmu6/genmu6<<endl;
   cout<<"Acceptance7: "<<(float)accmu7/genmu7<<endl;
   cout<<"Acceptance8: "<<(float)accmu8/genmu8<<endl;
-  cout<<"Acceptance9: "<<(float)accmu9/genmu9<<endl;
-  cout<<"Acceptance10: "<<(float)accmu10/genmu10<<endl;
+
   return 0;
 }

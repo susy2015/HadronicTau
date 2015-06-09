@@ -37,7 +37,7 @@
 using namespace std;
 
 
-void passBaselineFunc(NTupleReader &tr)
+void passBaselineFunc1(NTupleReader &tr)
 {
   bool passBaseline_nolepveto = true;
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     }
   NTupleReader tr(fChain);
   AnaFunctions::prepareTopTagger(); 
-  tr.registerFunction(&passBaselineFunc);
+  tr.registerFunction(&passBaselineFunc1);
 
   //Add cleanjet function and miniIsolatio
   stopFunctions::cjh.setMuonIso("mini");
@@ -288,23 +288,10 @@ int main(int argc, char* argv[]) {
       AnaFunctions::prepareJetsForTagger(combJetVec, combJetsBtag, (*jetsLVec_forTagger_acc), (*recoJetsBtag_forTagger_acc));
       
     //Apply Top tagger
-      int bestTopJetIdx_acc = -1;
-      bool remainPassCSVS_acc = false;
-      int pickedRemainingCombfatJetIdx_acc = -1;
-      double bestTopJetMass_acc = -1;
-
       if(comb30_acc >= AnaConsts::nJetsSel ){
 	type3Ptr->processEvent((*jetsLVec_forTagger_acc), (*recoJetsBtag_forTagger_acc), combmetLVec);
-	bestTopJetIdx_acc = type3Ptr->bestTopJetIdx;
-	remainPassCSVS_acc = type3Ptr->remainPassCSVS;
-	pickedRemainingCombfatJetIdx_acc = type3Ptr->pickedRemainingCombfatJetIdx;
-	if( bestTopJetIdx_acc != -1 ) bestTopJetMass_acc = type3Ptr->bestTopJetLVec.M();
       }
-      bool passTopTagger = true;
-      if( bestTopJetIdx_acc == -1 ){passTopTagger = false; }
-      if( ! remainPassCSVS_acc ){passTopTagger = false; }
-      if( pickedRemainingCombfatJetIdx_acc == -1 && jetsLVec_forTagger_acc->size()>=6 ){passTopTagger = false; }
-      if( ! (bestTopJetMass_acc > AnaConsts::lowTopCut_ && bestTopJetMass_acc < AnaConsts::highTopCut_ ) ){ passTopTagger = false; }
+      bool passTopTagger = type3Ptr->passNewTaggerReq();;
 
       if(!passTopTagger) continue;
 

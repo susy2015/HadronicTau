@@ -27,7 +27,19 @@ int Efficiency::Ptbin(double pt){
   if(pt>=100.) bin =7;
   return bin;
  }
-
+/*
+int Efficiency::Ptbin1(double pt){
+  int bin =0;
+  if(pt>=50. && pt<100.) bin =1;
+  if(pt>=100. && pt<150.) bin =2;
+  if(pt>=150. && pt<180.) bin =3;
+  if(pt>=180. && pt<250.) bin =4;
+  if(pt>=250. && pt<300.) bin =5;
+  if(pt>=300. && pt<1000.) bin =6;  
+  if(pt>=1000.) bin =7;
+  return bin;
+ }
+*/
 int Efficiency::Ptbin1(double pt){
   int bin =0;
   if(pt>=25. && pt<50.) bin =1;
@@ -37,10 +49,10 @@ int Efficiency::Ptbin1(double pt){
   if(pt>=125. && pt<150.) bin =5;
   if(pt>=150. && pt<175.) bin =6;
   if(pt>=175. && pt<200.) bin =7;
-  if(pt>=200. && pt<1000.) bin =8;  
+  if(pt>=200. && pt<1000.) bin =8;
   if(pt>1000.) bin =9;
   return bin;
- }
+}
 
 int Efficiency::Actbin(double act){
   int bin =0;
@@ -92,7 +104,8 @@ double Efficiency::taumucor(int ptbin){
  }
 
 double Efficiency::acc(int njetbin){
-  double mu_acc[8] = {0.5982, 0.7331, 0.7921, 0.8443, 0.8577, 0.8889, 0.8689, 0.9108};
+    double mu_acc[8] = {0.5982, 0.7331, 0.7921, 0.8443, 0.8577, 0.8889, 0.8689, 0.9108};
+  //double mu_acc[8] = {0.5815, 0.7284, 0.7898, 0.8431, 0.8591, 0.8882, 0.8663, 0.91};
   double acc = mu_acc[njetbin];
   return acc;
 }
@@ -100,6 +113,7 @@ double Efficiency::acc(int njetbin){
 
 double Efficiency::mistag(int ptbin){
   double mistag[10] ={0.003, 0.1251, 0.1131, 0.1602, 0.156, 0.1802, 0.24, 0.4348, 0.4571, 0.4571};
+  //double mistag[8] ={0.1131, 0.1273, 0.1628, 0.2758, 0.4375, 0.4286, 0.5, 0.5};
   double rate = mistag[ptbin];
   return rate;
 }

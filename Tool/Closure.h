@@ -28,6 +28,7 @@ class BaseHistgram
   TH1D *hPredNTops;
   TH1D *hPredMT2;
   TH1D *hPredmTcomb;
+  TH1D *hPredYields;
 
   TH1D *hTrueHt;
   TH1D *hTruemet;
@@ -36,6 +37,7 @@ class BaseHistgram
   TH1D *hTrueNTops;
   TH1D *hTrueMT2;
   TH1D *hTruemTcomb;
+  TH1D *hTrueYields;
   const TString title = "Hadronic-Tau Closure Test";
 };
 
@@ -56,6 +58,14 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hPredMT2->Sumw2();
   hPredmTcomb = new TH1D("hPredmTcomb",title+";M_{Tb}+0.5*M_{Tt}[GeV];Events",50,0,1000);
   hPredmTcomb->Sumw2();
+  hPredYields = new TH1D("hPredYields", title+";search bin;Events",49,-0.5,48.5);
+  hPredYields->Sumw2();
+  hPredYields->GetXaxis()->SetBinLabel(49,"baseline");
+  for(int bin = 1; bin < hPredYields->GetNbinsX(); ++bin) {
+    TString label = "Bin ";
+    label += bin;
+    hPredYields->GetXaxis()->SetBinLabel(bin,label);
+  }
 
   hTrueHt = new TH1D("hTrueHt",title+";H_{T} [GeV];Events",25,200.,2000.);
   hTrueHt->Sumw2();
@@ -71,6 +81,14 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hTrueMT2->Sumw2();
   hTruemTcomb = new TH1D("hTruemTcomb",title+";M_{Tb}+0.5*M_{Tt}[GeV];Events",50,0,1000);
   hTruemTcomb->Sumw2();
+  hTrueYields = new TH1D("hTrueYields", title+";search bin;Events",49,-0.5,48.5);
+  hTrueYields->Sumw2();
+  hTrueYields->GetXaxis()->SetBinLabel(49,"baseline");
+  for(int bin = 1; bin < hTrueYields->GetNbinsX(); ++bin) {
+    TString label = "Bin ";
+    label += bin-1;
+    hTrueYields->GetXaxis()->SetBinLabel(bin,label);
+  }
 }
 
 bool FillChain(TChain *chain, const TString &inputFileList)

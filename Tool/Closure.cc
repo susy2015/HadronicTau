@@ -35,7 +35,7 @@
 
 using namespace std;
 
-static const int nSB = 48;
+static const int nSB = 64;
 
 void passBaselineFunc1(NTupleReader &tr)
 {
@@ -158,8 +158,10 @@ int main(int argc, char* argv[]) {
 
   int entries = tr.getNEntries();
   std::cout<<"\nentries : "<<entries<<std::endl; 
-  std::vector<double> pred_from_taumuVec(49);
+  std::vector<double> pred_from_taumuVec(65);
   int cnt_nomtw=0,cnt_mtw=0;
+  std::vector<int> mtw_Vec(65);
+  std::vector<int> nomtw_Vec(65);
 
   // Loop over the events (tree entries)
   int k = 0;
@@ -205,10 +207,10 @@ int main(int argc, char* argv[]) {
     // ] W->tau->had, W->e/mu (e or mu is lost)
     if(W_tau_prongsVec.size() !=0 && passBaseline_tru){
       int jSR = find_Binning_Index(nbJets_tru, nTops_tru, MT2_tru, met);
-      if( jSR!= -1 && (jSR>=0 && jSR<48)) {
+      if( jSR!= -1 ) {
 	myBaseHistgram.hTrueYields->Fill(jSR);
       }
-      myBaseHistgram.hTrueYields->Fill(48);
+      myBaseHistgram.hTrueYields->Fill(64);
     
       myBaseHistgram.hTrueHt->Fill(ht);
       myBaseHistgram.hTruemet->Fill(met);
@@ -392,7 +394,7 @@ int main(int argc, char* argv[]) {
       const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency             
       const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency 
 
-      const double corrmtWEff = 1./0.8897;
+      const double corrmtWEff = 1./0.862265;
       //The overall correction factor                                                                                                          
 //      const double corr = corrBRTauToMu * corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff;
 // For MC, no need of applying the corrBRTauToMu as you know if this event is from W->tau->mu or not
@@ -400,16 +402,30 @@ int main(int argc, char* argv[]) {
   const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff;
 
 // iSR: this should be determined by search region requirement
-  int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
+  const int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
+
+  //mtW correction in each SB
+  nomtw_Vec[64]++;
+  if(kSR!=-1)nomtw_Vec[kSR]++;
+  if(pass_mtw){
+    mtw_Vec[64]++;
+    if(kSR!=-1)mtw_Vec[kSR]++;
+    }
+
   if( !istaumu_genRecoMatch && pass_mtw){
-    if( kSR!=-1 && (kSR>=0 && kSR<48)) {
-    myBaseHistgram.hPredYields->Fill(kSR,corr);
+    if( kSR!=-1) {
+      //correction in each SB  
+      const double SBcorrMuAcc = 1./Efficiency::SBacc(kSR); // Search Bin Correction for muon acceptance
+      const double SBcorrmtWEff = 1./Efficiency::SBmtw(kSR);
+      const double SBcorr = corrBRWToTauHad * SBcorrMuAcc * corrMuRecoEff * corrMuIsoEff * SBcorrmtWEff;
+
+    myBaseHistgram.hPredYields->Fill(kSR,SBcorr);
   }
- myBaseHistgram.hPredYields->Fill(48,corr);
+ myBaseHistgram.hPredYields->Fill(64,corr);
   }
  if( istaumu_genRecoMatch ){
-   pred_from_taumuVec[48] += corr;
-   if(kSR!=-1 && (kSR>=0 && kSR<48)) pred_from_taumuVec[kSR] += corr;
+   pred_from_taumuVec[64] += corr;
+   if(kSR!=-1) pred_from_taumuVec[kSR] += corr;
  }
       // Fill the prediction
       if( !istaumu_genRecoMatch && pass_mtw){
@@ -420,13 +436,11 @@ int main(int argc, char* argv[]) {
          myBaseHistgram.hPredNTops->Fill(nTopCandSortedCnt_pre,corr);
          myBaseHistgram.hPredMT2->Fill(MT2_pre,corr);
          myBaseHistgram.hPredmTcomb->Fill(mTcomb_pre,corr);
+	 myBaseHistgram.hcorrection->Fill(corr);
       }
     }//control sample loop
   }
   // --- Save the Histograms to File -----------------------------------
-  std::cout<<"lastbin:"<<myBaseHistgram.hPredmet->GetBinContent(myBaseHistgram.hPredmet->GetXaxis()->GetNbins())<<std::endl;
-  std::cout<<"overflow:"<<myBaseHistgram.hPredmet->GetBinContent(myBaseHistgram.hPredmet->GetXaxis()->GetNbins() + 1)<<std::endl;
-
   drawOverFlowBin(myBaseHistgram.hPredmet);
   drawOverFlowBin(myBaseHistgram.hTruemet);
   drawOverFlowBin(myBaseHistgram.hPredMT2);
@@ -437,11 +451,14 @@ int main(int argc, char* argv[]) {
 
 // This print out can be used to extract the corrBRTauToMu ratio
   std::cout<<"\nPrediction in numbers ..."<<std::endl;
-  for(unsigned int ib=0; ib<=nSB; ib++){
-     std::cout<<"ib : "<<ib<<"  "<<pred_from_taumuVec[ib]<<std::endl;
-  }
+  /*  for(unsigned int ib=0; ib<=nSB; ib++){
+    std::cout<<"ib : "<<ib<<"  "<<mtw_Vec[ib]<<"  "<<nomtw_Vec[ib]<<"  "<<std::endl;
+    }*/
   std::cout<<std::endl;
-  std::cout<<"True: "<<myBaseHistgram.hTrueYields->GetBinContent(49)<<"   "<<"Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(49)<<std::endl;
-  std::cout<<cnt_nomtw<<"  "<<cnt_mtw<<std::endl;
+  std::cout<<"True: "<<myBaseHistgram.hTrueYields->GetBinContent(65)<<"   "<<"Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(65)<<std::endl;
+std::cout<<"SB1True: "<<myBaseHistgram.hTrueYields->GetBinContent(1)<<"   "<<"SB1Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(1)<<std::endl;
+std::cout<<"SB64True: "<<myBaseHistgram.hTrueYields->GetBinContent(64)<<"   "<<"SB64Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(64)<<std::endl;
+  //std::cout<<cnt_nomtw<<"  "<<cnt_mtw<<std::endl;
+  // std::cout<<nomtw_Vec[64]<<"  "<<mtw_Vec[64]<<std::endl;
   return 0;
 }

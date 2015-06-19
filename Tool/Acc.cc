@@ -13,6 +13,7 @@
 #include "SusyAnaTools/Tools/samples.h"
 #include "SusyAnaTools/Tools/customize.h"
 #include "SusyAnaTools/Tools/baselineDef.h"
+#include "SusyAnaTools/Tools/searchBins.h"
 #include "TStopwatch.h"
 #include "TString.h"
 #include "SusyAnaTools/Tools/NTupleReader.h"
@@ -36,6 +37,7 @@
 
 using namespace std;
 
+static const int nSB = 64;
 
 void passBaselineFunc1(NTupleReader &tr)
 {
@@ -50,7 +52,7 @@ void passBaselineFunc1(NTupleReader &tr)
   int nIsoTrks = AnaFunctions::countIsoTrks(tr.getVec<TLorentzVector>("loose_isoTrksLVec"), tr.getVec<double>("loose_isoTrks_iso"), tr.getVec<double>("loose_isoTrks_mtw"), AnaConsts::isoTrksArr);
   */
   int nMuons = AnaFunctions::countMuons(tr.getVec<TLorentzVector>("muonsLVec"), tr.getVec<double>("muonsMiniIso"), tr.getVec<double>("muonsMtw"), AnaConsts::muonsMiniIsoArr);
-  int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesRelIso"), tr.getVec<double>("elesMtw"), tr.getVec<unsigned int>("elesisEB"), AnaConsts::elesArr);
+  int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesMiniIso"), tr.getVec<double>("elesMtw"), tr.getVec<unsigned int>("elesisEB"), AnaConsts::elesArr);
 
   //Calculate number of jets and b-tagged jets
   int cntCSVS = AnaFunctions::countCSVS(tr.getVec<TLorentzVector>("jetsLVec"), tr.getVec<double>("recoJetsBtag_0"), AnaConsts::cutCSVS, AnaConsts::bTagArr);
@@ -114,14 +116,15 @@ int main(int argc, char* argv[]) {
 
   //Add cleanjet function and miniIsolatio
   stopFunctions::cjh.setMuonIso("mini");
-  //  stopFunctions::cjh.setElecIso("mini");
+  stopFunctions::cjh.setElecIso("mini");
   tr.registerFunction(&stopFunctions::cleanJets);
 
   TauResponse tauResp(respTempl);
 
   TRandom3 * rndm = new TRandom3(12345);
 
-  int genmu1=0, accmu1=0, genmu2=0, accmu2=0, genmu3=0, accmu3=0, genmu4=0, accmu4=0, genmu5=0, accmu5=0, genmu6=0, accmu6=0, genmu7=0, accmu7=0, genmu8=0, accmu8=0;
+  std::vector<double> accmu_Vec(65);
+  std::vector<double> genmu_Vec(65);
 
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
@@ -222,7 +225,7 @@ int main(int argc, char* argv[]) {
       const double simTauJetE = scale * usedmuLVec.E();
 
       TLorentzVector tauJetLVec; tauJetLVec.SetPtEtaPhiE(simTauJetPt, usedmuLVec.Eta(), usedmuLVec.Phi(), simTauJetE);
-// See comments for similar code in Closure.cc
+      // See comments for similar code in Closure.cc
       double oriJetCSVS = 0;
       if( muJetIdx != -1 ) oriJetCSVS = recoJetsBtag_0.at(muJetIdx);
 
@@ -245,7 +248,7 @@ int main(int argc, char* argv[]) {
       }
       // it's possible that the tau jet is the least energetic jet so that it's not added into the combNJetVec during the loop
       if( !includeTauJet ){ combJetVec.push_back(tauJetLVec); combJetsBtag.push_back(oriJetCSVS); }
-
+      //recompute met
       TLorentzVector combmetLVec;  combmetLVec.SetVectM( (cleanmetLVec - tauJetLVec).Vect(), 0 );
 
       const double combmet = combmetLVec.Pt();
@@ -287,58 +290,36 @@ int main(int argc, char* argv[]) {
       std::vector<TLorentzVector> *jetsLVec_forTagger_acc = new std::vector<TLorentzVector>(); std::vector<double> *recoJetsBtag_forTagger_acc = new std::vector<double>();
       AnaFunctions::prepareJetsForTagger(combJetVec, combJetsBtag, (*jetsLVec_forTagger_acc), (*recoJetsBtag_forTagger_acc));
       
+      int nTopCandSortedCnt_acc = -1;
+      double MT2_acc = -1;
+
     //Apply Top tagger
       if(comb30_acc >= AnaConsts::nJetsSel ){
 	type3Ptr->processEvent((*jetsLVec_forTagger_acc), (*recoJetsBtag_forTagger_acc), combmetLVec);
+	nTopCandSortedCnt_acc = type3Ptr->nTopCandSortedCnt;
+	MT2_acc = type3Ptr->best_had_brJet_MT2;
       }
-      bool passTopTagger = type3Ptr->passNewTaggerReq();;
+      bool passTopTagger = type3Ptr->passNewTaggerReq();
 
       if(!passTopTagger) continue;
 
-      if(nJetPt30Eta24==4){
-	genmu1++;
-	if( passKinCuts ) accmu1++;
+      // iSR: this should be determined by search region requirement
+      int iSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_acc, MT2_acc, combmet);
+      //if(iSR!=-1 && (iSR>=0 && iSR<64)) {
+      if(iSR!=-1) {
+	genmu_Vec[iSR] ++;
+	if( passKinCuts )accmu_Vec[iSR]++;
       }
-      if(nJetPt30Eta24==5){
-        genmu2++;
-        if( passKinCuts ) accmu2++;
-      }
-      if(nJetPt30Eta24==6){
-        genmu3++;
-        if( passKinCuts ) accmu3++;
-      }
-      if(nJetPt30Eta24==7){
-        genmu4++;
-        if( passKinCuts ) accmu4++;
-      }
-      if(nJetPt30Eta24==8){
-        genmu5++;
-        if( passKinCuts ) accmu5++;
-      }
-      if(nJetPt30Eta24==9){
-        genmu6++;
-        if( passKinCuts ) accmu6++;
-      }
-      if(nJetPt30Eta24==10){
-        genmu7++;
-        if( passKinCuts ) accmu7++;
-      }
-      if(nJetPt30Eta24>10){
-        genmu8++;
-        if( passKinCuts ) accmu8++;
-      }
-    }
-  }
-  cout<<"ToTal Event: "<<k<<endl;
-  //  cout<<"Gen Mu: "<<genmu8<<" "<<"Acc Mu: "<<accmu8<<endl;
-  cout<<"Acceptance1: "<<(float)accmu1/genmu1<<endl;
-  cout<<"Acceptance2: "<<(float)accmu2/genmu2<<endl;
-  cout<<"Acceptance3: "<<(float)accmu3/genmu3<<endl;
-  cout<<"Acceptance4: "<<(float)accmu4/genmu4<<endl;
-  cout<<"Acceptance5: "<<(float)accmu5/genmu5<<endl;
-  cout<<"Acceptance6: "<<(float)accmu6/genmu6<<endl;
-  cout<<"Acceptance7: "<<(float)accmu7/genmu7<<endl;
-  cout<<"Acceptance8: "<<(float)accmu8/genmu8<<endl;
+      genmu_Vec[64] ++;
+      if( passKinCuts )accmu_Vec[64]++;
 
+    }
+  }//event loop
+
+  cout<<"ToTal Event: "<<k<<endl;
+  cout<<"Acc. nos."<<endl;
+  for(unsigned int jSR=0; jSR<=nSB; jSR++){
+    std::cout<<"jSR : "<<jSR<<"     "<<accmu_Vec[jSR]<<"   "<<genmu_Vec[jSR]<<"   "<<"Acc: "<<accmu_Vec[jSR]/genmu_Vec[jSR]<<std::endl;
+  }
   return 0;
 }

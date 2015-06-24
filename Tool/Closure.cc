@@ -159,7 +159,6 @@ int main(int argc, char* argv[]) {
   int entries = tr.getNEntries();
   std::cout<<"\nentries : "<<entries<<std::endl; 
   std::vector<double> pred_from_taumuVec(65);
-  int cnt_nomtw=0,cnt_mtw=0;
   std::vector<int> mtw_Vec(65);
   std::vector<int> nomtw_Vec(65);
 
@@ -210,7 +209,6 @@ int main(int argc, char* argv[]) {
       if( jSR!= -1 ) {
 	myBaseHistgram.hTrueYields->Fill(jSR);
       }
-      myBaseHistgram.hTrueYields->Fill(64);
     
       myBaseHistgram.hTrueHt->Fill(ht);
       myBaseHistgram.hTruemet->Fill(met);
@@ -276,168 +274,165 @@ int main(int argc, char* argv[]) {
 
       // Get random number from tau-response template
       // The template is chosen according to the muon pt 
-      const double scale = tauResp.getRandom(muLVec.Pt());
-      // Scale muon pt and energy with tau response --> simulate tau jet pt and energy
-      const double simTauJetPt = scale * muLVec.Pt();
-      const double simTauJetE = scale * muLVec.E();
-      const double simTauJetEta = muLVec.Eta();
-      const double simTauJetPhi = muLVec.Phi();
+      vector<TH1*> temp; temp.push_back(tauResp.Resp(muLVec.Pt()));
 
-      TLorentzVector tauJetLVec; tauJetLVec.SetPtEtaPhiE(simTauJetPt, simTauJetEta, simTauJetPhi, simTauJetE);
+      //Loop over template bin  
+      for(int ib = 1; ib<=50; ib++){
+	const double scale = temp.at(0)->GetBinCenter(ib);
+	const double weight = temp.at(0)->GetBinContent(ib);
+	// Scale muon pt and energy with tau response --> simulate tau jet pt and energy
+	const double simTauJetPt = scale * muLVec.Pt();
+	const double simTauJetE = scale * muLVec.E();
+	const double simTauJetEta = muLVec.Eta();
+	const double simTauJetPhi = muLVec.Phi();
+
+	TLorentzVector tauJetLVec; tauJetLVec.SetPtEtaPhiE(simTauJetPt, simTauJetEta, simTauJetPhi, simTauJetE);
       // Decide the CSV value for the tau jet -> use the CSV of the associated muon-jet as the tau jet CSV
       // Default set to be 0 (low enough to be NOT a b jet)
-      double oriJetCSVS = 0;
-      if( rejectJetIdx_formuVec.at(isomuonsIdxVec.at(0)) != -1 ) oriJetCSVS = recoJetsBtag_0[rejectJetIdx_formuVec.at(isomuonsIdxVec.at(0))];
-      double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt));
-      double rno = rndm->Rndm();
-      if( rno < mistag) oriJetCSVS = 1.0;
+	double oriJetCSVS = 0;
+	if( rejectJetIdx_formuVec.at(isomuonsIdxVec.at(0)) != -1 ) oriJetCSVS = recoJetsBtag_0[rejectJetIdx_formuVec.at(isomuonsIdxVec.at(0))];
+	double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt));
+	double rno = rndm->Rndm();
+	if( rno < mistag) oriJetCSVS = 1.0;
       //      cout<<mistag<<" "<<rno<<endl;      
 
-      vector<TLorentzVector> combNJetVec;
-      vector<double> combJetsBtag;
-
-      bool includeTauJet = false;
-      for(unsigned int ij=0; ij<cleanJetVec.size(); ij++){
-         if( tauJetLVec.Pt() > cleanJetVec.at(ij).Pt() && !includeTauJet ){
+	vector<TLorentzVector> combNJetVec;
+	vector<double> combJetsBtag;
+	bool includeTauJet = false;
+	for(unsigned int ij=0; ij<cleanJetVec.size(); ij++){
+	  if( tauJetLVec.Pt() > cleanJetVec.at(ij).Pt() && !includeTauJet ){
             combNJetVec.push_back(tauJetLVec); combJetsBtag.push_back(oriJetCSVS);
             includeTauJet = true;
-         }
-         combNJetVec.push_back(cleanJetVec.at(ij)); combJetsBtag.push_back(cleanJetBtag.at(ij));
-      }
+	  }
+	  combNJetVec.push_back(cleanJetVec.at(ij)); combJetsBtag.push_back(cleanJetBtag.at(ij));
+	}
       // it's possible that the tau jet is the least energetic jet so that it's not added into the combNJetVec during the loop
-      if( !includeTauJet ){ combNJetVec.push_back(tauJetLVec); combJetsBtag.push_back(oriJetCSVS); }
+	if( !includeTauJet ){ combNJetVec.push_back(tauJetLVec); combJetsBtag.push_back(oriJetCSVS); }
 
-      // Taking into account the simulated tau jet, recompute                                                                                 
-      // HT, MHT, and N(jets)                                                                                                                 
-      double simHt = cleanHt;
-      TLorentzVector simMhtLVec;
+      // Taking into account the simulated tau jet, recompute HT, MHT, and N(jets)
+	double simHt = cleanHt;
+	TLorentzVector simMhtLVec;
 
-      // If simulted tau-jet meets same criteria as as HT jets,                                                                               
-      // recompute HT and MH
+      // If simulted tau-jet meets same criteria as as HT jets,                                                                                     // recompute HT and MHT
      
-      if( tauJetLVec.Pt() > htJetPtMin() && fabs(tauJetLVec.Eta()) < htJetEtaMax()) {
-        simHt += tauJetLVec.Pt();
-      }
+	if( tauJetLVec.Pt() > htJetPtMin() && fabs(tauJetLVec.Eta()) < htJetEtaMax()) {
+	  simHt += tauJetLVec.Pt();
+	}
 
-      if( tauJetLVec.Pt() > mhtJetPtMin() && fabs(tauJetLVec.Eta()) < mhtJetEtaMax()) {
-        simMhtLVec.SetVectM( (selMhtLVec-tauJetLVec).Vect(), 0);
-      }
+	if( tauJetLVec.Pt() > mhtJetPtMin() && fabs(tauJetLVec.Eta()) < mhtJetEtaMax()) {
+	  simMhtLVec.SetVectM( (selMhtLVec-tauJetLVec).Vect(), 0);
+	}
       //recompute met                                                                                                                          
-      TLorentzVector simmetLVec; simmetLVec.SetVectM( (selmetLVec - tauJetLVec).Vect(), 0);
-
-      const double simMht = simMhtLVec.Pt();
-
-      const double simmet = simmetLVec.Pt();
-      const double simmetPhi = simmetLVec.Phi();
+	TLorentzVector simmetLVec; simmetLVec.SetVectM( (selmetLVec - tauJetLVec).Vect(), 0);
+	
+	const double simMht = simMhtLVec.Pt();
+	const double simmet = simmetLVec.Pt();
+	const double simmetPhi = simmetLVec.Phi();
 
       //recompute jetVec
 
-      int combNJetPt30Eta24 = AnaFunctions::countJets(combNJetVec, AnaConsts::pt30Eta24Arr);
-      int combNJetPt50Eta24 = AnaFunctions::countJets(combNJetVec, AnaConsts::pt50Eta24Arr);
+	int combNJetPt30Eta24 = AnaFunctions::countJets(combNJetVec, AnaConsts::pt30Eta24Arr);
+	int combNJetPt50Eta24 = AnaFunctions::countJets(combNJetVec, AnaConsts::pt50Eta24Arr);
 
       //recompute deltaphi
 
-      std::vector<double> * deltaPhiVec = new std::vector<double>();
-      (*deltaPhiVec) = AnaFunctions::calcDPhi(combNJetVec, simmetPhi, 3, AnaConsts::dphiArr);
-      bool passdeltaPhi = true;
-      if( deltaPhiVec->at(0) < AnaConsts::dPhi0_CUT || deltaPhiVec->at(1) < AnaConsts::dPhi1_CUT || deltaPhiVec->at(2) < AnaConsts::dPhi2_CUT){
+	std::vector<double> * deltaPhiVec = new std::vector<double>();
+	(*deltaPhiVec) = AnaFunctions::calcDPhi(combNJetVec, simmetPhi, 3, AnaConsts::dphiArr);
+	bool passdeltaPhi = true;
+	if( deltaPhiVec->at(0) < AnaConsts::dPhi0_CUT || deltaPhiVec->at(1) < AnaConsts::dPhi1_CUT || deltaPhiVec->at(2) < AnaConsts::dPhi2_CUT){
 	  passdeltaPhi = false;
-      }
+	}
 
       //recompute bjet
 
-      int cnt1CSVS = AnaFunctions::countCSVS(combNJetVec, combJetsBtag, AnaConsts::cutCSVS, AnaConsts::bTagArr);
-      bool passbJets = true;
-      if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ) ){
-	 passbJets = false;
-      }
+	int cnt1CSVS = AnaFunctions::countCSVS(combNJetVec, combJetsBtag, AnaConsts::cutCSVS, AnaConsts::bTagArr);
+	bool passbJets = true;
+	if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ) ){
+	  passbJets = false;
+	}
 	
-      //top tagger input
-      int comb30_pre = AnaFunctions::countJets(combNJetVec, AnaConsts::pt30Arr);
-      std::vector<TLorentzVector> *jetsLVec_forTagger_pre = new std::vector<TLorentzVector>(); std::vector<double> *recoJetsBtag_forTagger_pre = new std::vector<double>();
-      AnaFunctions::prepareJetsForTagger(combNJetVec, combJetsBtag, (*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre));
+	//top tagger input
+	int comb30_pre = AnaFunctions::countJets(combNJetVec, AnaConsts::pt30Arr);
+	std::vector<TLorentzVector> *jetsLVec_forTagger_pre = new std::vector<TLorentzVector>(); std::vector<double> *recoJetsBtag_forTagger_pre = new std::vector<double>();
+	AnaFunctions::prepareJetsForTagger(combNJetVec, combJetsBtag, (*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre));
         int nTopCandSortedCnt_pre = -1;
 	double MT2_pre = -1;
 	double mTcomb_pre = -1;
       //Apply baseline cut
 
-      if(combNJetPt30Eta24<AnaConsts::nJetsSelPt30Eta24) continue;
-      if(combNJetPt50Eta24<AnaConsts::nJetsSelPt50Eta24) continue;
-      if(simmet<AnaConsts::defaultMETcut) continue;
-      if(!passdeltaPhi) continue;
-      if(!passbJets) continue;
+	if(combNJetPt30Eta24<AnaConsts::nJetsSelPt30Eta24) continue;
+	if(combNJetPt50Eta24<AnaConsts::nJetsSelPt50Eta24) continue;
+	if(simmet<AnaConsts::defaultMETcut) continue;
+	if(!passdeltaPhi) continue;
+	if(!passbJets) continue;
 
       //Apply Top tagger
-      if(comb30_pre >= AnaConsts::nJetsSel ){
-	 type3Ptr->processEvent((*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre), simmetLVec);
-         nTopCandSortedCnt_pre = type3Ptr->nTopCandSortedCnt;
-         MT2_pre = type3Ptr->best_had_brJet_MT2;
-         mTcomb_pre = type3Ptr->best_had_brJet_mTcomb;
-      }
-
-      bool passTopTagger = type3Ptr->passNewTaggerReq();
-      //New tagger cuts
-      bool passNewCuts = type3Ptr->passNewCuts();
-      if(!passTopTagger) continue;
+	if(comb30_pre >= AnaConsts::nJetsSel ){
+	  type3Ptr->processEvent((*jetsLVec_forTagger_pre), (*recoJetsBtag_forTagger_pre), simmetLVec);
+	  nTopCandSortedCnt_pre = type3Ptr->nTopCandSortedCnt;
+	  MT2_pre = type3Ptr->best_had_brJet_MT2;
+	  mTcomb_pre = type3Ptr->best_had_brJet_mTcomb;
+	}
+	bool passTopTagger = type3Ptr->passNewTaggerReq();
+	if(!passTopTagger) continue;
       
-      //mtw count
-      cnt_nomtw++;
-      if(pass_mtw)cnt_mtw++;
-
-      //Activity variable calculation:
-      double muact = AnaFunctions::getMuonActivity(muLVec, jetsLVec, tr.getVec<double>("recoJetschargedHadronEnergyFraction"), tr.getVec<double>("recoJetschargedEmEnergyFraction"),AnaConsts::muonsAct);
+	//Activity variable calculation:
+	double muact = AnaFunctions::getMuonActivity(muLVec, jetsLVec, tr.getVec<double>("recoJetschargedHadronEnergyFraction"), tr.getVec<double>("recoJetschargedEmEnergyFraction"),AnaConsts::muonsAct);
 
       //correction factor:
-      const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                          
-      const double corrBRTauToMu = Efficiency::taumucor(Efficiency::Ptbin1(muLVec.Pt()));//correction from tauonic mu contamination
-      const double corrMuAcc = 1./Efficiency::acc(Efficiency::Njetbin(combNJetPt30Eta24)); // Correction for muon acceptance
-      const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency             
-      const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency 
+	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                          
+	const double corrBRTauToMu = Efficiency::taumucor(Efficiency::Ptbin1(muLVec.Pt()));//correction from tauonic mu contamination
+	const double corrMuAcc = 1./Efficiency::acc(Efficiency::Njetbin(combNJetPt30Eta24)); // Correction for muon acceptance
+	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency             
+	const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency 
 
-      const double corrmtWEff = 1./0.862265;
+	const double corrmtWEff = 1./0.862265;
       //The overall correction factor                                                                                                          
 //      const double corr = corrBRTauToMu * corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff;
 // For MC, no need of applying the corrBRTauToMu as you know if this event is from W->tau->mu or not
 // However, we need know the fraction so that we can apply it to data (can be got from the printout)
-  const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff;
+	const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * weight;
+
+  // Fill the prediction distribution                                                                                                                 
+	if( !istaumu_genRecoMatch && pass_mtw){
+	  myBaseHistgram.hPredHt->Fill(simHt,corr);
+	  myBaseHistgram.hPredmet->Fill(simmet,corr);
+	  myBaseHistgram.hPredNJets->Fill(combNJetPt30Eta24,corr);
+	  myBaseHistgram.hPredNbJets->Fill(cnt1CSVS,corr);
+	  myBaseHistgram.hPredNTops->Fill(nTopCandSortedCnt_pre,corr);
+	  myBaseHistgram.hPredMT2->Fill(MT2_pre,corr);
+	  myBaseHistgram.hPredmTcomb->Fill(mTcomb_pre,corr);
+	  myBaseHistgram.hcorrection->Fill(corr);
+	}
 
 // iSR: this should be determined by search region requirement
-  const int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
-
-  //mtW correction in each SB
-  nomtw_Vec[64]++;
-  if(kSR!=-1)nomtw_Vec[kSR]++;
-  if(pass_mtw){
-    mtw_Vec[64]++;
-    if(kSR!=-1)mtw_Vec[kSR]++;
-    }
-
-  if( !istaumu_genRecoMatch && pass_mtw){
-    if( kSR!=-1) {
+	const int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
+  //Fill search bin prediction
+	if( !istaumu_genRecoMatch && pass_mtw){
+	  if( kSR!=-1) {
       //correction in each SB  
-      const double SBcorrMuAcc = 1./Efficiency::SBacc(kSR); // Search Bin Correction for muon acceptance
-      const double SBcorrmtWEff = 1./Efficiency::SBmtw(kSR);
-      const double SBcorr = corrBRWToTauHad * SBcorrMuAcc * corrMuRecoEff * corrMuIsoEff * SBcorrmtWEff;
+	    const double SBcorrMuAcc = 1./Efficiency::SBacc(kSR); // Search Bin Correction for muon acceptance
+	    const double SBcorrmtWEff = 1./Efficiency::SBmtw(kSR);
+	    const double SBcorr = corrBRWToTauHad * SBcorrMuAcc * corrMuRecoEff * corrMuIsoEff * SBcorrmtWEff * weight;
 
-    myBaseHistgram.hPredYields->Fill(kSR,SBcorr);
-  }
- myBaseHistgram.hPredYields->Fill(64,corr);
-  }
- if( istaumu_genRecoMatch ){
-   pred_from_taumuVec[64] += corr;
-   if(kSR!=-1) pred_from_taumuVec[kSR] += corr;
- }
-      // Fill the prediction
-      if( !istaumu_genRecoMatch && pass_mtw){
-         myBaseHistgram.hPredHt->Fill(simHt,corr);
-         myBaseHistgram.hPredmet->Fill(simmet,corr);
-         myBaseHistgram.hPredNJets->Fill(combNJetPt30Eta24,corr);
-         myBaseHistgram.hPredNbJets->Fill(cnt1CSVS,corr);
-         myBaseHistgram.hPredNTops->Fill(nTopCandSortedCnt_pre,corr);
-         myBaseHistgram.hPredMT2->Fill(MT2_pre,corr);
-         myBaseHistgram.hPredmTcomb->Fill(mTcomb_pre,corr);
-	 myBaseHistgram.hcorrection->Fill(corr);
-      }
+	    myBaseHistgram.hPredYields->Fill(kSR,SBcorr);
+	  }
+	}
+
+  //mtW correction in each SB  
+	nomtw_Vec[64]++;
+	if(kSR!=-1)nomtw_Vec[kSR]++;
+	if(pass_mtw){
+	  mtw_Vec[64]++;
+	  if(kSR!=-1)mtw_Vec[kSR]++;
+	}
+  //tau mu contamination
+	if( istaumu_genRecoMatch ){
+	  pred_from_taumuVec[64] += corr;
+	  if(kSR!=-1) pred_from_taumuVec[kSR] += corr;
+	}
+
+      }//template bin loop
     }//control sample loop
   }
   // --- Save the Histograms to File -----------------------------------
@@ -450,15 +445,9 @@ int main(int argc, char* argv[]) {
   (myBaseHistgram.oFile)->Write();
 
 // This print out can be used to extract the corrBRTauToMu ratio
-  std::cout<<"\nPrediction in numbers ..."<<std::endl;
-  /*  for(unsigned int ib=0; ib<=nSB; ib++){
-    std::cout<<"ib : "<<ib<<"  "<<mtw_Vec[ib]<<"  "<<nomtw_Vec[ib]<<"  "<<std::endl;
-    }*/
-  std::cout<<std::endl;
-  std::cout<<"True: "<<myBaseHistgram.hTrueYields->GetBinContent(65)<<"   "<<"Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(65)<<std::endl;
+
 std::cout<<"SB1True: "<<myBaseHistgram.hTrueYields->GetBinContent(1)<<"   "<<"SB1Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(1)<<std::endl;
 std::cout<<"SB64True: "<<myBaseHistgram.hTrueYields->GetBinContent(64)<<"   "<<"SB64Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(64)<<std::endl;
-  //std::cout<<cnt_nomtw<<"  "<<cnt_mtw<<std::endl;
-  // std::cout<<nomtw_Vec[64]<<"  "<<mtw_Vec[64]<<std::endl;
+
   return 0;
 }

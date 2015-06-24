@@ -43,7 +43,7 @@ public:
   // the specified pt
   double getRandom(double pt) const { return resp_.at(ptBin(pt))->GetRandom(); }
 
-
+  TH1* Resp(double pt){ return resp_.at(ptBin(pt));}
 
 private:
   static void checkPtBin(unsigned int ptBin);
@@ -57,7 +57,6 @@ TauResponse::TauResponse(const char *fileName) {
     resp_.push_back(HistReader::get(fileName,TauResponse::name(i)));
   }
 }
-
 
 unsigned int TauResponse::ptBin(double pt) {
   /*  if( pt < ptMin() ) {

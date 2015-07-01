@@ -96,10 +96,10 @@ int main(int argc, char* argv[]) {
 
     // Do the matching
     int tauJetIdx = -1;		// Will store the index of the jet matched to the tau
-    const float deltaRMax = genTauPt < 50. ? 0.2 : 0.1; // Increase deltaRMax at low pt to maintain high-enought matching efficiency
+    //    const float deltaRMax = genTauPt < 50. ? 0.2 : 0.1; // Increase deltaRMax at low pt to maintain high-enought matching efficiency
+    const float deltaRMax = deltaRmax(genTauPt); // Increase deltaRMax at low pt to maintain high-enought matching efficiency
     const unsigned nObj = jetspt.size();
     if( !utils::findTauMatchedObject(tauJetIdx,genvisibleTauEta,genvisibleTauPhi,jetseta,jetsphi,nObj,deltaRMax) ) continue;
-    
 
     // Fill histogram with relative visible energy of the tau
     // ("tau response template") for hadronically decaying taus
@@ -131,4 +131,11 @@ int main(int argc, char* argv[]) {
    (myBaseHistgram.oFile)->Write();
 
    return 0;
+}
+double deltaRmax(double pt){
+  double rmax = 0.25;
+  if(pt>30) rmax = 0.2;
+  if(pt>50) rmax = 0.15;
+  if(pt>100) rmax = 0.1;
+  return rmax;
 }

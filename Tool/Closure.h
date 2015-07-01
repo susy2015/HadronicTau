@@ -29,6 +29,7 @@ class BaseHistgram
   TH1D *hPredMT2;
   TH1D *hPredmTcomb;
   TH1D *hPredYields;
+  TH1D *hPredYields_wt;
 
   TH1D *hTrueHt;
   TH1D *hTruemet;
@@ -60,9 +61,16 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hPredMT2->Sumw2();
   hPredmTcomb = new TH1D("hPredmTcomb",title+";M_{Tb}+0.5*M_{Tt}[GeV];Events",50,0,1000);
   hPredmTcomb->Sumw2();
+  hPredYields_wt = new TH1D("hPredYields_wt", title+";search bin;Events",64,-0.5,63.5);
+  hPredYields_wt->Sumw2();
+  for(int bin = 1; bin <= hPredYields_wt->GetNbinsX(); ++bin) {
+    TString label = "Bin ";
+    label += bin;
+    hPredYields_wt->GetXaxis()->SetBinLabel(bin,label);
+  }
   hPredYields = new TH1D("hPredYields", title+";search bin;Events",64,-0.5,63.5);
   hPredYields->Sumw2();
-  for(int bin = 1; bin < hPredYields->GetNbinsX(); ++bin) {
+  for(int bin = 1; bin <= hPredYields->GetNbinsX(); ++bin) {
     TString label = "Bin ";
     label += bin;
     hPredYields->GetXaxis()->SetBinLabel(bin,label);
@@ -84,7 +92,7 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hTruemTcomb->Sumw2();
   hTrueYields = new TH1D("hTrueYields", title+";search bin;Events",64,-0.5,63.5);
   hTrueYields->Sumw2();
-  for(int bin = 1; bin < hTrueYields->GetNbinsX(); ++bin) {
+  for(int bin = 1; bin <= hTrueYields->GetNbinsX(); ++bin) {
     TString label = "Bin ";
     label += bin;
     hTrueYields->GetXaxis()->SetBinLabel(bin,label);

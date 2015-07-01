@@ -274,12 +274,12 @@ int main(int argc, char* argv[]) {
 
       // Get random number from tau-response template
       // The template is chosen according to the muon pt 
-      vector<TH1*> temp; temp.push_back(tauResp.Resp(muLVec.Pt()));
-
+      TH1F* temp = (TH1F*)tauResp.Resp(muLVec.Pt());
       //Loop over template bin  
       for(int ib = 1; ib<=50; ib++){
-	const double scale = temp.at(0)->GetBinCenter(ib);
-	const double weight = temp.at(0)->GetBinContent(ib);
+	//const double scale = tauResp.getRandom(muLVec.Pt());
+	const double scale = temp->GetBinCenter(ib);
+      	const double weight = temp->GetBinContent(ib) * temp->GetBinWidth(ib);
 	// Scale muon pt and energy with tau response --> simulate tau jet pt and energy
 	const double simTauJetPt = scale * muLVec.Pt();
 	const double simTauJetE = scale * muLVec.E();
@@ -415,7 +415,7 @@ int main(int argc, char* argv[]) {
 	    const double SBcorrmtWEff = 1./Efficiency::SBmtw(kSR);
 	    const double SBcorr = corrBRWToTauHad * SBcorrMuAcc * corrMuRecoEff * corrMuIsoEff * SBcorrmtWEff * weight;
 
-	    myBaseHistgram.hPredYields->Fill(kSR,SBcorr);
+	    myBaseHistgram.hPredYields_wt->Fill(kSR,SBcorr);
 	  }
 	}
 
@@ -434,6 +434,9 @@ int main(int argc, char* argv[]) {
 
       }//template bin loop
     }//control sample loop
+
+    //correct the uncertainties in pred histo
+    TauResponse::Histfill(myBaseHistgram.hPredYields_wt, myBaseHistgram.hPredYields);
   }
   // --- Save the Histograms to File -----------------------------------
   drawOverFlowBin(myBaseHistgram.hPredmet);

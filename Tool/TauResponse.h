@@ -45,6 +45,8 @@ public:
 
   TH1* Resp(double pt){ return resp_.at(ptBin(pt));}
 
+  static void Histfill(TH1* h1, TH1* h2);
+
 private:
   static void checkPtBin(unsigned int ptBin);
 
@@ -110,6 +112,19 @@ void TauResponse::checkPtBin(unsigned int ptBin) {
     std::cerr << "\n\nERROR in TauResponse: pt bin " << ptBin << " out of binning" << std::endl;
     throw std::exception();
   }
+}
+
+void TauResponse::Histfill(TH1* h1, TH1* h2){
+  
+  for (int ibin=1;ibin<=h1->GetNbinsX();ibin++){
+    double bin = h1->GetBinCenter(ibin);
+    double content = h1->GetBinContent(ibin);
+    
+    if (content>0.){
+      h2->Fill(bin,content);
+    }
+  }
+  h1->Reset();
 }
 
 #endif

@@ -69,6 +69,8 @@ int main(int argc, char* argv[]) {
   int k = 0;
   while(tr.getNextEvent()){
     k++;
+    std::vector<double>bjeteta = tr.getVec<double>("bjeteta");
+    std::vector<double>bjetphi = tr.getVec<double>("bjetphi");
     std::vector<double>jetspt = tr.getVec<double>("jetspt");
     std::vector<double>jetseta = tr.getVec<double>("jetseta");
     std::vector<double>jetsphi = tr.getVec<double>("jetsphi");
@@ -96,11 +98,13 @@ int main(int argc, char* argv[]) {
 
     // Do the matching
     int tauJetIdx = -1;		// Will store the index of the jet matched to the tau
+    const double DeltaR = 0.4; //deltaR value to throw taujet overlapped with bjet
     //    const float deltaRMax = genTauPt < 50. ? 0.2 : 0.1; // Increase deltaRMax at low pt to maintain high-enought matching efficiency
     const float deltaRMax = deltaRmax(genTauPt); // Increase deltaRMax at low pt to maintain high-enought matching efficiency
     const unsigned nObj = jetspt.size();
     if( !utils::findTauMatchedObject(tauJetIdx,genvisibleTauEta,genvisibleTauPhi,jetseta,jetsphi,nObj,deltaRMax) ) continue;
-
+    if(utils::findBMatchedTau(tauJetIdx, bjeteta, bjetphi,jetseta, jetsphi, DeltaR))continue;
+    
     // Fill histogram with relative visible energy of the tau
     // ("tau response template") for hadronically decaying taus
     for(unsigned jetIdx = 0; jetIdx < jetspt.size(); ++jetIdx) {	// Loop over reco jets

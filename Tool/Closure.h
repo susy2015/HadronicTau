@@ -23,10 +23,14 @@ class BaseHistgram
 
   TH1D *hPredHt;
   TH1D *hPredmet;
+  TH1D *hPredmet_wt;
   TH1D *hPredNJets;
   TH1D *hPredNbJets;
+  TH1D *hPredNbJets_wt;
   TH1D *hPredNTops;
+  TH1D *hPredNTops_wt;
   TH1D *hPredMT2;
+  TH1D *hPredMT2_wt;
   TH1D *hPredmTcomb;
   TH1D *hPredYields;
   TH1D *hPredYields_wt;
@@ -51,14 +55,22 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hPredHt->Sumw2();
   hPredmet = new TH1D("hPredmet",title+";met [GeV];Events",24,200.,800.);
   hPredmet->Sumw2();
+  hPredmet_wt = new TH1D("hPredmet_wt",title+";met [GeV];Events",24,200.,800.);
+  hPredmet_wt->Sumw2();
   hPredNJets = new TH1D("hPredNJets",title+";N_{jets};Events",10,4,14);
   hPredNJets->Sumw2();
   hPredNbJets = new TH1D("hPredNbJets",title+";N_{bjets};Events",5, 0, 5);
   hPredNbJets->Sumw2();
+  hPredNbJets_wt = new TH1D("hPredNbJets_wt",title+";N_{bjets};Events",5, 0, 5);
+  hPredNbJets_wt->Sumw2();
   hPredNTops = new TH1D("hPredNTops",title+";N_{tops};Events",5, 0, 5);
   hPredNTops->Sumw2();
+  hPredNTops_wt = new TH1D("hPredNTops_wt",title+";N_{tops};Events",5, 0, 5);
+  hPredNTops_wt->Sumw2();
   hPredMT2 = new TH1D("hPredMT2",title+";M_{T2}[GeV];Events",20,0,500);
   hPredMT2->Sumw2();
+  hPredMT2_wt = new TH1D("hPredMT2_wt",title+";M_{T2}[GeV];Events",20,0,500);
+  hPredMT2_wt->Sumw2();
   hPredmTcomb = new TH1D("hPredmTcomb",title+";M_{Tb}+0.5*M_{Tt}[GeV];Events",50,0,1000);
   hPredmTcomb->Sumw2();
   hPredYields_wt = new TH1D("hPredYields_wt", title+";search bin;Events",64,-0.5,63.5);

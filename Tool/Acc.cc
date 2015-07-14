@@ -95,15 +95,16 @@ void passBaselineFunc1(NTupleReader &tr)
 
 // === Main Function ===================================================
 int main(int argc, char* argv[]) {
-  if (argc < 2)
+  if (argc < 3)
     {
-      std::cerr <<"Please give 2 arguments " << "inputList " <<" "<<"input template"<< std::endl;
+      std::cerr <<"Please give 3 arguments " << "inputList " <<" "<<"input template" <<" "<< "outputFileName" <<std::endl;
       std::cerr <<" Valid configurations are " << std::endl;
-      std::cerr <<" ./Acc List1_ttbar.txt HadTau_TauResponseTemplates.root" << std::endl;
+      std::cerr <<" ./Acc List1_ttbar.txt HadTau_TauResponseTemplates.root HadTau_Acc.root" << std::endl;
       return -1;
     }
   const char *inputFileList = argv[1];
   const char *respTempl = argv[2];
+  const char *outFileName = argv[3];
 
   TChain *fChain = new TChain("stopTreeMaker/AUX");
   if(!FillChain(fChain, inputFileList))
@@ -118,6 +119,9 @@ int main(int argc, char* argv[]) {
   stopFunctions::cjh.setMuonIso("mini");
   stopFunctions::cjh.setElecIso("mini");
   tr.registerFunction(&stopFunctions::cleanJets);
+
+  BaseHistgram myBaseHistgram;
+  myBaseHistgram.BookHistgram(outFileName);
 
   TauResponse tauResp(respTempl);
 
@@ -305,21 +309,41 @@ int main(int argc, char* argv[]) {
 
       // iSR: this should be determined by search region requirement
       int iSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_acc, MT2_acc, combmet);
-      //if(iSR!=-1 && (iSR>=0 && iSR<64)) {
       if(iSR!=-1) {
 	genmu_Vec[iSR] ++;
-	if( passKinCuts )accmu_Vec[iSR]++;
+	if( passKinCuts ){
+	  accmu_Vec[iSR]++;
+	  myBaseHistgram.hacc->Fill(iSR);
+	}
+	myBaseHistgram.hgen->Fill(iSR);
       }
       genmu_Vec[64] ++;
-      if( passKinCuts )accmu_Vec[64]++;
-
-    }
+      myBaseHistgram.hgen->Fill(64);
+      if( passKinCuts ){
+	accmu_Vec[64]++;
+	myBaseHistgram.hacc->Fill(64);
+      }
+      //histogram
+      myBaseHistgram.hmet_gen->Fill(combmet);
+      myBaseHistgram.hMT2_gen->Fill(MT2_acc);
+      myBaseHistgram.hNbjet_gen->Fill(cnt1CSVS);
+      myBaseHistgram.hNtop_gen->Fill(nTopCandSortedCnt_acc);
+      if(passKinCuts){
+	myBaseHistgram.hmet_acc->Fill(combmet);
+	myBaseHistgram.hMT2_acc->Fill(MT2_acc);
+	myBaseHistgram.hNbjet_acc->Fill(cnt1CSVS);
+	myBaseHistgram.hNtop_acc->Fill(nTopCandSortedCnt_acc);
+      }
+    }//muon control sample loop
   }//event loop
+
+  (myBaseHistgram.oFile)->Write();
 
   cout<<"ToTal Event: "<<k<<endl;
   cout<<"Acc. nos."<<endl;
   for(unsigned int jSR=0; jSR<=nSB; jSR++){
     std::cout<<"jSR : "<<jSR<<"     "<<accmu_Vec[jSR]<<"   "<<genmu_Vec[jSR]<<"   "<<"Acc: "<<accmu_Vec[jSR]/genmu_Vec[jSR]<<std::endl;
+    std::cout<<"jSR : "<<jSR<<"     "<<myBaseHistgram.hacc->GetBinContent(jSR+1)<<"   "<<myBaseHistgram.hgen->GetBinContent(jSR+1)<<std::endl;
   }
   return 0;
 }

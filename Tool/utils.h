@@ -42,6 +42,18 @@ namespace utils {
     return match;
   }
 
+  bool findBMatchedTau(int matchedObjIdx, std::vector<double> bjeteta, std::vector<double> bjetphi, std::vector<double> jetseta, std::vector<double> jetsphi, double DeltaR){
+    bool match = false;
+    if(matchedObjIdx ==-1 ) return match;
+    double deltaRMin = 100000.;
+    for(unsigned objIdx = 0; objIdx < bjetphi.size(); ++objIdx) { // Loop over objects
+      const double dr = deltaR(jetseta.at(matchedObjIdx), bjeteta.at(objIdx),jetsphi.at(matchedObjIdx), bjetphi.at(objIdx));
+      if( dr < deltaRMin ) deltaRMin = dr;
+    }
+    if(deltaRMin < DeltaR) match = true;
+    return match;
+  }
+
   bool findTauMatchedJet(int &matchedObjIdx, const TLorentzVector &tauLVec, const std::vector<TLorentzVector> &jetsLVec, float deltaRMax){
     matchedObjIdx = -1;
     double deltaRMin = 100000.;

@@ -160,8 +160,6 @@ int main(int argc, char* argv[]) {
   int entries = tr.getNEntries();
   std::cout<<"\nentries : "<<entries<<std::endl; 
   std::vector<double> pred_from_taumuVec(65);
-  std::vector<int> mtw_Vec(65);
-  std::vector<int> nomtw_Vec(65);
 
   // Loop over the events (tree entries)
   int k = 0;
@@ -389,7 +387,7 @@ int main(int argc, char* argv[]) {
 	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency             
 	const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency 
 	//	const double corrMuAcc = 1./Efficiency::acc(Efficiency::Njetbin(combNJetPt30Eta24)); // Correction for muon acceptance
-	const double corrMuAcc = kSR==-1 ? 1/0.7586 : 1./Efficiency::SBacc(kSR); // Correction for muon acceptance
+	const double corrMuAcc = kSR==-1 ? 1/0.748147 : 1./Efficiency::SBacc(kSR); // Correction for muon acceptance
 	const double corrmtWEff = 1./0.862265;
       //The overall correction factor                                                                                                          
 //      const double corr = corrBRTauToMu * corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff;
@@ -423,11 +421,15 @@ int main(int argc, char* argv[]) {
 	}
 
   //mtW correction in each SB  
-	nomtw_Vec[64]++;
-	if(kSR!=-1)nomtw_Vec[kSR]++;
+	myBaseHistgram.hnomtW->Fill(64, weight);
+	if(kSR!=-1){
+	  myBaseHistgram.hnomtW->Fill(kSR, weight);
+	}
 	if(pass_mtw){
-	  mtw_Vec[64]++;
-	  if(kSR!=-1)mtw_Vec[kSR]++;
+	  myBaseHistgram.hmtW->Fill(64, weight);
+	  if(kSR!=-1){
+	    myBaseHistgram.hmtW->Fill(kSR, weight);
+	  }
 	}
   //tau mu contamination
 	if( istaumu_genRecoMatch ){
@@ -440,11 +442,15 @@ int main(int argc, char* argv[]) {
 
     //correct the uncertainties in pred histo
     TauResponse::Histfill(myBaseHistgram.hPredYields_wt, myBaseHistgram.hPredYields);
-    TauResponse::Histfill(myBaseHistgram.hPredmet_wt, myBaseHistgram.hPredmet);
-    TauResponse::Histfill(myBaseHistgram.hPredMT2_wt, myBaseHistgram.hPredMT2);
-    TauResponse::Histfill(myBaseHistgram.hPredNbJets_wt, myBaseHistgram.hPredNbJets);
-    TauResponse::Histfill(myBaseHistgram.hPredNTops_wt, myBaseHistgram.hPredNTops);  
+    TauResponse::Histfill1D(myBaseHistgram.hPredmet_wt, myBaseHistgram.hPredmet);
+    TauResponse::Histfill1D(myBaseHistgram.hPredMT2_wt, myBaseHistgram.hPredMT2);
+    TauResponse::Histfill1D(myBaseHistgram.hPredNbJets_wt, myBaseHistgram.hPredNbJets);
+    TauResponse::Histfill1D(myBaseHistgram.hPredNTops_wt, myBaseHistgram.hPredNTops);  
   }//event loop
+  cout<<myBaseHistgram.hPredMT2->GetBinContent(myBaseHistgram.hPredMT2->GetNbinsX())<<endl;
+  cout<<myBaseHistgram.hPredMT2->GetBinContent(myBaseHistgram.hPredMT2->GetNbinsX()+1)<<endl;
+  cout<<myBaseHistgram.hTrueMT2->GetBinContent(myBaseHistgram.hTrueMT2->GetNbinsX())<<endl;
+  cout<<myBaseHistgram.hTrueMT2->GetBinContent(myBaseHistgram.hTrueMT2->GetNbinsX()+1)<<endl;
   // --- Save the Histograms to File -----------------------------------
   drawOverFlowBin(myBaseHistgram.hPredmet);
   drawOverFlowBin(myBaseHistgram.hTruemet);
@@ -455,9 +461,5 @@ int main(int argc, char* argv[]) {
   (myBaseHistgram.oFile)->Write();
 
 // This print out can be used to extract the corrBRTauToMu ratio
-
-std::cout<<"SB1True: "<<myBaseHistgram.hTrueYields->GetBinContent(1)<<"   "<<"SB1Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(1)<<std::endl;
-std::cout<<"SB64True: "<<myBaseHistgram.hTrueYields->GetBinContent(64)<<"   "<<"SB64Prediction: "<<myBaseHistgram.hPredYields->GetBinContent(64)<<std::endl;
-
   return 0;
 }

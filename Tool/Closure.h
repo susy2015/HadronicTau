@@ -45,6 +45,8 @@ class BaseHistgram
   TH1D *hTrueYields;
   
   TH1D *hcorrection;
+  TH1D *hmtW;
+  TH1D *hnomtW;
   const TString title = "Hadronic-Tau Closure Test";
 };
 
@@ -111,6 +113,11 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   }
   hcorrection = new TH1D("hcorrection", "hcorrection", 20, 0.5, 1.5);
   hcorrection->Sumw2();
+  hmtW = new TH1D("hmtW", "mtW correction;Search bin;Events", 65, -0.5, 64.5);
+  hmtW->Sumw2();
+  hnomtW = new TH1D("hnomtW", "mtW correction;Search bin;Events", 65, -0.5, 64.5);
+  hnomtW->Sumw2();
+
 }
 
 bool FillChain(TChain *chain, const TString &inputFileList)

@@ -31,13 +31,13 @@ class BaseHistgram
 void BaseHistgram::BookHistgram(const char *outFileName)
 {
   oFile = new TFile(outFileName, "recreate");
-  // htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT", 50, 20, 1020);
-  htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT",binnum, bins);
+   htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT", 50, 20, 1020);
+  //  htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT",binnum, bins);
   htauBjetPt_den->Sumw2();
   htauBjetEta_den = new TH1D("htauBjetEta_den", "Hadtau jet eta", 50, -2.4, 2.4);
   htauBjetEta_den->Sumw2(); 
-  //  htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", 50, 20, 1020);
-  htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", binnum, bins);
+    htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", 50, 20, 1020);
+  //htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", binnum, bins);
   htauBjetPt_num->Sumw2();  
   htauBjetEta_num = new TH1D("htauBjetEta_num", "Hadtau Bjet eta", 50, -2.4, 2.4);
   htauBjetEta_num->Sumw2();
@@ -62,3 +62,4 @@ bool FillChain(TChain *chain, const TString &inputFileList)
   std::cout << "No. of Entries in this tree : " << chain->GetEntries() << std::endl;
   return true;
 }
+double deltaRmax(double pt);

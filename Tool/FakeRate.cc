@@ -61,12 +61,13 @@ void passBaselineFunc(NTupleReader &tr)
   //Pass deltaPhi?
   bool passdPhis = true;
   if( dPhiVec->at(0) < AnaConsts::dPhi0_CUT || dPhiVec->at(1) < AnaConsts::dPhi1_CUT || dPhiVec->at(2) < AnaConsts::dPhi2_CUT ){ passBaseline = false; passdPhis = false; }
-  //Pass number of b-tagged jets?
-  bool passBJets = true;
-  if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cntCSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cntCSVS < AnaConsts::high_nJetsSelBtagged ) ) ){ passBaseline = false; passBJets = false; }
   //Pass the baseline MET requirement?
   bool passMET = true;
   if( tr.getVar<double>("met") < AnaConsts::defaultMETcut ){ passBaseline = false; passMET = false; }
+  /*  
+//Pass number of b-tagged jets?
+  bool passBJets = true;
+  if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cntCSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cntCSVS < AnaConsts::high_nJetsSelBtagged ) ) ){ passBaseline = false; passBJets = false; }
   //Calculate top tagger related variables.
   //Note that to save speed, only do the calculation after previous base line requirements.
   int nTopCandSortedCnt = -1;
@@ -82,9 +83,10 @@ void passBaselineFunc(NTupleReader &tr)
   bool passTagger = type3Ptr->passNewTaggerReq();
   //bestTopJetIdx != -1 means at least 1 top candidate!
   if( !passTagger ) passBaseline = false;
+  */
     //register new var
   tr.registerDerivedVar("passBaseline", passBaseline);
-  tr.registerDerivedVar("cntCSVS", cntCSVS);
+  //tr.registerDerivedVar("cntCSVS", cntCSVS);
 }
 
 // === Main Function ===================================================
@@ -132,7 +134,7 @@ int main(int argc, char* argv[]) {
   const vector<int> &W_tau_prongsVec = tr.getVec<int>("W_tau_prongsVec");
   const vector<TLorentzVector> &jetsLVec = tr.getVec<TLorentzVector>("jetsLVec");
   const vector<double> &recoJetsBtag_0 = tr.getVec<double>("recoJetsBtag_0");
-  const int nbJets = tr.getVar<int>("cntCSVS");
+  //const int nbJets = tr.getVar<int>("cntCSVS");
   bool passBaseline = tr.getVar<bool>("passBaseline");
 
   // Select only events where the W decayed into a hadronically decaying tau
@@ -163,33 +165,29 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  std::vector<TLorentzVector> cleanJetVec;
-  std::vector<double> cleanJetBtag;
-
   for(unsigned int it=0; it< genvisiblehadtauLVec.size();it++){
 
+    std::vector<TLorentzVector> cleanJetVec;
+    std::vector<double> cleanJetBtag;
 // Kinematic variables of generator-level tau
     TLorentzVector genTauLVec = genvisiblehadtauLVec.at(it);
 
-    if( genTauLVec.Pt() < TauResponse::ptMin() ) continue;
-    if( fabs(genTauLVec.Eta()) > TauResponse::etaMax() ) continue;
   // Do the matching
     int tauJetIdx = -1; // Will store the index of the jet matched to the tau
-    const float deltaRMax = genTauLVec.Pt() < 50. ? 0.2 : 0.1; // Increase deltaRMax at low pt to maintain high-enought matching efficiency
+    //const float deltaRMax = genTauLVec.Pt() < 50. ? 0.2 : 0.1; // Increase deltaRMax at low pt to maintain high-enought matching efficiency
+    const float deltaRMax = deltaRmax(genTauLVec.Pt()); // Increase deltaRMax at low pt to maintain high-enought matching efficiency
     if( !utils::findTauMatchedJet(tauJetIdx,genTauLVec,jetsLVec,deltaRMax) ) continue;
 
     myBaseHistgram.htauBjetEta_den->Fill(jetsLVec.at(tauJetIdx).Eta(), scale);
     myBaseHistgram.htauBjetPt_den->Fill(jetsLVec.at(tauJetIdx).Pt(), scale);
-    for(int jetIdx = 0; jetIdx < jetsLVec.size(); ++jetIdx) { // Loop over reco jets
-      // select the jet if it is the tau
-      if( jetIdx == tauJetIdx ){
-      cleanJetVec.push_back(jetsLVec.at(jetIdx));
-      cleanJetBtag.push_back(recoJetsBtag_0.at(jetIdx));
-      }
-    }//finish jet loop
-    int cnt1CSVS = AnaFunctions::countCSVS(cleanJetVec, cleanJetBtag, AnaConsts::cutCSVS, AnaConsts::bTagArr);
-    if( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ){
 
+      // select the had-tau jet
+      cleanJetVec.push_back(jetsLVec.at(tauJetIdx));
+      cleanJetBtag.push_back(recoJetsBtag_0.at(tauJetIdx));
+
+    int cnt1CSVS = AnaFunctions::countCSVS(cleanJetVec, cleanJetBtag, AnaConsts::cutCSVS, AnaConsts::bTagArr);
+    //if( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ){
+    if(cnt1CSVS>=1){
       myBaseHistgram.htauBjetEta_num->Fill(jetsLVec.at(tauJetIdx).Eta(), scale);
       myBaseHistgram.htauBjetPt_num->Fill(jetsLVec.at(tauJetIdx).Pt(), scale);
     }
@@ -215,4 +213,11 @@ int main(int argc, char* argv[]) {
   */
 
   return 0;
+}
+double deltaRmax(double pt){
+  double rmax = 0.25;
+  if(pt>30) rmax = 0.2;
+  if(pt>50) rmax = 0.15;
+  if(pt>100) rmax = 0.1;
+  return rmax;
 }

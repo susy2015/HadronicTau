@@ -58,13 +58,14 @@ void passBaselineFunc(NTupleReader &tr)
   bool passnJets = true;
   if( cntNJetsPt50Eta24 < AnaConsts::nJetsSelPt50Eta24 ){ passBaseline = false; passnJets = false;}
   if( cntNJetsPt30Eta24 < AnaConsts::nJetsSelPt30Eta24 ){ passBaseline = false; passnJets = false;}
+  /*
   //Pass deltaPhi?
   bool passdPhis = true;
   if( dPhiVec->at(0) < AnaConsts::dPhi0_CUT || dPhiVec->at(1) < AnaConsts::dPhi1_CUT || dPhiVec->at(2) < AnaConsts::dPhi2_CUT ){ passBaseline = false; passdPhis = false; }
   //Pass the baseline MET requirement?
   bool passMET = true;
   if( tr.getVar<double>("met") < AnaConsts::defaultMETcut ){ passBaseline = false; passMET = false; }
-  /*  
+  
 //Pass number of b-tagged jets?
   bool passBJets = true;
   if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cntCSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cntCSVS < AnaConsts::high_nJetsSelBtagged ) ) ){ passBaseline = false; passBJets = false; }
@@ -86,7 +87,8 @@ void passBaselineFunc(NTupleReader &tr)
   */
     //register new var
   tr.registerDerivedVar("passBaseline", passBaseline);
-  //tr.registerDerivedVar("cntCSVS", cntCSVS);
+  tr.registerDerivedVar("passLeptVeto", passLeptVeto);
+  tr.registerDerivedVar("passnJets", passnJets);
 }
 
 // === Main Function ===================================================
@@ -116,7 +118,6 @@ int main(int argc, char* argv[]) {
   BaseHistgram myBaseHistgram;
   myBaseHistgram.BookHistgram(outFileName);
 
-  //int ntau1=0, ntaub1=0,nb1=0, ntau2=0, ntaub2=0,nb2=0, ntau3=0, ntaub3=0,nb3=0, ntau4=0, ntaub4=0,nb4=0;
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
   int entries = tr.getNEntries();
@@ -134,12 +135,14 @@ int main(int argc, char* argv[]) {
   const vector<int> &W_tau_prongsVec = tr.getVec<int>("W_tau_prongsVec");
   const vector<TLorentzVector> &jetsLVec = tr.getVec<TLorentzVector>("jetsLVec");
   const vector<double> &recoJetsBtag_0 = tr.getVec<double>("recoJetsBtag_0");
-  //const int nbJets = tr.getVar<int>("cntCSVS");
   bool passBaseline = tr.getVar<bool>("passBaseline");
+  bool passLeptVeto = tr.getVar<bool>("passLeptVeto");
+  bool passnJets = tr.getVar<bool>("passnJets");
 
   // Select only events where the W decayed into a hadronically decaying tau
   if(W_tau_prongsVec.size()==0 ) continue;
-  if(!passBaseline) continue;
+  if(!passLeptVeto) continue;
+  if(!passnJets) continue;
 
   std::vector<TLorentzVector>genvisiblehadtauLVec;
 
@@ -194,6 +197,7 @@ int main(int argc, char* argv[]) {
   }//finish gen hadtau loop
   
   }//finish event loop
+  std::cout<<"final event: "<<k<<std::endl;
   /*  myBaseHistgram.hEff_Pt = (TH1D*)myBaseHistgram.htauBjetPt_num->Clone("Ratio");
   myBaseHistgram.hEff_Pt->GetYaxis()->SetRangeUser(0. , 0.7);
   myBaseHistgram.hEff_Pt->Divide(myBaseHistgram.htauBjetPt_den);

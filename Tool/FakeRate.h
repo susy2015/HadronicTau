@@ -25,19 +25,19 @@ class BaseHistgram
   TH1D *htauBjetEta_num;
   TH1D *hEff_Pt;
   TH1D *hEff_Eta;
-  double bins[9] = {0, 50, 75, 100, 125, 150, 175, 200, 1000};
-  int binnum = 8;
+  double bins[18] = {0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 500, 1000};
+  int binnum = 17;
 };
 void BaseHistgram::BookHistgram(const char *outFileName)
 {
   oFile = new TFile(outFileName, "recreate");
-   htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT", 50, 20, 1020);
-  //  htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT",binnum, bins);
+  //htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT", 50, 20, 1020);
+  htauBjetPt_den = new TH1D("htauBjetPt_den", "Hadtau jet pT",binnum, bins);
   htauBjetPt_den->Sumw2();
   htauBjetEta_den = new TH1D("htauBjetEta_den", "Hadtau jet eta", 50, -2.4, 2.4);
   htauBjetEta_den->Sumw2(); 
-    htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", 50, 20, 1020);
-  //htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", binnum, bins);
+  //  htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", 50, 20, 1020);
+  htauBjetPt_num = new TH1D("htauBjetPt_num", "Hadtau Bjet pT", binnum, bins);
   htauBjetPt_num->Sumw2();  
   htauBjetEta_num = new TH1D("htauBjetEta_num", "Hadtau Bjet eta", 50, -2.4, 2.4);
   htauBjetEta_num->Sumw2();

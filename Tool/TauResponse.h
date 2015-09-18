@@ -62,7 +62,7 @@ TauResponse::TauResponse(const char *fileName) {
 }
 
 unsigned int TauResponse::ptBin(double pt) {
-  /*  if( pt < ptMin() ) {
+  /*if( pt < ptMin() ) {
     std::cerr << "\n\nERROR in TauResponse::ptBin" << std::endl;
     std::cerr << "  No response available for pt = " << pt << " < " << ptMin() << std::endl;
     throw std::exception();
@@ -71,11 +71,23 @@ unsigned int TauResponse::ptBin(double pt) {
   unsigned int bin = 0;
   if( pt > 30. )  bin = 1;
   if( pt > 50. )  bin = 2;
-  if( pt > 100. ) bin = 3;
-
+  if( pt > 100. )  bin = 3;
   return bin;
 }
 
+
+/*double TauResponse::ptMin(unsigned int ptBin) {
+  checkPtBin(ptBin);
+  double pt = 20.;
+  if(      ptBin == 1 ) pt = 30.;
+  else if( ptBin == 2 ) pt = 40.;
+  else if( ptBin == 3 ) pt = 50.;
+  else if( ptBin == 4 ) pt = 70.;
+  else if( ptBin == 5 ) pt = 100.;
+  else if( ptBin == 6 ) pt = 150.;
+
+  return pt;
+  }*/
 
 double TauResponse::ptMin(unsigned int ptBin) {
   checkPtBin(ptBin);
@@ -87,6 +99,18 @@ double TauResponse::ptMin(unsigned int ptBin) {
   return pt;
 }
 
+/*double TauResponse::ptMax(unsigned int ptBin) {
+  checkPtBin(ptBin);
+  double pt = 30.;
+  if(      ptBin == 1 ) pt = 40.;
+  else if( ptBin == 2 ) pt = 50.;
+  else if( ptBin == 3 ) pt = 70.;
+  else if( ptBin == 4 ) pt = 100.;
+  else if( ptBin == 5 ) pt = 150.;
+  else if( ptBin == 6 ) pt = 10000.;
+
+  return pt;
+  }*/
 
 double TauResponse::ptMax(unsigned int ptBin) {
   checkPtBin(ptBin);
@@ -97,7 +121,6 @@ double TauResponse::ptMax(unsigned int ptBin) {
 
   return pt;
 }
-
 
 TString TauResponse::name(unsigned int ptBin) {
   checkPtBin(ptBin);

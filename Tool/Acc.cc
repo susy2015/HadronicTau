@@ -105,6 +105,9 @@ int main(int argc, char* argv[]) {
   const char *inputFileList = argv[1];
   const char *respTempl = argv[2];
   const char *outFileName = argv[3];
+  const char *lumiscale = argv[4];
+
+  const double Lumiscale = std::atof(lumiscale);
 
   TChain *fChain = new TChain("stopTreeMaker/AUX");
   if(!FillChain(fChain, inputFileList))
@@ -154,6 +157,7 @@ int main(int argc, char* argv[]) {
     const vector<int> &genDecayIdxVec = tr.getVec<int>("genDecayIdxVec");
     const vector<int> &genDecayPdgIdVec = tr.getVec<int>("genDecayPdgIdVec");
     const vector<int> &W_emuVec = tr.getVec<int>("W_emuVec");
+    const vector<int> &W_tau_emuVec = tr.getVec<int>("W_tau_emuVec");
     const vector<TLorentzVector> &jetsLVec = tr.getVec<TLorentzVector>("jetsLVec");
     const vector<double> &recoJetsBtag_0 = tr.getVec<double>("recoJetsBtag_0");
     int nMuons = tr.getVar<int>("nMuons_CUT2");
@@ -174,6 +178,16 @@ int main(int argc, char* argv[]) {
 
     std::vector<TLorentzVector> cleanJetVec;
     std::vector<double> cleanJetBtag;
+
+    /*    int muflag = 0;
+    if(W_emuVec.size()==1){
+      int idx = W_emuVec.at(0);
+      int pdgid = genDecayPdgIdVec.at(idx);
+      if(abs(pdgid)==13)muflag = 1;
+      }*/
+    // ]W->mu W->qq                                                                                                                                                                                                                        
+    // ]W->mu W->tau->had                                                                                                                                                                                                                  
+    // if(W_emuVec.size()==1 && muflag == 1 && W_tau_emuVec.size()==0){
 
     if(genmuLVec.size()==1){//control sample
       const TLorentzVector pergenmuLVec = genmuLVec.at(0);
@@ -313,43 +327,72 @@ int main(int argc, char* argv[]) {
 	  nTopCandSortedCnt_acc = type3Ptr->nTopCandSortedCnt;
 	  MT2_acc = type3Ptr->best_had_brJet_MT2;
 	}
-	bool passTopTagger = type3Ptr->passNewTaggerReq();
+	bool passTopTagger = type3Ptr->passNewTaggerReq() && nTopCandSortedCnt_acc >= AnaConsts::low_nTopCandSortedSel;
 
 	if(!passTopTagger) continue;
+	double muact = AnaFunctions::getMuonActivity(usedmuLVec, jetsLVec, tr.getVec<double>("recoJetschargedHadronEnergyFraction"), tr.getVec<double>("recoJetschargedEmEnergyFraction"),AnaConsts::muonsAct);
 
 	// iSR: this should be determined by search region requirement
 	int iSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_acc, MT2_acc, combmet);
+
+	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                          
+	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(usedmuLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency             
+	const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(usedmuLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency 
+	const double corrmtWEff = iSR==-1 ? 1./Efficiency::MT2Bin_mtwcorr() : 1./Efficiency::SBmtwTT(iSR);
+
+	const double corr = corrBRWToTauHad * corrMuRecoEff * corrMuIsoEff * corrmtWEff;
+	const double Evt_weight = Lumiscale * weight * corr;
+
 	if(iSR!=-1) {
 	  if( passKinCuts ){
-	    myBaseHistgram.hacc->Fill(iSR, weight);
+	    myBaseHistgram.hacc_wt->Fill(iSR, Evt_weight);
 	  }
-	  myBaseHistgram.hgen->Fill(iSR, weight);
+	  myBaseHistgram.hgen_wt->Fill(iSR, Evt_weight);
 	}
-	myBaseHistgram.hgen->Fill(64, weight);
+	if(cnt1CSVS>=1 && nTopCandSortedCnt_acc>=1 && combmet>=200 && MT2_acc<200){
+	  myBaseHistgram.hgen_wt->Fill(64, Evt_weight);
+	  if( passKinCuts ){
+	    myBaseHistgram.hacc_wt->Fill(64, Evt_weight);
+	  }
+	}
+	myBaseHistgram.hgen_wt->Fill(65, Evt_weight);
 	if( passKinCuts ){
-	  myBaseHistgram.hacc->Fill(64), weight;
+	  myBaseHistgram.hacc_wt->Fill(65, Evt_weight);
 	}
+
 	//histogram
-	myBaseHistgram.hmet_gen->Fill(combmet, weight);
+	//	myBaseHistgram.hNjet_gen_wt->Fill(nJetPt30Eta24, Evt_weight);
+	FillIntAcc(myBaseHistgram.hNjet_gen_wt, nJetPt30Eta24, Evt_weight);
+	/*	myBaseHistgram.hmet_gen->Fill(combmet, weight);
 	myBaseHistgram.hMT2_gen->Fill(MT2_acc, weight);
 	myBaseHistgram.hNbjet_gen->Fill(cnt1CSVS, weight);
 	myBaseHistgram.hNtop_gen->Fill(nTopCandSortedCnt_acc, weight);
+	*/
 	if(passKinCuts){
-	  myBaseHistgram.hmet_acc->Fill(combmet, weight);
+	  //	  myBaseHistgram.hNjet_acc_wt->Fill(nJetPt30Eta24, Evt_weight);
+	  FillIntAcc(myBaseHistgram.hNjet_acc_wt, nJetPt30Eta24, Evt_weight);
+	  /*myBaseHistgram.hmet_acc->Fill(combmet, weight);
 	  myBaseHistgram.hMT2_acc->Fill(MT2_acc, weight);
 	  myBaseHistgram.hNbjet_acc->Fill(cnt1CSVS, weight);
 	  myBaseHistgram.hNtop_acc->Fill(nTopCandSortedCnt_acc, weight);
+	  */	
 	}
+   
       }//template bin loop
     }//muon control sample loop
+    //}//Spacial event criteria
+    //correct the uncertainties in pred histo
+    TauResponse::Histfill(myBaseHistgram.hacc_wt, myBaseHistgram.hacc);
+    TauResponse::Histfill(myBaseHistgram.hgen_wt, myBaseHistgram.hgen);
+    TauResponse::Histfill(myBaseHistgram.hNjet_gen_wt, myBaseHistgram.hNjet_gen);
+    TauResponse::Histfill(myBaseHistgram.hNjet_acc_wt, myBaseHistgram.hNjet_acc); 
   }//event loop
-
   (myBaseHistgram.oFile)->Write();
 
   cout<<"ToTal Event: "<<k<<endl;
   cout<<"Acc. nos."<<endl;
-  for(unsigned int jSR=0; jSR<=nSB; jSR++){
-    std::cout<<"jSR : "<<jSR<<"     "<<myBaseHistgram.hacc->GetBinContent(jSR+1)<<"   "<<myBaseHistgram.hgen->GetBinContent(jSR+1)<<std::endl;
+  for(unsigned int jSR=1; jSR<=myBaseHistgram.hNjet_gen->GetNbinsX(); jSR++){
+    std::cout<<"Bin : "<<jSR<<"     "<<myBaseHistgram.hNjet_acc->GetBinContent(jSR)<<"   "<<myBaseHistgram.hNjet_gen->GetBinContent(jSR)<<std::endl;
   }
   return 0;
 }

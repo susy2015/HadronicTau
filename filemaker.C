@@ -1,5 +1,3 @@
-//Macro for producing intermediate root files(from flat ntuple) which are used to produce responce template.
-//...............................................................................................................
 #include <iostream>
 #include<vector>
 #include <cmath>
@@ -13,11 +11,11 @@
 #include "TH1F.h"
 #include "TStyle.h"
 
-void filemaker1()
+void filemaker()
 {
   TChain *t = new TChain("stopTreeMaker/AUX");
- for(int i=1; i<31; i++){
-   t->Add(Form("/eos/uscms/store/group/lpcsusyhad/PHYS14_720_Mar14_2014_v2/hua/PU20bx25_TTJets_MSDecaysCKM_madgraph-tauola/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/PHYS14_PU20bx25_PHYS14_25_V2-FLAT/150326_161102/0000/stopFlatNtuples_%d.root",i));
+ for(int i=1; i<72; i++){
+   t->Add(Form("/eos/uscms/store/user/lpcsusyhad/PHYS14_720_Mar14_2014_v2/benwu/PU20bx25_WJetsToLNu_HT-600toInf_madgraph-tauola/WJetsToLNu_HT-600toInf_Tune4C_13TeV-madgraph-tauola/PHYS14_PU20bx25_PHYS14_25_V1-FLAT/150430_142404/0000/stopFlatNtuples_%d.root",i));
  }
  cout<<"merging done.."<<endl;
   
@@ -41,13 +39,16 @@ void filemaker1()
   t->SetBranchAddress("W_tau_nuVec", &W_tau_nuVec);
   t->SetBranchAddress("jetsLVec", &jetsLVec);
 
-  std::vector<double> *jetspt, *jetseta, *jetsphi;
+  std::vector<double> *jetspt, *jetseta, *jetsphi, *bjetpt, *bjeteta, *bjetphi;
   std::vector<double> *genhadtaupt, *genhadtaueta, *genhadtauphi, *genvisiblehadtaupt, *genvisiblehadtaueta, *genvisiblehadtauphi;
   int hadtauflag;
-  TFile *f1 = new TFile("hadtau1.root", "RECREATE");
+  TFile *f1 = new TFile("hadtau.root", "RECREATE");
   TTree *nt = new TTree("Hadtau","Hadtau info");
-    TH1F *h1 = new TH1F("h1", "muon pT", 100, 0, 1000);
-    TH1F *h2 = new TH1F("h2", "hadtau pT", 100, 0, 1000);
+  TH1F *h1 = new TH1F("h1", "muon pT", 100, 0, 1000);
+  TH1F *h2 = new TH1F("h2", "hadtau pT", 100, 0, 1000);
+  nt->Branch("bjetpt", "std::vector<double>", &bjetpt, 3200, 0);
+  nt->Branch("bjeteta", "std::vector<double>", &bjeteta, 3200, 0);
+  nt->Branch("bjetphi", "std::vector<double>", &bjetphi, 3200, 0);
   nt->Branch("jetspt", "std::vector<double>", &jetspt, 3200, 0);
   nt->Branch("jetseta", "std::vector<double>", &jetseta, 3200, 0);
   nt->Branch("jetsphi", "std::vector<double>", &jetsphi, 3200, 0);
@@ -61,9 +62,13 @@ void filemaker1()
 
 
   Int_t nentries = (Int_t)t->GetEntries();
+  std::cout<<nentries<<std::endl;
   for(Int_t i=0; i<nentries; i++) {
     t->GetEntry(i);
 
+    bjetpt->clear();
+    bjeteta->clear();
+    bjetphi->clear();
     jetspt->clear();
     jetseta->clear();
     jetsphi->clear();
@@ -89,7 +94,16 @@ void filemaker1()
      }
     hadtauflag =flag;
 
- 
+    for(unsigned ig=0; ig<genDecayLVec->size(); ig++){
+      int pdgId = genDecayPdgIdVec->at(ig);
+      if(abs(pdgId)==5){
+	TLorentzVector genbjetLVec = genDecayLVec->at(ig);
+	bjetpt->push_back(genbjetLVec.Pt());
+	bjeteta->push_back(genbjetLVec.Eta());
+	bjetphi->push_back(genbjetLVec.Phi());
+      }
+    }
+    
     if(W_tau_prongsVec->size()!=0){
 	for(unsigned ig=0; ig<genDecayLVec->size(); ig++){
 	  int pdgId = genDecayPdgIdVec->at(ig);

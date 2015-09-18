@@ -104,7 +104,6 @@ int main(int argc, char* argv[]) {
     const unsigned nObj = jetspt.size();
     if( !utils::findTauMatchedObject(tauJetIdx,genvisibleTauEta,genvisibleTauPhi,jetseta,jetsphi,nObj,deltaRMax) ) continue;
     if(utils::findBMatchedTau(tauJetIdx, bjeteta, bjetphi,jetseta, jetsphi, DeltaR))continue;
-    
     // Fill histogram with relative visible energy of the tau
     // ("tau response template") for hadronically decaying taus
     for(unsigned jetIdx = 0; jetIdx < jetspt.size(); ++jetIdx) {	// Loop over reco jets

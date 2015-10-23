@@ -18,6 +18,14 @@
 static const int nSB = 64; //We use 64 serach bins depending on Nbjet, Ntop, met and MT2 value.
 static const int nTB = nSB + 2;// one extra bin for baseline and another bin for MT2 value less than 200 GeV 
 
+using namespace std;
+
+static BaselineVessel *ExpBaselineVessel;
+void passBaselineFuncExp(NTupleReader& tr)
+{
+  (*ExpBaselineVessel)(tr);
+}
+
 class BaseHistgram
 {
  public:

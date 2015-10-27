@@ -11,7 +11,6 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include "SusyAnaTools/Tools/samples.h"
 #include "SusyAnaTools/Tools/customize.h"
 #include "SusyAnaTools/Tools/baselineDef.h"
 #include "SusyAnaTools/Tools/searchBins.h"
@@ -37,107 +36,132 @@ using namespace std;
 
 // === Main Function ===================================================
 int main(int argc, char* argv[]) {
-  if (argc < 4)
+  if (argc < 5)
     {
-      std::cerr <<"Please give 4 arguments " << "inputList " << " " <<" "<<"input template"<<" "<< "outputFileName" << "Lumiscale factor" << std::endl;
+      std::cerr <<"Please give 4 arguments " << "SampleName " << " "<<"SubsampleName"<<" "<< "Input Template" << "MaxEvent" << std::endl;
       std::cerr <<" Valid configurations are " << std::endl;
-      std::cerr <<" ./Closure ListSpring15_ttbar.txt HadTau_TauResponseTemplates.root HadTau_Closure.root #lumiscale" << std::endl;
+      std::cerr <<" ./Closure WJetsToLNu_LESS WJetsToLNu_HT_100to200 WJetsToLNu_Template.root 1000" << std::endl;
       return -1;
     }
-  const char *inputFileList = argv[1];
-  const char *respTempl = argv[2];  
-  const char *outFileName = argv[3];
-  const char *lumiscale = argv[4];
+  const char *samplename = argv[1];
+  const char *subsamplename = argv[2];  
+  const char *respTempl = argv[3];
+  const char *Maxevent = argv[4];
 
-  const double Lumiscale = std::atof(lumiscale);
+  const int maxevent = std::atoi(Maxevent);
+  bool isData = false;
+  TChain *fChain = 0;
+  if(argc > 5){
+     char *Stratfile = argv[5];
+     char *Filerun = argv[6];
+     int startfile = std::atoi(Stratfile);
+     int filerun = std::atoi(Filerun);
+     if(!FillChain(fChain, samplename, subsamplename, startfile, filerun))
+       {
+	 std::cerr << "Cannot get the tree " << std::endl;
+       }
+  }
+  else{
+    if(!FillChain(fChain, samplename, subsamplename))
+      {
+	std::cerr << "Cannot get the tree " << std::endl;
+      }
+  }
+  double Lumiscale = allSamples[subsamplename].getWeight(); 
   
-  TChain *fChain = new TChain("stopTreeMaker/AUX");
-  if(!FillChain(fChain, inputFileList))
-    {
-      std::cerr << "Cannot get the tree " << std::endl;
-    }
+  TString sampleString(subsamplename);
+  if(sampleString.Contains("Data")){Lumiscale = 1.0; isData = true;}
 
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "HadtauExp";
   ExpBaselineVessel = new BaselineVessel(spec);
-
-  NTupleReader tr(fChain);
+  AnaFunctions::prepareForNtupleReader();
   AnaFunctions::prepareTopTagger();
-  tr.registerFunction(&passBaselineFuncExp);
+  NTupleReader *tr =0;
+  
+  //  if( isData ) tr = new NTupleReader(fChain, AnaConsts::activatedBranchNames_DataOnly);
+  //  else tr = new NTupleReader(fChain, AnaConsts::activatedBranchNames);
+  tr = new NTupleReader(fChain);
+    
+  tr->registerFunction(&passBaselineFuncExp);
 // Add cleanJets function
   stopFunctions::cjh.setMuonIso("mini");
   stopFunctions::cjh.setElecIso("mini");
-  stopFunctions::cjh.setRemove(false);
-  tr.registerFunction(&stopFunctions::cleanJets);
+  stopFunctions::cjh.setRemove(true);
+  tr->registerFunction(&stopFunctions::cleanJets);
 
   BaseHistgram myBaseHistgram;
-  myBaseHistgram.BookHistgram(outFileName);
+  myBaseHistgram.BookHistgram(subsamplename);
 
   TauResponse tauResp(respTempl);
 
   TRandom3 * rndm = new TRandom3(12345);
+
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
 
-  int entries = tr.getNEntries();
-  std::cout<<"\nentries : "<<entries<<std::endl; 
-
+  int entries = tr->getNEntries();
+  
+  std::cout<<"\nentries : "<<entries<<"\t MC Scale: "<<Lumiscale<<std::endl; 
+  cout<<"maxevent: "<<maxevent<<endl;
   // Loop over the events (tree entries)
   int k = 0;
-
-  while(tr.getNextEvent()){
+  while(tr->getNextEvent()){
     k++;
-    
+    if(maxevent>=0 && tr->getEvtNum() > maxevent ) break;
 // Add print out of the progress of looping
-      if( tr.getEvtNum()-1 == 0 || tr.getEvtNum() == entries || (tr.getEvtNum()-1)%(entries/10) == 0 ) std::cout<<"\n   Processing the "<<tr.getEvtNum()-1<<"th event ..."<<std::endl;
+      if( tr->getEvtNum()-1 == 0 || tr->getEvtNum() == entries || (tr->getEvtNum()-1)%(entries/10) == 0 ) std::cout<<"\n   Processing the "<<tr->getEvtNum()-1<<"th event ..."<<std::endl;
 
-    const vector<TLorentzVector> &muonsLVec = tr.getVec<TLorentzVector>("muonsLVec");
-    const vector<double> &muonsRelIso = tr.getVec<double>("muonsRelIso");
-    const vector<double> &muonsMiniIso = tr.getVec<double>("muonsMiniIso");
-    const vector<double> &muonsMtw = tr.getVec<double>("muonsMtw");
-    const vector<TLorentzVector> &genDecayLVec = tr.getVec<TLorentzVector>("genDecayLVec");
-    const vector<int> &genDecayIdxVec = tr.getVec<int>("genDecayIdxVec");
-    const vector<int> &genDecayPdgIdVec = tr.getVec<int>("genDecayPdgIdVec");
-    const vector<int> &W_emuVec = tr.getVec<int>("W_emuVec");
-    const vector<int> &W_tau_emuVec = tr.getVec<int>("W_tau_emuVec");
-    const vector<TLorentzVector> &jetsLVec = tr.getVec<TLorentzVector>("jetsLVec");
-    const vector<double> &recoJetsBtag_0 = tr.getVec<double>("recoJetsBtag_0");
-    const vector<int> &looseisoTrksMatchedJetIdx = tr.getVec<int>("looseisoTrksMatchedJetIdx");
-    const vector<TLorentzVector> &loose_isoTrksLVec = tr.getVec<TLorentzVector>("loose_isoTrksLVec");
-    const vector<double> &loose_isoTrks_iso = tr.getVec<double>("loose_isoTrks_iso");
-    const vector<double> &loose_isoTrks_mtw = tr.getVec<double>("loose_isoTrks_mtw");
-    const vector<int> &loose_isoTrks_pdgId = tr.getVec<int>("loose_isoTrks_pdgId");
-    const vector<int> &W_tau_prongsVec = tr.getVec<int>("W_tau_prongsVec");    
-    const std::vector<int> & muonsFlagIDVec = tr.getVec<int>("muonsFlagMedium");
-    double met=tr.getVar<double>("met");
-    double metphi=tr.getVar<double>("metphi");
-    double ht=tr.getVar<double>("ht");
-    int run = tr.getVar<int>("run");
-    int lumi = tr.getVar<int>("lumi");
-    int event = tr.getVar<int>("event");
+    const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
+    const vector<double> &muonsRelIso = tr->getVec<double>("muonsRelIso");
+    const vector<double> &muonsMiniIso = tr->getVec<double>("muonsMiniIso");
+    const vector<double> &muonsMtw = tr->getVec<double>("muonsMtw");
+    const vector<TLorentzVector> &genDecayLVec = tr->getVec<TLorentzVector>("genDecayLVec");
+    const vector<int> &genDecayIdxVec = tr->getVec<int>("genDecayIdxVec");
+    const vector<int> &genDecayPdgIdVec = tr->getVec<int>("genDecayPdgIdVec");
+    const vector<int> &W_emuVec = tr->getVec<int>("W_emuVec");
+    const vector<int> &W_tau_emuVec = tr->getVec<int>("W_tau_emuVec");
+    const vector<TLorentzVector> &jetsLVec = tr->getVec<TLorentzVector>("jetsLVec");
+    const vector<double> &recoJetsBtag_0 = tr->getVec<double>("recoJetsBtag_0");
+    const vector<int> &looseisoTrksMatchedJetIdx = tr->getVec<int>("looseisoTrksMatchedJetIdx");
+    const vector<TLorentzVector> &loose_isoTrksLVec = tr->getVec<TLorentzVector>("loose_isoTrksLVec");
+    const vector<double> &loose_isoTrks_iso = tr->getVec<double>("loose_isoTrks_iso");
+    const vector<double> &loose_isoTrks_mtw = tr->getVec<double>("loose_isoTrks_mtw");
+    const vector<int> &loose_isoTrks_pdgId = tr->getVec<int>("loose_isoTrks_pdgId");
+    const vector<int> &W_tau_prongsVec = tr->getVec<int>("W_tau_prongsVec");    
+    const std::vector<int> & muonsFlagIDVec = tr->getVec<int>("muonsFlagMedium");
+    const std::vector<double>& recoJetschargedHadronEnergyFraction = tr->getVec<double>("recoJetschargedHadronEnergyFraction");
+    const std::vector<double>& recoJetschargedEmEnergyFraction = tr->getVec<double>("recoJetschargedEmEnergyFraction");
+    double met=tr->getVar<double>("met");
+    double metphi=tr->getVar<double>("metphi");
+    double ht=tr->getVar<double>("ht");
+    int run = tr->getVar<int>("run");
+    int lumi = tr->getVar<int>("lumi");
+    int event = tr->getVar<int>("event");
     
-    int nElectrons = tr.getVar<int>("nElectrons_CUT2"+spec);
-    int nMuons = tr.getVar<int>("nMuons_CUT2"+spec);
-    bool passNoiseEventFilter = tr.getVar<bool>("passNoiseEventFilter"+spec);
+    int nElectrons = tr->getVar<int>("nElectrons_CUT"+spec);
+    int nMuons = tr->getVar<int>("nMuons_CUT"+spec);
+    bool passNoiseEventFilter = tr->getVar<bool>("passNoiseEventFilter"+spec);
 
 
     //Expectation part -- do it before prediction & do NOT skipping events
-    bool passBaseline_tru = tr.getVar<bool>("passBaseline"+spec);
-    bool passLeptVeto_tru = tr.getVar<bool>("passLeptVeto"+spec);
-    bool passIsoTrkVeto_tru = tr.getVar<bool>("passIsoTrkVeto"+spec);
-    bool passnJets_tru = tr.getVar<bool>("passnJets"+spec);
-    bool passdPhis_tru = tr.getVar<bool>("passdPhis"+spec);
-    bool passMET_tru =  tr.getVar<bool>("passMET"+spec);
-    bool passBJets_tru = tr.getVar<bool>("passBJets"+spec);
-    bool passTagger_tru = tr.getVar<bool>("passTagger"+spec);
-    const int nJets_tru = tr.getVar<int>("cntNJetsPt30Eta24"+spec);
-    const int nbJets_tru = tr.getVar<int>("cntCSVS"+spec);
-    const int nTops_tru = tr.getVar<int>("nTopCandSortedCnt"+spec);
-    const double MT2_tru = tr.getVar<double>("MT2_new"+spec);
-    const vector<double> dPhiVec_tru = tr.getVec<double>("dPhiVec"+spec);
+    bool passBaseline_tru = tr->getVar<bool>("passBaseline"+spec);
+    bool passLeptVeto_tru = tr->getVar<bool>("passLeptVeto"+spec);
+    bool passIsoTrkVeto_tru = tr->getVar<bool>("passIsoTrkVeto"+spec);
+    bool passnJets_tru = tr->getVar<bool>("passnJets"+spec);
+    bool passdPhis_tru = tr->getVar<bool>("passdPhis"+spec);
+    bool passMET_tru =  tr->getVar<bool>("passMET"+spec);
+    bool passBJets_tru = tr->getVar<bool>("passBJets"+spec);
+    bool passTagger_tru = tr->getVar<bool>("passTagger"+spec);
+    const int nJets_tru = tr->getVar<int>("cntNJetsPt30Eta24"+spec);
+    const int nbJets_tru = tr->getVar<int>("cntCSVS"+spec);
+    const int nTops_tru = tr->getVar<int>("nTopCandSortedCnt"+spec);
+    const double MT2_tru = tr->getVar<double>("best_had_brJet_MT2"+spec);
+    const vector<double> dPhiVec_tru = tr->getVec<double>("dPhiVec"+spec);
 
     TLorentzVector metLVec; metLVec.SetPtEtaPhiM(met, 0, metphi, 0);
 
+    
     //Event Filter
 
     //Select only events where the W decayed into a hadronically decaying tau
@@ -165,12 +189,12 @@ int main(int argc, char* argv[]) {
     
       // ] W->tau->had, W->tau->had                                                                                                                                                                                                         
       // ] W->tau->had, W->qq                                                                                                                                                                                                               
+  
       if(W_tau_prongsVec.size() !=0 && passBaseline_tru){
 	int jSR = find_Binning_Index(nbJets_tru, nTops_tru, MT2_tru, met);
 	if( jSR!= -1 ) {
 	  myBaseHistgram.hTrueYields->Fill(jSR, Lumiscale);
 	}
-    
 	FillDouble(myBaseHistgram.hTrueHt, ht, Lumiscale);
 	FillDouble(myBaseHistgram.hTruemet, met, Lumiscale);
 	FillDouble(myBaseHistgram.hTrueMT2, MT2_tru, Lumiscale);
@@ -192,6 +216,7 @@ int main(int argc, char* argv[]) {
 	  // Require one and only one muon
 	  // Veto events with additional electrons (same veto criteria as baseline for electrons)
 	  if( nMuons == 1 && nElectrons == AnaConsts::nElectronsSel ) {
+	    
 	    if( nMuons != isomuonsLVec.size() ){ std::cout<<"ERROR ... mis-matching between veto muon and selected muon! Skipping..."<<std::endl; continue; }
 	    const TLorentzVector muLVec = isomuonsLVec.at(0);
 	    // Use only events where the muon is inside acceptance                                                                             
@@ -215,11 +240,11 @@ int main(int argc, char* argv[]) {
 	    }
 
             // "Cross cleaning": find the jet that corresponds to the muon                                                                    
-            const std::vector<TLorentzVector>& cleanJetVec      = tr.getVec<TLorentzVector>("cleanJetVec");
-            const std::vector<double>& cleanJetBtag             = tr.getVec<double>("cleanJetBTag");
+            const std::vector<TLorentzVector>& cleanJetVec      = tr->getVec<TLorentzVector>("cleanJetVec");
+            const std::vector<double>& cleanJetBtag             = tr->getVec<double>("cleanJetBTag");
             // Get the cleaned jet indice (pointing to the jetsLVec) for the corresponding muons                                              
-            const std::vector<int>& rejectJetIdx_formuVec = tr.getVec<int>("rejectJetIdx_formuVec");
-
+            const std::vector<int>& rejectJetIdx_formuVec = tr->getVec<int>("rejectJetIdx_formuVec");
+	  
 	    	    //Implement IsoTrackVeto
 	    if(looseisoTrksMatchedJetIdx.size()!=loose_isoTrksLVec.size())cout<<"Error: isotrack vetor size mismatch"<<endl;
 	    int nisoTotal = 0, nisomu = 0;	    
@@ -289,7 +314,9 @@ int main(int argc, char* argv[]) {
 	      // If simulted tau-jet meets same criteria as as HT jets,
 	      // recompute HT and MHT
 	      
-	      double simHt = AnaFunctions::calcHT(combNJetVec, AnaConsts::pt50Eta24Arr);
+	      double simHt = AnaFunctions::calcHT(combNJetVec, AnaConsts::pt30Eta24Arr);
+	      bool passhtpred = true;
+	      if( simHt < AnaConsts::defaultHTcut )passhtpred = false;
 	      TLorentzVector simMhtLVec;
 	      
 	      for(unsigned int ij=0; ij<combNJetVec.size(); ij++){
@@ -362,7 +389,7 @@ int main(int argc, char* argv[]) {
 	      
 	      
 	      //Activity variable calculation:
-	      double muact = AnaFunctions::getMuonActivity(muLVec, jetsLVec, tr.getVec<double>("recoJetschargedHadronEnergyFraction"), tr.getVec<double>("recoJetschargedEmEnergyFraction"),AnaConsts::muonsAct);
+	      double muact = AnaFunctions::getMuonActivity(muLVec, jetsLVec, recoJetschargedHadronEnergyFraction, recoJetschargedEmEnergyFraction, AnaConsts::muonsAct);
 	      
 	      // iSR: this should be determined by search region requirement
 	      const int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
@@ -408,7 +435,7 @@ int main(int argc, char* argv[]) {
 	      
 	      
 	      // Fill the prediction distribution                                                                                                                 
-	      if( !istaumu_genRecoMatch && pass_mtw){
+	      if( !istaumu_genRecoMatch && pass_mtw && passhtpred){
 		FillDouble(myBaseHistgram.hPredHt, simHt, Evt_corr);
 		FillDouble(myBaseHistgram.hPredmet_wt, simmet, Evt_corr);
 		FillDouble(myBaseHistgram.hPredMT2_wt, MT2_pre, Evt_corr);
@@ -420,7 +447,7 @@ int main(int argc, char* argv[]) {
 	      
 	      
 	      //Fill search bin prediction
-	      if( !istaumu_genRecoMatch && pass_mtw){
+	      if( !istaumu_genRecoMatch && pass_mtw && passhtpred){
 		if( kSR!=-1) {
 		  //correction in each SB  
        

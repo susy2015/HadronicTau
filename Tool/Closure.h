@@ -14,8 +14,9 @@
 #include "TString.h"
 #include "SusyAnaTools/Tools/NTupleReader.h"
 #include "TauResponse.h"
+#include "SusyAnaTools/Tools/samples.h"
 
-static const int nSB = 64; //We use 64 serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 45; //We use 45 serach bins depending on Nbjet, Ntop, met and MT2 value.
 static const int nTB = nSB + 2;// one extra bin for baseline and another bin for MT2 value less than 200 GeV 
 
 using namespace std;
@@ -25,6 +26,9 @@ void passBaselineFuncExp(NTupleReader& tr)
 {
   (*ExpBaselineVessel)(tr);
 }
+
+AnaSamples::SampleSet        allSamples;
+AnaSamples::SampleCollection allCollections(allSamples);
 
 class BaseHistgram
 {
@@ -83,7 +87,9 @@ class BaseHistgram
 
 void BaseHistgram::BookHistgram(const char *outFileName)
 {
-  oFile = new TFile(outFileName, "recreate");
+  TString filename(outFileName);
+  filename+= "_Closure.root";
+  oFile = new TFile(filename, "recreate");
   hPredHt = new TH1D("hPredHt",title+";H_{T} [GeV];Events",25,200.,1000.);
   hPredHt->Sumw2();
   hPredmet = new TH1D("hPredmet",title+";met [GeV];Events",24,200.,800.);
@@ -119,14 +125,14 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hPreddPhi2_wt = new TH1D("hPreddPhi2_wt",title+";dPhi2;Events",16,0,3.2);
   hPreddPhi2_wt->Sumw2();
   
-  hPredYields_wt = new TH1D("hPredYields_wt", title+";search bin;Events",nSB,-0.5,63.5);
+  hPredYields_wt = new TH1D("hPredYields_wt", title+";search bin;Events",nSB,-0.5,44.5);
   hPredYields_wt->Sumw2();
   for(int bin = 1; bin <= hPredYields_wt->GetNbinsX(); ++bin) {
     TString label = "Bin ";
     label += bin;
     hPredYields_wt->GetXaxis()->SetBinLabel(bin,label);
   }
-  hPredYields = new TH1D("hPredYields", title+";search bin;Events",nSB,-0.5,63.5);
+  hPredYields = new TH1D("hPredYields", title+";search bin;Events",nSB,-0.5,44.5);
   hPredYields->Sumw2();
   for(int bin = 1; bin <= hPredYields->GetNbinsX(); ++bin) {
     TString label = "Bin ";
@@ -148,7 +154,7 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hTrueMT2->Sumw2();
   hTruemTcomb = new TH1D("hTruemTcomb",title+";M_{Tb}+0.5*M_{Tt}[GeV];Events",50,0,1000);
   hTruemTcomb->Sumw2();
-  hTrueYields = new TH1D("hTrueYields", title+";search bin;Events",nSB,-0.5,63.5);
+  hTrueYields = new TH1D("hTrueYields", title+";search bin;Events",nSB,-0.5,44.5);
   hTrueYields->Sumw2();
   for(int bin = 1; bin <= hTrueYields->GetNbinsX(); ++bin) {
     TString label = "Bin ";
@@ -173,25 +179,25 @@ void BaseHistgram::BookHistgram(const char *outFileName)
 
   hcorrection = new TH1D("hcorrection", "hcorrection", 20, 0.5, 1.5);
   hcorrection->Sumw2();
-  hmtW = new TH1D("hmtW", "mtW correction;Search bin;Events", nTB, -0.5, 65.5);
+  hmtW = new TH1D("hmtW", "mtW correction;Search bin;Events", nTB, -0.5, 46.5);
   hmtW->Sumw2();
-  hnomtW = new TH1D("hnomtW", "mtW correction;Search bin;Events", nTB, -0.5, 65.5);
+  hnomtW = new TH1D("hnomtW", "mtW correction;Search bin;Events", nTB, -0.5, 46.5);
   hnomtW->Sumw2();
-  hmtW_wt = new TH1D("hmtW_wt", "mtW correction;Search bin;Events", nTB, -0.5, 65.5);
+  hmtW_wt = new TH1D("hmtW_wt", "mtW correction;Search bin;Events", nTB, -0.5, 46.5);
   hmtW_wt->Sumw2();
-  hnomtW_wt = new TH1D("hnomtW_wt", "mtW correction;Search bin;Events", nTB, -0.5, 65.5);
+  hnomtW_wt = new TH1D("hnomtW_wt", "mtW correction;Search bin;Events", nTB, -0.5, 46.5);
   hnomtW_wt->Sumw2();
-  htaumu = new TH1D("htaumu", "taumu contamination;Search bin;Events", nTB, -0.5, 65.5);
+  htaumu = new TH1D("htaumu", "taumu contamination;Search bin;Events", nTB, -0.5, 46.5);
   htaumu->Sumw2();
-  hnotaumu = new TH1D("hnotaumu", "taumu contamination;Search bin;Events", nTB, -0.5, 65.5);
+  hnotaumu = new TH1D("hnotaumu", "taumu contamination;Search bin;Events", nTB, -0.5, 46.5);
   hnotaumu->Sumw2();
-  htaumu_wt = new TH1D("htaumu_wt", "taumu contamination;Search bin;Events", nTB, -0.5, 65.5);
+  htaumu_wt = new TH1D("htaumu_wt", "taumu contamination;Search bin;Events", nTB, -0.5, 46.5);
   htaumu_wt->Sumw2();
-  hnotaumu_wt = new TH1D("hnotaumu_wt", "taumu contamination;Search bin;Events", nTB, -0.5, 65.5);
+  hnotaumu_wt = new TH1D("hnotaumu_wt", "taumu contamination;Search bin;Events", nTB, -0.5, 46.5);
   hnotaumu_wt->Sumw2();
 }
 
-bool FillChain(TChain *chain, const TString &inputFileList)
+/*bool FillChain(TChain *chain, const TString &inputFileList)
 {
   ifstream infile(inputFileList, ifstream::in);
   std::string buffer;
@@ -210,7 +216,29 @@ bool FillChain(TChain *chain, const TString &inputFileList)
     }
   std::cout << "No. of Entries in this tree : " << chain->GetEntries() << std::endl;
   return true;
+}*/
+
+bool FillChain(TChain* &chain, const char *sample, const char *subsample, int startfile = 0, int filerun = -1){
+  bool find = false;  
+  TString samplename(sample), subsamplename(subsample);
+  for(const auto & filelist : allCollections){
+    if(filelist.first!=samplename)continue;
+    for(auto & file : filelist.second){
+      for(const auto & perST : allSamples ){ 
+	string perSubStr;
+	if(perST.second == file ) perSubStr = perST.first;
+	if(perSubStr!=subsamplename)continue;
+	find = true;
+	chain = new TChain(file.treePath.c_str()); 
+	file.addFilesToChain(chain, startfile, filerun);
+      }//file loop
+    }//sample loop
+  }//collection loop
+//chain = new TChain("stopTreeMaker/AUX");
+//chain->Add("root://cmsxrootd-site.fnal.gov//store/user/lpcsusyhad/Spring15_74X_Oct_2015_Ntp_v2X///WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Spring15DR74_Asympt25ns_Ntp_v2_WJetsToLNu_HT-100To200/150928_200340/0000/stopFlatNtuples_1.root"); 
+  return find;
 }
+
 double htJetPtMin(){ return 50;}
 double htJetEtaMax() {return 2.4;}
 double mhtJetPtMin(){return 30;}

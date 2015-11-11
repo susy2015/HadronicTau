@@ -13,11 +13,27 @@
 #include "TMath.h"
 #include "TString.h"
 #include "SusyAnaTools/Tools/NTupleReader.h"
+#include "SusyAnaTools/Tools/samples.h"
 #include "TauResponse.h"
+
+static const int nSB = 45; //We use 45 serach bins depending on Nbjet, Ntop, met and MT2 value.                                               
+static const int nTB = nSB + 2;// one extra bin for baseline and another bin for MT2 value less than 200 GeV                                 
+
+using namespace std;
+
+static BaselineVessel *IsoTrackBaselineVessel;
+void passBaselineFuncIsoTrack(NTupleReader& tr)
+{
+  (*IsoTrackBaselineVessel)(tr);
+}
+
+AnaSamples::SampleSet        allSamples;
+AnaSamples::SampleCollection allCollections(allSamples);
+
 class BaseHistgram
 {
  public:
-  void BookHistgram(const char *);
+  void BookHistgram(const char *, const int&);
   TFile *oFile;
   TH1D *hSB_num;
   TH1D *hSB_den;
@@ -41,15 +57,17 @@ class BaseHistgram
  const int njetbin = sizeof(jetbins)/sizeof(jetbins[0])-1;
  const double bjetbins[5] = {1, 2, 3, 4, 10};
  const int nbjetbin = sizeof(bjetbins)/sizeof(bjetbins[0])-1;
-  //  const std::vector<double> test{1,2,3,4,10};
 };
 
-void BaseHistgram::BookHistgram(const char *outFileName)
+void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
 {
-  oFile = new TFile(outFileName, "recreate");
-  hSB_num = new TH1D("hSB_num", title1+";Search bin;Events", 66, -0.5, 65.5);
+  TString filename(outFileName);
+  TString index(std::to_string(filerun));
+  filename+= "_IsoTrack"+index+".root";
+  oFile = new TFile(filename, "recreate");
+  hSB_num = new TH1D("hSB_num", title1+";Search bin;Events", nTB, -0.5, 46.5);
   hSB_num->Sumw2();
-  hSB_den = new TH1D("hSB_den", title2+";Search bin;Events", 66, -0.5, 65.5);
+  hSB_den = new TH1D("hSB_den", title2+";Search bin;Events", nTB, -0.5, 46.5);
   hSB_den->Sumw2();
   hmet_den = new TH1D("hmet_den", "met", 50, 200, 1200);
   hmet_den->Sumw2();
@@ -77,7 +95,7 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   hNjetNbjet_den->Sumw2();
 }
 
-bool FillChain(TChain *chain, const TString &inputFileList)
+/*bool FillChain(TChain *chain, const TString &inputFileList)
 {
   ifstream infile(inputFileList, ifstream::in);
   std::string buffer;
@@ -96,7 +114,37 @@ bool FillChain(TChain *chain, const TString &inputFileList)
     }
   std::cout << "No. of Entries in this tree : " << chain->GetEntries() << std::endl;
   return true;
+  }*/
+bool FillChain(TChain* &chain, const char *sample, const char *subsample, const int& startfile, const int& filerun){
+  bool find = false;
+  TString samplename(sample), subsamplename(subsample);
+  if(samplename == "null"){
+    chain = new TChain(allSamples[subsample].treePath.c_str());
+    if(allSamples[subsample] != allSamples.null())
+      {
+	allSamples[subsample].addFilesToChain(chain, startfile, filerun);
+	find = true;
+      }
+  }
+  else
+    {
+      for(const auto & filelist : allCollections){
+	if(filelist.first!=samplename)continue;
+	for(auto & file : filelist.second){
+	  for(const auto & perST : allSamples ){
+	    string perSubStr;
+	    if(perST.second == file ) perSubStr = perST.first;
+	    if(perSubStr!=subsamplename)continue;
+	    find = true;
+	    chain = new TChain(file.treePath.c_str());
+	    file.addFilesToChain(chain, startfile, filerun);
+	  }//file loop                                                                                                                   
+	}//sample loop                                                                                                                     
+      }//collection loop                                                                                                                     
+    }
+    return find;
 }
+
 double deltaRmax(double pt);
 bool findTauMatchedisoJet(int matchedObjIdx, const std::vector<TLorentzVector> &genvisiblehadtauLVec, const std::vector<TLorentzVector> &jetsLVec, std::vector<int> &IsotrkMatchedHadtau);
 bool passIsoTrks(const TLorentzVector isoTrksLVec, const double isoTrksIso, const double isoTrksMtw, const int isoTrkspdgId);

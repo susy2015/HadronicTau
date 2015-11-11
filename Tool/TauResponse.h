@@ -46,7 +46,8 @@ public:
   TH1* Resp(double pt){ return resp_.at(ptBin(pt));}
 
   static void Histfill(TH1* h1, TH1* h2);
-static void Histfill1D(TH1* h1, TH1* h2);
+  static void Histfill1D(TH1* h1, TH1* h2);
+  static void Histfill2D(TH2* h1, TH2* h2);
 
 private:
   static void checkPtBin(unsigned int ptBin);
@@ -167,5 +168,15 @@ void TauResponse::Histfill1D(TH1* h1, TH1* h2){
   }
   h1->Reset();
 }
+void TauResponse::Histfill2D(TH2* h1, TH2* h2){
 
+  for (int ibin=1;ibin<=h1->GetNbinsX();ibin++){
+    double binx = h1->GetXaxis()->GetBinCenter(ibin);
+    for (int jbin=1;jbin<=h1->GetNbinsY();jbin++){
+      double biny = h1->GetYaxis()->GetBinCenter(jbin);
+      double content = h1->GetBinContent(ibin, jbin);
+      if (content>0.)h2->Fill(binx, biny, content);
+    }
+  }
+}
 #endif

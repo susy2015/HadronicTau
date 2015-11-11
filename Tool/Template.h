@@ -14,12 +14,18 @@
 #include "TString.h"
 
 #include "SusyAnaTools/Tools/NTupleReader.h"
+#include "SusyAnaTools/Tools/samples.h"
 #include "TauResponse.h"
+
+using namespace std;
+
+AnaSamples::SampleSet        allSamples;
+AnaSamples::SampleCollection allCollections(allSamples);
 
 class BaseHistgram
 {
  public:
-  void BookHistgram(const char *);
+  void BookHistgram(const char *, const int&);
   TFile *oFile;
   std::vector<TH1*> hTauResp;
   std::vector<TH1*> hTauvisible;
@@ -28,9 +34,12 @@ class BaseHistgram
   TString Title2(int j);
 };
 
-void BaseHistgram::BookHistgram(const char *outFileName)
+void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
 {
-  oFile = new TFile(outFileName, "recreate");
+  TString filename(outFileName);
+  TString index(std::to_string(filerun));
+  filename+= "_Template"+index+".root";
+  oFile = new TFile(filename, "recreate");
   for(unsigned int i = 0; i < TauResponse::nBins(); ++i) {
     hTauResp.push_back(new TH1D(TauResponse::name(i),";p_{T}(visible) / p_{T}(generated);Count",50,0.,2.5));
     hTauResp.back()->Sumw2();
@@ -55,7 +64,7 @@ TString BaseHistgram::Title2(int j){
   return title;
 }
 
-bool FillChain(TChain *chain, const TString &inputFileList)
+/*bool FillChain(TChain *chain, const TString &inputFileList)
 {
   ifstream infile(inputFileList, ifstream::in);
   std::string buffer;
@@ -74,5 +83,35 @@ bool FillChain(TChain *chain, const TString &inputFileList)
     }
   std::cout << "No. of Entries in this tree : " << chain->GetEntries() << std::endl;
   return true;
+  }*/
+bool FillChain(TChain* &chain, const char *sample, const char *subsample, const int& startfile, const int& filerun){
+  bool find = false;  
+  TString samplename(sample), subsamplename(subsample);
+  if(samplename == "null"){
+    chain = new TChain(allSamples[subsample].treePath.c_str());
+    if(allSamples[subsample] != allSamples.null())
+      {
+	allSamples[subsample].addFilesToChain(chain, startfile, filerun);
+	find = true;
+      }
+  }
+  else
+    {
+      for(const auto & filelist : allCollections){
+	if(filelist.first!=samplename)continue;
+	for(auto & file : filelist.second){
+	  for(const auto & perST : allSamples ){ 
+	    string perSubStr;
+	    if(perST.second == file ) perSubStr = perST.first;
+	    if(perSubStr!=subsamplename)continue;
+	    find = true;
+	    chain = new TChain(file.treePath.c_str()); 
+	    file.addFilesToChain(chain, startfile, filerun);
+	  }//file loop
+	}//sample loop
+      }//collection loop
+    } 
+  return find;
 }
+
 double deltaRmax(double pt);

@@ -33,7 +33,7 @@ AnaSamples::SampleCollection allCollections(allSamples);
 class BaseHistgram
 {
  public:
-  void BookHistgram(const char *);
+  void BookHistgram(const char *, const int&);
   TFile *oFile;
 
   TH1D *hPredHt;
@@ -85,10 +85,11 @@ class BaseHistgram
   const TString title = "Hadronic-Tau Closure Test";
 };
 
-void BaseHistgram::BookHistgram(const char *outFileName)
+void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
 {
   TString filename(outFileName);
-  filename+= "_Closure.root";
+  TString index(std::to_string(filerun));
+  filename+= "_Closure"+index+".root";
   oFile = new TFile(filename, "recreate");
   hPredHt = new TH1D("hPredHt",title+";H_{T} [GeV];Events",25,200.,1000.);
   hPredHt->Sumw2();
@@ -218,25 +219,36 @@ void BaseHistgram::BookHistgram(const char *outFileName)
   return true;
 }*/
 
-bool FillChain(TChain* &chain, const char *sample, const char *subsample, int startfile = 0, int filerun = -1){
-  bool find = false;  
-  TString samplename(sample), subsamplename(subsample);
-  for(const auto & filelist : allCollections){
-    if(filelist.first!=samplename)continue;
-    for(auto & file : filelist.second){
-      for(const auto & perST : allSamples ){ 
-	string perSubStr;
-	if(perST.second == file ) perSubStr = perST.first;
-	if(perSubStr!=subsamplename)continue;
-	find = true;
-	chain = new TChain(file.treePath.c_str()); 
-	file.addFilesToChain(chain, startfile, filerun);
-      }//file loop
-    }//sample loop
-  }//collection loop
+bool FillChain(TChain* &chain, const char *sample, const char *subsample, const int& startfile, const int& filerun){
+    bool find = false;  
+    TString samplename(sample), subsamplename(subsample);
+    if(samplename == "null"){
+	chain = new TChain(allSamples[subsample].treePath.c_str());
+	if(allSamples[subsample] != allSamples.null())
+	{
+	    allSamples[subsample].addFilesToChain(chain, startfile, filerun);
+	    find = true;
+	}
+    }
+    else
+    {
+	for(const auto & filelist : allCollections){
+	    if(filelist.first!=samplename)continue;
+	    for(auto & file : filelist.second){
+		for(const auto & perST : allSamples ){ 
+		    string perSubStr;
+		    if(perST.second == file ) perSubStr = perST.first;
+		    if(perSubStr!=subsamplename)continue;
+		    find = true;
+		    chain = new TChain(file.treePath.c_str()); 
+		    file.addFilesToChain(chain, startfile, filerun);
+		}//file loop
+	    }//sample loop
+	}//collection loop
+    }
 //chain = new TChain("stopTreeMaker/AUX");
 //chain->Add("root://cmsxrootd-site.fnal.gov//store/user/lpcsusyhad/Spring15_74X_Oct_2015_Ntp_v2X///WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/Spring15DR74_Asympt25ns_Ntp_v2_WJetsToLNu_HT-100To200/150928_200340/0000/stopFlatNtuples_1.root"); 
-  return find;
+    return find;
 }
 
 double htJetPtMin(){ return 50;}

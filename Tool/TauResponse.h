@@ -46,8 +46,10 @@ public:
   TH1* Resp(double pt){ return resp_.at(ptBin(pt));}
 
   static void Histfill(TH1* h1, TH1* h2);
-static void Histfill1D(TH1* h1, TH1* h2);
-
+  static void Histfill1D(TH1* h1, TH1* h2);
+  static void Histfill2D(TH2* h1, TH2* h2);
+  static void Histfill1Dto2D(TH1* h1, TH2* h2);
+  static void HistfillCorr(TH1* h1, TH2* h2);
 private:
   static void checkPtBin(unsigned int ptBin);
 
@@ -144,7 +146,7 @@ void TauResponse::Histfill(TH1* h1, TH1* h2){
     double bin = h1->GetBinCenter(ibin);
     double content = h1->GetBinContent(ibin);
     
-    if (content>0.){
+    if (content!=0.){
       h2->Fill(bin,content);
     }
   }
@@ -156,7 +158,7 @@ void TauResponse::Histfill1D(TH1* h1, TH1* h2){
     double bin = h1->GetBinCenter(ibin);
     double content = h1->GetBinContent(ibin);
 
-    if (content>0.){
+    if (content!=0.){
       h2->Fill(bin,content);
     }
   }
@@ -164,6 +166,52 @@ void TauResponse::Histfill1D(TH1* h1, TH1* h2){
     double lastcontent = h1->GetBinContent(h1->GetNbinsX()+1);
     if (lastcontent>0.){
     h2->Fill(lastbin, lastcontent);
+  }
+  h1->Reset();
+}
+void TauResponse::Histfill2D(TH2* h1, TH2* h2){
+
+  for (int ibin=1;ibin<=h1->GetNbinsX();ibin++){
+    double binx = h1->GetXaxis()->GetBinCenter(ibin);
+    for (int jbin=1;jbin<=h1->GetNbinsY();jbin++){
+      double biny = h1->GetYaxis()->GetBinCenter(jbin);
+      double content = h1->GetBinContent(ibin, jbin);
+      if (content>0.)h2->Fill(binx, biny, content);
+    }
+  }
+}
+void TauResponse::Histfill1Dto2D(TH1* h1, TH2* h2){
+
+  for (int ibin=1;ibin<=h1->GetNbinsX();ibin++){
+    double bin = h1->GetBinCenter(ibin);
+    double content = h1->GetBinContent(ibin);
+
+    if (content!=0.){
+      h2->Fill(bin,content);
+    }
+  }
+  h1->Reset();
+}
+
+void TauResponse::HistfillCorr(TH1* h1, TH2* h2){
+  for (int ibin=0;ibin<h1->GetNbinsX()+2;ibin++){
+    double binX     = h1->GetBinCenter(ibin);
+    double contentX = h1->GetBinContent(ibin);
+    if (contentX != 0.){
+      h2->Fill(binX,binX,contentX); // diagonal entries
+    }
+    for (int jbin=0;jbin<ibin;jbin++){
+      double binY     = h1->GetBinCenter(jbin);
+      double contentY = h1->GetBinContent(jbin);  
+      double content = TMath::Min(contentX,contentY); // how this line works in MC events with negative weights
+      // is not clear yet. Needs to be revisited.
+      //if (content != 0.){
+      //h2->Fill(binX,binY,content); // off-diagonal entries
+      if (contentX != 0. && contentY != 0.){
+	h2->Fill(binX,binY,contentY); // diagonal entries
+	h2->Fill(binY,binX,contentX); // diagonal entries
+      }
+    }
   }
   h1->Reset();
 }

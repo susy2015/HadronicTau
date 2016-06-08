@@ -10,11 +10,12 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-#include "SusyAnaTools/Tools/samples.h"
 #include "SusyAnaTools/Tools/customize.h"
+#include "SusyAnaTools/Tools/baselineDef.h"
+#include "SusyAnaTools/Tools/searchBins.h"
+#include "SusyAnaTools/Tools/NTupleReader.h"
 #include "TStopwatch.h"
 #include "TString.h"
-#include "SusyAnaTools/Tools/NTupleReader.h"
 #include "Acc.h"
 #include "TGraph.h"
 #include "TCanvas.h"
@@ -30,311 +31,499 @@
 #include "TLorentzVector.h"
 #include "utils.h"
 #include "TauResponse.h"
+#include "Efficiency.h"
+#include "TRandom3.h"
 
 using namespace std;
 
 
-void passBaselineFunc(NTupleReader &tr)
-{
-  bool passBaseline_nolepveto = true;
-
-  //Form TLorentzVector of MET
-  TLorentzVector metLVec; metLVec.SetPtEtaPhiM(tr.getVar<double>("met"), 0, tr.getVar<double>("metphi"), 0);
-
-  /*Calculate number of leptons
-  int nMuons = AnaFunctions::countMuons(tr.getVec<TLorentzVector>("muonsLVec"), tr.getVec<double>("muonsRelIso"), tr.getVec<double>("muonsMtw"), AnaConsts::muonsArr);
-  int nElectrons = AnaFunctions::countElectrons(tr.getVec<TLorentzVector>("elesLVec"), tr.getVec<double>("elesRelIso"), tr.getVec<double>("elesMtw"), AnaConsts::elesArr);
-  int nIsoTrks = AnaFunctions::countIsoTrks(tr.getVec<TLorentzVector>("loose_isoTrksLVec"), tr.getVec<double>("loose_isoTrks_iso"), tr.getVec<double>("loose_isoTrks_mtw"), AnaConsts::isoTrksArr);
-  */
-
-  //Calculate number of jets and b-tagged jets
-  int cntCSVS = AnaFunctions::countCSVS(tr.getVec<TLorentzVector>("jetsLVec"), tr.getVec<double>("recoJetsBtag_0"), AnaConsts::cutCSVS, AnaConsts::bTagArr);
-  int cntNJetsPt50Eta24 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt50Eta24Arr);
-  int cntNJetsPt30Eta24 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt30Eta24Arr);
-  int cntNJetsPt30 = AnaFunctions::countJets(tr.getVec<TLorentzVector>("jetsLVec"), AnaConsts::pt30Arr);
-
-  //Calculate deltaPhi
-  std::vector<double> * dPhiVec = new std::vector<double>();
-  (*dPhiVec) = AnaFunctions::calcDPhi(tr.getVec<TLorentzVector>("jetsLVec"), tr.getVar<double>("metphi"), 3, AnaConsts::dphiArr);
-
-  //Pass number of jets?
-  bool passnJets = true;
-  //  if( cntNJetsPt50Eta24 < AnaConsts::nJetsSelPt50Eta24 ){ passBaseline = false; passBaseline_nolepveto = false; passnJets = false;}
-  if( cntNJetsPt30Eta24 < AnaConsts::nJetsSelPt30Eta24 ){passBaseline_nolepveto = false; passnJets = false;}
-
-  //Pass deltaPhi?
-  bool passdPhis = true;
-  if( dPhiVec->at(0) < AnaConsts::dPhi0_CUT || dPhiVec->at(1) < AnaConsts::dPhi1_CUT || dPhiVec->at(2) < AnaConsts::dPhi2_CUT ){passBaseline_nolepveto = false; passdPhis = false; }
-
-  //Pass number of b-tagged jets?
-  bool passBJets = true;
-  if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cntCSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cntCSVS < AnaConsts::high_nJetsSelBtagged ) ) ){ passBaseline_nolepveto = false; passBJets = false; }
-
-  //Pass the baseline MET requirement?
-  bool passMET = true;
-  if( tr.getVar<double>("met") < AnaConsts::defaultMETcut ){passBaseline_nolepveto = false; passMET = false; }
-
-
-  //Register all the calculated variables
-  tr.registerDerivedVar("cntNJetsPt30Eta24", cntNJetsPt30Eta24);
-  tr.registerDerivedVar("passnJets", passnJets);
-  tr.registerDerivedVar("passdPhis", passdPhis);
-  tr.registerDerivedVar("passBJets", passBJets);
-  tr.registerDerivedVar("passMET", passMET);
-  tr.registerDerivedVar("passBaseline_nolepveto", passBaseline_nolepveto);
-
-}
-
 // === Main Function ===================================================
 int main(int argc, char* argv[]) {
-  if (argc < 2)
+  if (argc < 6)
     {
-      std::cerr <<"Please give 2 arguments " << "inputList " <<" "<<"input template"<< std::endl;
+      std::cerr <<"Please give 5 arguments "<<"SubsampleName"<<" Input Template" <<" MaxEvent"<<" Startfile"<<" No. of Files to run"<<std::endl;
       std::cerr <<" Valid configurations are " << std::endl;
-      std::cerr <<" ./Acc List1_ttbar.txt HadTau_TauResponseTemplates.root" << std::endl;
+      std::cerr <<" ./Acc TTbarSingleLep Mixv3_Template.root 1000 0 1" << std::endl;
       return -1;
     }
-  const char *inputFileList = argv[1];
-  const char *respTempl = argv[2];
 
-  TChain *fChain = new TChain("stopTreeMaker/AUX");
-  if(!FillChain(fChain, inputFileList))
+  const char *subsamplename = argv[1];
+  const char *respTempl = argv[2];
+  const char *Maxevent = argv[3];
+  const  char *Stratfile = argv[4];
+  const  char *Filerun = argv[5];
+  const  int startfile = std::atoi(Stratfile);
+  const int filerun = std::atoi(Filerun);
+  TChain *fChain = 0;
+  BaseHistgram myBaseHistgram;
+  myBaseHistgram.BookHistgram(subsamplename, startfile);
+  const string condorSpec = argc==7 ? argv[6]: "";
+  if(!FillChain(fChain, subsamplename, condorSpec, startfile, filerun))
     {
       std::cerr << "Cannot get the tree " << std::endl;
     }
-  NTupleReader tr(fChain);
-  AnaFunctions::prepareTopTagger(); 
-  tr.registerFunction(&passBaselineFunc);
+  const int maxevent = std::atoi(Maxevent);
+  
+  //Use BaselineVessel class for baseline variables and selections
+  std::string spec = "Acc";
+  AccBaselineVessel = new BaselineVessel(spec);
+  AnaFunctions::prepareForNtupleReader();
+  AnaFunctions::prepareTopTagger();
+  NTupleReader *tr =0;
+  tr = new NTupleReader(fChain);
+  tr->registerFunction(&AccpassBaselineFunc);
+  //Add cleanjet function and miniIsolation
+  stopFunctions::cjh.setMuonIso("mini");
+  stopFunctions::cjh.setElecIso("mini");
+  stopFunctions::cjh.setRemove(false);
+  tr->registerFunction(&stopFunctions::cleanJets);
+  //Add PDF uncertainty
+  tr->registerFunction(&mypdf);
+
   TauResponse tauResp(respTempl);
 
-  int genmu=0, accmu=0;
+  TRandom3 * rndm = new TRandom3(12345);
 
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
+  int entries = tr->getNEntries();
+  std::cout<<"\nentries : "<<entries<<"\t MC Scale: "<<Lumiscale<<std::endl;
 
   // Loop over the events (tree entries)
   int k = 0;
-  while(tr.getNextEvent()){
+  while(tr->getNextEvent()){
     k++;
 
-    vector<TLorentzVector> genDecayLVec = tr.getVec<TLorentzVector>("genDecayLVec");
-    vector<int> genDecayIdxVec = tr.getVec<int>("genDecayIdxVec");
-    vector<int> genDecayPdgIdVec = tr.getVec<int>("genDecayPdgIdVec");
-    vector<TLorentzVector> jetsLVec = tr.getVec<TLorentzVector>("jetsLVec");
-    vector<double> recoJetsBtag_0 = tr.getVec<double>("recoJetsBtag_0");
-    double met=tr.getVar<double>("met");
-    double metphi=tr.getVar<double>("metphi");
+    if(maxevent>=0 && tr->getEvtNum() > maxevent ) break;
+    if( tr->getEvtNum()-1 == 0 || tr->getEvtNum() == entries || (tr->getEvtNum()-1)%(entries/10) == 0 ) std::cout<<"\n   Processing the "<<tr->getEvtNum()-1<<"th event ..."<<std::endl;
+    
+    // Veto electrons -> to get acceptance in search regions as much as possible
+    const double nElectrons = tr->getVar<double>("nElectrons_CUT"+spec);
+    if( nElectrons != AnaConsts::nElectronsSel ) continue;
 
-    int nmu=0, nele=0;
-    vector<double> genmueta, genmuphi, genmupt, genmum;
-    genmueta.clear();
-    genmuphi.clear();
-    genmupt.clear();
-    genmum.clear();
+    const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
+    const vector<double> &muonsRelIso = tr->getVec<double>("muonsRelIso");
+    const vector<double> &muonsMiniIso = tr->getVec<double>("muonsMiniIso");
+    const vector<double> &muonsMtw = tr->getVec<double>("muonsMtw");
+    const vector<TLorentzVector> &genDecayLVec = tr->getVec<TLorentzVector>("genDecayLVec");
+    const vector<int> &genDecayIdxVec = tr->getVec<int>("genDecayIdxVec");
+    const vector<int> &genDecayMomIdxVec = tr->getVec<int>("genDecayMomIdxVec");
+    const vector<int> &genDecayPdgIdVec = tr->getVec<int>("genDecayPdgIdVec");
+    const vector<string> &genDecayStrVec = tr->getVec<string>("genDecayStrVec");
+    const vector<int> &W_emuVec = tr->getVec<int>("W_emuVec");
+    const vector<int> &W_tau_emuVec = tr->getVec<int>("W_tau_emuVec");
+    const vector<int> &W_tau_prongsVec = tr->getVec<int>("W_tau_prongsVec");
+    const vector<int> &W_tau_nuVec = tr->getVec<int>("W_tau_nuVec");
+    const vector<TLorentzVector> &jetsLVec = tr->getVec<TLorentzVector>("jetsLVec");
+    const vector<double> &recoJetsBtag_0 = tr->getVec<double>("recoJetsBtag_0");
+    const vector<int> & muonsFlagIDVec = tr->getVec<int>("muonsFlagMedium");
+    const vector<int> &looseisoTrksMatchedJetIdx = tr->getVec<int>("looseisoTrksMatchedJetIdx");
+    const vector<TLorentzVector> &loose_isoTrksLVec = tr->getVec<TLorentzVector>("loose_isoTrksLVec");
+    const vector<double> &loose_isoTrks_iso = tr->getVec<double>("loose_isoTrks_iso");
+    const vector<double> &loose_isoTrks_mtw = tr->getVec<double>("loose_isoTrks_mtw");
+    const vector<int> &loose_isoTrks_pdgId = tr->getVec<int>("loose_isoTrks_pdgId");
 
-    for(unsigned ig=0; ig<genDecayLVec.size(); ig++){
-      int pdgId = genDecayPdgIdVec.at(ig);
+    double met=tr->getVar<double>("met");
+    double metphi=tr->getVar<double>("metphi");
+    int nMuons = tr->getVar<int>("nMuons_CUT"+spec);
+    bool passBaseline_tru = tr->getVar<bool>("passBaseline"+spec);
+    bool passMuonVeto_tru = tr->getVar<bool>("passMuonVeto"+spec);
+    bool passEleVeto_tru = tr->getVar<bool>("passEleVeto"+spec);
+    bool passIsoTrkVeto_tru = tr->getVar<bool>("passIsoTrkVeto"+spec);
+    bool passLeptVeto_tru = tr->getVar<bool>("passLeptVeto"+spec);
+    bool passnJets_tru = tr->getVar<bool>("passnJets"+spec);
+    bool passdPhis_tru = tr->getVar<bool>("passdPhis"+spec);
+    bool passMET_tru =  tr->getVar<bool>("passMET"+spec);
+    bool passBJets_tru = tr->getVar<bool>("passBJets"+spec);
+    bool passTagger_tru = tr->getVar<bool>("passTagger"+spec);
+    bool passHT_tru =  tr->getVar<bool>("passHT"+spec);
+    bool passMT2_tru = tr->getVar<bool>("passMT2" + spec);
+    const int nJets_tru = tr->getVar<int>("cntNJetsPt30Eta24"+spec);
+    const int nbJets_tru = tr->getVar<int>("cntCSVS"+spec);
+    const int nTops_tru = tr->getVar<int>("nTopCandSortedCnt"+spec);
+    const double MT2_tru = tr->getVar<double>("best_had_brJet_MT2"+spec);
 
-      if(fabs(pdgId)==13){
-	nmu++;
-	genmueta.push_back(genDecayLVec.at(ig).Eta());
-	genmuphi.push_back(genDecayLVec.at(ig).Phi());
-	genmupt.push_back(genDecayLVec.at(ig).Pt());
-	genmum.push_back(genDecayLVec.at(ig).M());
+    TLorentzVector metLVec; metLVec.SetPtEtaPhiM(met, 0, metphi, 0);
+
+    //tau acceptance
+    bool passBaselineAcc = passMuonVeto_tru && passEleVeto_tru && passnJets_tru && passdPhis_tru && passMET_tru && passBJets_tru && passTagger_tru;
+    if(W_tau_prongsVec.size()!=0){
+      const unsigned int taumetbin = Efficiency::metbin(met);
+      bool istauAcc = false;
+      std::vector<TLorentzVector>genhadtauLVec;
+      std::vector<TLorentzVector>genvisiblehadtauLVec;
+      for(unsigned ig=0; ig<genDecayLVec.size(); ig++){
+	int pdgId = genDecayPdgIdVec.at(ig);
+	if(abs(pdgId)==15){
+	  int flag=0;
+	  if(W_tau_emuVec.size()!=0){
+	    for(int k=0; k<W_tau_emuVec.size();k++){
+	      int lIdx = W_tau_emuVec.at(k);
+	      if( genDecayMomIdxVec.at(lIdx) == genDecayIdxVec.at(ig) )flag++;
+	    }
+	  }
+	  if(!flag){
+	    TLorentzVector gennu;
+	    TLorentzVector genhadtau = genDecayLVec.at(ig);
+	    for(int n=0; n<W_tau_nuVec.size();n++){
+	      int nIdx = W_tau_nuVec.at(n);
+	      if( genDecayMomIdxVec.at(nIdx) == genDecayIdxVec.at(ig)) gennu = genDecayLVec.at(nIdx);
+	    }
+	    genhadtauLVec.push_back(genhadtau);
+	    genvisiblehadtauLVec.push_back(genhadtau-gennu);
+	  }
+	}
       }
-      if(fabs(pdgId)==11) nele++;
+      TLorentzVector usetauLVec = genhadtauLVec[0];
+      if(passBaselineAcc && passMT2_tru && passHT_tru){
+	//Isotrack on remaing part
+	bool othrIsotrackVeto = false;
+	if(looseisoTrksMatchedJetIdx.size()!=loose_isoTrksLVec.size())cout<<"Error: isotrack vetor size mismatch"<<endl;
+	int nTotal = 0, nHadtau = 0;
+	std::vector<int> IsotrkMatchedHadtau(genvisiblehadtauLVec.size(), 0);
+	for(unsigned int it=0; it< looseisoTrksMatchedJetIdx.size();it++){
+	  if(!passIsoTrks1(loose_isoTrksLVec[it], loose_isoTrks_iso[it], loose_isoTrks_mtw[it], loose_isoTrks_pdgId[it])) continue;
+	  nTotal++;    
+	  // Do the matching
+	  const int isoJetIdx = looseisoTrksMatchedJetIdx[it]; // Will store the index of the jet matched to the isotrack
+	  if(isoJetIdx == -1)cout<<"Event: "<<k<<" isoJetIdx: "<<isoJetIdx<<"  track pT: "<<loose_isoTrksLVec[it].Pt()<<"  track phi: "<<loose_isoTrksLVec[it].Phi()<<"  track Eta: "<<loose_isoTrksLVec[it].Eta()<<"  track id: "<<loose_isoTrks_pdgId[it]<<endl;
+	  if(findTauMatchedisoJet(isoJetIdx,genvisiblehadtauLVec,jetsLVec, IsotrkMatchedHadtau)){
+	    if(IsotrkMatchedHadtau[0]) nHadtau++; // considering only first had tau
+	  }
+	}//finish isotrack loop
+	if((nTotal-nHadtau)==0) othrIsotrackVeto = true;//isotrackveto on the remaing part (exclude hadtau)
+	if(usetauLVec.Pt()>TauResponse::ptMin() && fabs(usetauLVec.Eta())<TauResponse::etaMax()) istauAcc = true;
+	int jSR = find_Binning_Index(nbJets_tru,nTops_tru,MT2_tru,met);
+	if(othrIsotrackVeto){
+	  FillIntAcc(myBaseHistgram.hTauNjet_gen, nJets_tru, Lumiscale);
+	  FillDoubleAcc(myBaseHistgram.hTaumet_gen, met, Lumiscale);
+	  FillDoubleAcc(myBaseHistgram.hTauMT2_gen, MT2_tru, Lumiscale);
+	  FillIntAcc(myBaseHistgram.hTauNbjet_gen, nbJets_tru, Lumiscale);
+	  FillIntAcc(myBaseHistgram.hTauNtop_gen, nTops_tru, Lumiscale);
+	  Fill2DAcc(myBaseHistgram.hTauNjetMT2_gen, nJets_tru, MT2_tru, Lumiscale);
+	  Fill2DAcc(myBaseHistgram.hTauNjetmet_gen, nJets_tru, met, Lumiscale);
+	  Fill2DAcc(myBaseHistgram.hTauNjetMT2_met_gen.at(taumetbin), nJets_tru, MT2_tru, Lumiscale);
+	  if(jSR!=-1)myBaseHistgram.hTaugen->Fill(jSR, Lumiscale);
+	  if(istauAcc){
+	    FillIntAcc(myBaseHistgram.hTauNjet_acc, nJets_tru, Lumiscale);
+	    FillDoubleAcc(myBaseHistgram.hTaumet_acc, met, Lumiscale);
+	    FillDoubleAcc(myBaseHistgram.hTauMT2_acc, MT2_tru, Lumiscale);
+	    FillIntAcc(myBaseHistgram.hTauNbjet_acc, nbJets_tru, Lumiscale);
+	    FillIntAcc(myBaseHistgram.hTauNtop_acc, nTops_tru, Lumiscale);
+	    Fill2DAcc(myBaseHistgram.hTauNjetMT2_acc, nJets_tru, MT2_tru, Lumiscale);
+	    Fill2DAcc(myBaseHistgram.hTauNjetmet_acc, nJets_tru, met, Lumiscale);
+	    Fill2DAcc(myBaseHistgram.hTauNjetMT2_met_acc.at(taumetbin), nJets_tru, MT2_tru, Lumiscale);
+	    if(jSR!=-1)myBaseHistgram.hTauacc->Fill(jSR, Lumiscale);
+	  }
+	}
+      }
     }
-
-    if(nmu ==1 && nele==0){//control sample    
-      const double muEta = genmueta.at(0);
-      const double muPhi = genmuphi.at(0);
-      const double muPt = genmupt.at(0);
-      const double muM = genmum.at(0);
-
-      vector<double> jetseta, jetsphi;
-      jetseta.clear();
-      jetsphi.clear();
-      for(unsigned ij=0; ij<jetsLVec.size(); ij++){
-	double eta1 = jetsLVec.at(ij).Eta();
-	double phi1 = jetsLVec.at(ij).Phi();
-	jetseta.push_back(eta1);
-	jetsphi.push_back(phi1);
+    //Muon Acceptance
+    // Only use events with W->mu
+    vector<TLorentzVector> genmuLVec;
+    for(unsigned int ip=0; ip<W_emuVec.size(); ip++){
+      int idx = W_emuVec.at(ip);
+      int pdgId = genDecayPdgIdVec.at(idx);
+      if( fabs(pdgId) == 13 ){
+	genmuLVec.push_back(genDecayLVec.at(idx));
       }
+    }
+    
+    std::vector<TLorentzVector> cleanJetVec;
+    std::vector<double> cleanJetBtag;
+    // ]W->mu W->qq                                                                   
+    // ]W->mu W->tau->had 
+    if(genmuLVec.size()==1){//control sample
+      //pdf value
+      const double pdfCentral = tr->getVar<double>("NNPDF_From_Median_Central");
+      const double pdfUp = tr->getVar<double>("NNPDF_From_Median_Up");
+      const double pdfDown = tr->getVar<double>("NNPDF_From_Median_Down");
+      const double scaleUp = tr->getVar<double>("Scaled_Variations_Up");
+      const double scaleDown = tr->getVar<double>("Scaled_Variations_Down");
+      
+      const TLorentzVector pergenmuLVec = genmuLVec.at(0);      
+      bool useRecoMuon = false;
       int muJetIdx = -1;
-      const float deltaRMax = 0.2;
-      const unsigned nObj = jetsLVec.size();
-      utils::findMuMatchedObject(muJetIdx,muEta,muPhi,jetseta,jetsphi,nObj,deltaRMax);
-
-      double cleanmetX =0;
-      double cleanmetY =0;
-      vector<TLorentzVector> cleanJetVec;
-      vector<double>cleanJetBTag;
-      cleanJetVec.clear();
-      cleanJetBTag.clear();
-      for(int jetIdx = 0; jetIdx < jetsLVec.size(); ++jetIdx) { // Loop over reco jets
-	// Skip this jet if it is the muon
-	if( jetIdx == muJetIdx ) continue;
-	// Calculate NJet
-	double Pt = jetsLVec.at(jetIdx).Pt();
-	double Eta = jetsLVec.at(jetIdx).Eta();
-	double Phi = jetsLVec.at(jetIdx).Phi();
-	double M = jetsLVec.at(jetIdx).M();
-	TLorentzVector cleanLVec; cleanLVec.SetPtEtaPhiM(Pt, Eta, Phi, M);
-	cleanJetVec.push_back(cleanLVec);
-	cleanJetBTag.push_back(recoJetsBtag_0.at(jetIdx));
+      vector<TLorentzVector> isomuonsLVec;
+      vector<int> isomuonsIdxVec;
+      for(unsigned int im=0; im<muonsLVec.size(); im++){
+	if( AnaFunctions::passMuon(muonsLVec.at(im), muonsMiniIso.at(im), muonsMtw.at(im), muonsFlagIDVec.at(im), AnaConsts::muonsMiniIsoArr) ){ isomuonsLVec.push_back(muonsLVec.at(im)); isomuonsIdxVec.push_back(im); }
       }
-
-      //calculate met
-      cleanmetX = met*cos(metphi)+ muPt*cos(muPhi);
-      cleanmetY = met*sin(metphi)+ muPt*sin(muPhi);
+      // If there is a reco muon with pt and eta larger than requirement, use the reco muon
+      // This way we get consistent results for wherever a reco muon is ready to be used
+      if( nMuons == 1 ){
+	if( isomuonsLVec.at(0).Pt() >= TauResponse::ptMin() && fabs(isomuonsLVec.at(0).Eta()) <= TauResponse::etaMax() ){
+	  cleanJetVec = tr->getVec<TLorentzVector>("cleanJetVec");
+	  cleanJetBtag = tr->getVec<double>("cleanJetBTag");
+	  useRecoMuon = true;
+	  const std::vector<int>& rejectJetIdx_formuVec = tr->getVec<int>("rejectJetIdx_formuVec");
+	  muJetIdx = rejectJetIdx_formuVec.at(isomuonsIdxVec.at(0));
+	}
+      }
+      
+      // If no reco muon in the event, use the gen muon instead
+      if( !useRecoMuon ){
+	const float deltaRMax = 0.2;
+	utils::findMatchedObject(muJetIdx, pergenmuLVec, jetsLVec, deltaRMax);
+	for(int jetIdx = 0; jetIdx < jetsLVec.size(); ++jetIdx) { // Loop over reco jets
+	  cleanJetVec.push_back(jetsLVec.at(jetIdx));
+	  cleanJetBtag.push_back(recoJetsBtag_0.at(jetIdx));
+	  // Substract muon part from this jet if its overlap with the muon   
+	  if( jetIdx == muJetIdx ){
+	    cleanJetVec[muJetIdx] =- pergenmuLVec;
+	  }
+	}
+      }
+      
+      TLorentzVector usedmuLVec;
+      if( useRecoMuon ) usedmuLVec = isomuonsLVec.at(0);
+      else usedmuLVec = pergenmuLVec;
+      
+      // Determine if the gen muon passes the kinematic cuts or not
+      bool passKinCuts = false;
+      if(pergenmuLVec.Pt()>TauResponse::ptMin() && fabs(pergenmuLVec.Eta())<TauResponse::etaMax()) passKinCuts = true;
+      
+      TLorentzVector cleanmetLVec; cleanmetLVec.SetVectM( (metLVec + usedmuLVec).Vect(), 0);
+      
+      //Implement IsoTrackVeto
+      if(looseisoTrksMatchedJetIdx.size()!=loose_isoTrksLVec.size())cout<<"Error: isotrack vetor size mismatch"<<endl;
+      int nisoTotal = 0, nisomu = 0;    
+      for(unsigned int it=0; it< looseisoTrksMatchedJetIdx.size();it++){
+	if(!passIsoTrks1(loose_isoTrksLVec[it], loose_isoTrks_iso[it], loose_isoTrks_mtw[it], loose_isoTrks_pdgId[it])) continue;
+	nisoTotal++;
+	// Do the matching
+	const double dr = usedmuLVec.DeltaR(loose_isoTrksLVec[it]);
+	if(dr<0.1) nisomu++; // muon tagged as isotrack
+      }//finish isotrack loop
+      if((nisoTotal-nisomu)!=0)continue;//isotrackveto on the remaing part (exclude mu)  
 
       // Get random number from tau-response template
-      const double scale = tauResp.getRandom(muPt);
+      //      const double scale = tauResp.getRandom(usedmuLVec.Pt());
+      TH1F* temp = (TH1F*)tauResp.Resp(usedmuLVec.Pt());
+      //Loop over template bin
+      for(int ib = 1; ib<=50; ib++){
+	const double scale = temp->GetBinCenter(ib);
+	const double weight = temp->GetBinContent(ib) * temp->GetBinWidth(ib);
+	
       // Scale muon pt with tau response --> simulate tau jet pt
-      const double simJetPt = scale * muPt;
+	const double simTauJetPt = scale * usedmuLVec.Pt();
+	const double simTauJetE = scale * usedmuLVec.E();
 
-      //compute combined jet
-      vector<TLorentzVector> simJetVec;
-      simJetVec.clear();
-      TLorentzVector simLVec; simLVec.SetPtEtaPhiM(simJetPt, muEta, muPhi, muM);
-      simJetVec.push_back(simLVec);
-      vector<TLorentzVector> combJetVec;
-      combJetVec.clear();
-      combJetVec = combjet(cleanJetVec, simJetVec);
-      vector<double> combJetsBtag_0;
-      combJetsBtag_0.clear();
-      combJetsBtag_0 = combJetBtag(cleanJetBTag, cleanJetVec, simJetVec);
+	TLorentzVector ori_tauJetLVec; ori_tauJetLVec.SetPtEtaPhiE(simTauJetPt, usedmuLVec.Eta(), usedmuLVec.Phi(), simTauJetE);
+	TLorentzVector tauJetLVec = ori_tauJetLVec;
 
-      //recompute met
-      double combmetX = cleanmetX;
-      double combmetY = cleanmetY;
-      combmetX -= simJetPt*cos(muPhi);
-      combmetY -= simJetPt*sin(muPhi);
-     const double combmet = sqrt(combmetX*combmetX + combmetY*combmetY);
-     const double combmetPhi = std::atan2(combmetY,combmetX);
+	// See comments for similar code in Closure.cc
+	double oriJetCSVS = 0;
+	if( muJetIdx != -1 ) oriJetCSVS = recoJetsBtag_0.at(muJetIdx);
 
-      bool passmet = true;
-      if(combmet<AnaConsts::defaultMETcut) passmet = false; 
+	double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt));
+	double rno = rndm->Rndm();
+	if( rno < mistag) oriJetCSVS = 1.0;
+	
+	//Adjustment of tau jet to the remaining part of mu cleaned jet
+	if( muJetIdx >=0 ) tauJetLVec += cleanJetVec[muJetIdx];
 
-      //recompute jet
-      int nJet = AnaFunctions::countJets(combJetVec, AnaConsts::pt30Eta24Arr);
-      bool passnjets = true;
-      if(nJet<AnaConsts::nJetsSelPt30Eta24)passnjets = false;
-      //      if(nJet<3)passnjets = false;
+	vector<TLorentzVector> combJetVec;
+	vector<double> combJetsBtag;
 
-      //recompute deltaphi
-      std::vector<double> * deltaPhiVec = new std::vector<double>();
-      (*deltaPhiVec) = AnaFunctions::calcDPhi(combJetVec, combmetPhi, 3, AnaConsts::dphiArr);
-      bool passdeltaPhi = true;
-      if( deltaPhiVec->at(0) < AnaConsts::dPhi0_CUT || deltaPhiVec->at(1) < AnaConsts::dPhi1_CUT || deltaPhiVec->at(2) < AnaConsts::dPhi2_CUT){
-	passdeltaPhi = false;
-      }
+	// See comments for similar code in Closure.cc
+	bool includeTauJet = false;
+	for(unsigned int ij=0; ij<cleanJetVec.size(); ij++){
+	  if( ij == muJetIdx ) continue;
+	  if( tauJetLVec.Pt() > cleanJetVec.at(ij).Pt() && !includeTauJet ){
+            combJetVec.push_back(tauJetLVec); combJetsBtag.push_back(oriJetCSVS);
+            includeTauJet = true;
+	  }
+	  combJetVec.push_back(cleanJetVec.at(ij)); combJetsBtag.push_back(cleanJetBtag.at(ij));
+	}
+	// it's possible that the tau jet is the least energetic jet so that it's not added into the combNJetVec during the loop
+	if( !includeTauJet ){ combJetVec.push_back(tauJetLVec); combJetsBtag.push_back(oriJetCSVS); }
+	
+	// recompute HT
+	double Ht = AnaFunctions::calcHT(combJetVec, AnaConsts::pt30Eta24Arr);
+	bool passht = true;
+	if( Ht < AnaConsts::defaultHTcut )passht = false;
+
+	//recompute met
+	TLorentzVector combmetLVec;  combmetLVec.SetVectM( (cleanmetLVec - ori_tauJetLVec).Vect(), 0 );
+	
+	const double combmet = combmetLVec.Pt();
+	const double combmetPhi = combmetLVec.Phi();
+	
+	bool passmet = true;
+	if(combmet<AnaConsts::defaultMETcut) passmet = false; 
+
+	//recompute jet
+	int nJetPt30Eta24 = AnaFunctions::countJets(combJetVec, AnaConsts::pt30Eta24Arr);
+	int nJetPt50Eta24 = AnaFunctions::countJets(combJetVec, AnaConsts::pt50Eta24Arr);
+	
+	bool passnjets = true;
+	if(nJetPt30Eta24<AnaConsts::nJetsSelPt30Eta24) passnjets = false;
+	if(nJetPt50Eta24<AnaConsts::nJetsSelPt50Eta24) passnjets = false;
+
+	//recompute deltaphi
+	std::vector<double> deltaPhiVec = AnaFunctions::calcDPhi(combJetVec, combmetPhi, 3, AnaConsts::dphiArr);
+	bool passdeltaPhi = true;
+	if( deltaPhiVec.at(0) < AnaConsts::dPhi0_CUT || deltaPhiVec.at(1) < AnaConsts::dPhi1_CUT || deltaPhiVec.at(2) < AnaConsts::dPhi2_CUT){
+	  passdeltaPhi = false;
+	}
 
       //recompute bjet
-      int cnt1CSVS = AnaFunctions::countCSVS(combJetVec, combJetsBtag_0, AnaConsts::cutCSVS, AnaConsts::bTagArr);
-      bool passbJets = true;
-      if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ) ){
-	passbJets = false;
-      }
+	int cnt1CSVS = AnaFunctions::countCSVS(combJetVec, combJetsBtag, AnaConsts::cutCSVS, AnaConsts::bTagArr);
+	bool passbJets = true;
+	if( !( (AnaConsts::low_nJetsSelBtagged == -1 || cnt1CSVS >= AnaConsts::low_nJetsSelBtagged) && (AnaConsts::high_nJetsSelBtagged == -1 || cnt1CSVS < AnaConsts::high_nJetsSelBtagged ) ) ){
+	  passbJets = false;
+	}
 
-      //top tagger input
-      TLorentzVector metLVec_acc; metLVec_acc.SetPtEtaPhiM(combmet, 0, combmetPhi, 0);
-      int comb30_acc = AnaFunctions::countJets(combJetVec, AnaConsts::pt30Arr);
-      std::vector<TLorentzVector> *jetsLVec_forTagger_acc = new std::vector<TLorentzVector>(); std::vector<double> *recoJetsBtag_forTagger_acc = new std::vector<double>();
-      AnaFunctions::prepareJetsForTagger(combJetVec, combJetsBtag_0, (*jetsLVec_forTagger_acc), (*recoJetsBtag_forTagger_acc));
+	if(!passnjets) continue;
+	if(!passmet) continue;
+	if(!passdeltaPhi) continue;
+	if(!passbJets) continue;
+
+	//top tagger input
+	int comb30_acc = AnaFunctions::countJets(combJetVec, AnaConsts::pt30Arr);
+	std::vector<TLorentzVector> jetsLVec_forTagger_acc; std::vector<double> recoJetsBtag_forTagger_acc;
+	AnaFunctions::prepareJetsForTagger(combJetVec, combJetsBtag, (jetsLVec_forTagger_acc), (recoJetsBtag_forTagger_acc));
       
-      int bestTopJetIdx_acc = -1;
-      bool remainPassCSVS_acc = false;
-      int pickedRemainingCombfatJetIdx_acc = -1;
-      double bestTopJetMass_acc = -1;
+	int nTopCandSortedCnt_acc = -1;
+	double MT2_acc = -1;
+	
+	//Apply Top tagger
+	if(comb30_acc >= AnaConsts::nJetsSel ){
+	  type3Ptr->processEvent((jetsLVec_forTagger_acc), (recoJetsBtag_forTagger_acc), combmetLVec);
+	  nTopCandSortedCnt_acc = type3Ptr->nTopCandSortedCnt;
+	  MT2_acc = type3Ptr->best_had_brJet_MT2;
+	}
+	bool passTopTagger = type3Ptr->passNewTaggerReq() && nTopCandSortedCnt_acc >= AnaConsts::low_nTopCandSortedSel;
+	bool passMT2 = true;
+	if(MT2_acc < AnaConsts::defaultMT2cut)passMT2 = false;
 
-      if(!passnjets) continue;
-      if(!passmet) continue;
-      if(!passdeltaPhi) continue;
-      if(!passbJets) continue;
+	if(!passTopTagger) continue;
+	//500 GeV HT cut..
+	if(!passht)continue;
 
-      // if(!passBaseline_nolepveto) continue;
+	// iSR: this should be determined by search region requirement
+	int iSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_acc, MT2_acc, combmet);
 
-    //Apply Top tagger
-      if(comb30_acc >= AnaConsts::nJetsSel ){
-	type3Ptr->processEvent((*jetsLVec_forTagger_acc), (*recoJetsBtag_forTagger_acc), metLVec_acc);
-	bestTopJetIdx_acc = type3Ptr->bestTopJetIdx;
-	remainPassCSVS_acc = type3Ptr->remainPassCSVS;
-	pickedRemainingCombfatJetIdx_acc = type3Ptr->pickedRemainingCombfatJetIdx;
-	if( bestTopJetIdx_acc != -1 ) bestTopJetMass_acc = type3Ptr->bestTopJetLVec.M();
-      }
-      bool passTopTagger = true;
-      //bestTopJetIdx_pre != -1 means at least 1 top candidate!
-      if( bestTopJetIdx_acc == -1 ){passTopTagger = false; }
-      if( ! remainPassCSVS_acc ){passTopTagger = false; }
-      if( pickedRemainingCombfatJetIdx_acc == -1 && jetsLVec_forTagger_acc->size()>=6 ){passTopTagger = false; }
-      if( ! (bestTopJetMass_acc > AnaConsts::lowTopCut_ && bestTopJetMass_acc < AnaConsts::highTopCut_ ) ){ passTopTagger = false; }
-      
-      if(!passTopTagger) continue;
+	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                          
+	
+	//const double corrMuAcc = 1./Efficiency::accMix_NjetMT2(Efficiency::Njetbin(nJetPt30Eta24), Efficiency::MT2bin(MT2_acc)); // Correction for muon acceptance
+	const double corr = corrBRWToTauHad;
+	const double Evt_weight = Lumiscale * weight * corr;
+	
+	const unsigned int metbin = Efficiency::metbin(combmet);
+	const unsigned int topbin = Efficiency::topbin(nTopCandSortedCnt_acc);
 
-      genmu++;
-      if(muPt>20 && fabs(muEta)<2.4)accmu++;
-    }
+	//histogram
+	if(passMT2){
+	  FillIntAcc(myBaseHistgram.hNjet_gen_wt, nJetPt30Eta24, Evt_weight);
+	  FillDoubleAcc(myBaseHistgram.hmet_gen, combmet, Evt_weight);
+	  FillDoubleAcc(myBaseHistgram.hMT2_gen, MT2_acc, Evt_weight);
+	  FillIntAcc(myBaseHistgram.hNbjet_gen, cnt1CSVS, Evt_weight);
+	  FillIntAcc(myBaseHistgram.hNtop_gen, nTopCandSortedCnt_acc, Evt_weight);
+	  FillDoubleAcc(myBaseHistgram.hht_gen, Ht, Evt_weight);
+	  Fill2DAcc(myBaseHistgram.hNjetMT2_gen_wt, nJetPt30Eta24, MT2_acc, Evt_weight);
+	  Fill2DAcc(myBaseHistgram.hNjetmet_gen_wt, nJetPt30Eta24, combmet, Evt_weight);
+	  Fill2DAcc(myBaseHistgram.hNjetMT2_met_gen.at(metbin), nJetPt30Eta24, MT2_acc, Evt_weight);
+	  Fill2DAcc(myBaseHistgram.hNjetMT2_top_gen.at(topbin), nJetPt30Eta24, MT2_acc, Evt_weight);
+	  if(iSR!=-1){
+	    myBaseHistgram.hgen_wt->Fill(iSR, Evt_weight);
+	    myBaseHistgram.hgen_pdfCentral_wt->Fill(iSR, Evt_weight*pdfCentral);
+	    myBaseHistgram.hgen_pdfUp_wt->Fill(iSR, Evt_weight*pdfUp);
+	    myBaseHistgram.hgen_pdfDown_wt->Fill(iSR, Evt_weight*pdfDown);
+	    myBaseHistgram.hgen_scaleUp_wt->Fill(iSR, Evt_weight*scaleUp);
+	    myBaseHistgram.hgen_scaleDown_wt->Fill(iSR, Evt_weight*scaleDown);
+	  }
+	  if(passKinCuts){
+	    FillIntAcc(myBaseHistgram.hNjet_acc_wt, nJetPt30Eta24, Evt_weight);
+	    FillDoubleAcc(myBaseHistgram.hmet_acc, combmet, Evt_weight);
+	    FillDoubleAcc(myBaseHistgram.hMT2_acc, MT2_acc, Evt_weight);
+	    FillIntAcc(myBaseHistgram.hNbjet_acc, cnt1CSVS, Evt_weight);
+	    FillIntAcc(myBaseHistgram.hNtop_acc, nTopCandSortedCnt_acc, Evt_weight);
+	    FillDoubleAcc(myBaseHistgram.hht_acc, Ht, Evt_weight);
+	    Fill2DAcc(myBaseHistgram.hNjetMT2_acc_wt, nJetPt30Eta24, MT2_acc, Evt_weight);
+	    Fill2DAcc(myBaseHistgram.hNjetmet_acc_wt, nJetPt30Eta24, combmet, Evt_weight);
+	    Fill2DAcc(myBaseHistgram.hNjetMT2_met_acc.at(metbin), nJetPt30Eta24, MT2_acc, Evt_weight);
+	    Fill2DAcc(myBaseHistgram.hNjetMT2_top_acc.at(topbin), nJetPt30Eta24, MT2_acc, Evt_weight);
+	    if(iSR!=-1){
+	      myBaseHistgram.hacc_wt->Fill(iSR, Evt_weight);
+	      myBaseHistgram.hacc_pdfCentral_wt->Fill(iSR, Evt_weight*pdfCentral);
+	      myBaseHistgram.hacc_pdfUp_wt->Fill(iSR, Evt_weight*pdfUp);
+	      myBaseHistgram.hacc_pdfDown_wt->Fill(iSR, Evt_weight*pdfDown);
+	      myBaseHistgram.hacc_scaleUp_wt->Fill(iSR, Evt_weight*scaleUp);
+	      myBaseHistgram.hacc_scaleDown_wt->Fill(iSR,Evt_weight*scaleDown);
+	    }
+	  }
+	}
+      }//template bin loop
+    }//muon control sample loop
 
-  }
+    //correct the uncertainties in pred histo
+    TauResponse::Histfill(myBaseHistgram.hacc_wt, myBaseHistgram.hacc);
+    TauResponse::Histfill(myBaseHistgram.hgen_wt, myBaseHistgram.hgen);
+    TauResponse::Histfill(myBaseHistgram.hNjet_gen_wt, myBaseHistgram.hNjet_gen);
+    TauResponse::Histfill(myBaseHistgram.hNjet_acc_wt, myBaseHistgram.hNjet_acc); 
+
+    /*    TauResponse::Histfill(myBaseHistgram.hacc_pdfCentral_wt, myBaseHistgram.hacc_pdfCentral);
+    TauResponse::Histfill(myBaseHistgram.hacc_pdfUp_wt, myBaseHistgram.hacc_pdfUp);
+    TauResponse::Histfill(myBaseHistgram.hacc_pdfDown_wt, myBaseHistgram.hacc_pdfDown);
+    TauResponse::Histfill(myBaseHistgram.hacc_scaleUp_wt, myBaseHistgram.hacc_scaleUp);
+    TauResponse::Histfill(myBaseHistgram.hacc_scaleDown_wt, myBaseHistgram.hacc_scaleDown);
+    TauResponse::Histfill(myBaseHistgram.hgen_pdfCentral_wt, myBaseHistgram.hgen_pdfCentral);
+    TauResponse::Histfill(myBaseHistgram.hgen_pdfUp_wt, myBaseHistgram.hgen_pdfUp);
+    TauResponse::Histfill(myBaseHistgram.hgen_pdfDown_wt, myBaseHistgram.hgen_pdfDown);
+    TauResponse::Histfill(myBaseHistgram.hgen_scaleUp_wt, myBaseHistgram.hgen_scaleUp);
+    TauResponse::Histfill(myBaseHistgram.hgen_scaleDown_wt, myBaseHistgram.hgen_scaleDown);
+    */
+  }//event loop
+  (myBaseHistgram.oFile)->Write();
+
   cout<<"ToTal Event: "<<k<<endl;
-  cout<<"Gen Mu: "<<genmu<<" "<<"Acc Mu: "<<accmu<<endl;
-  cout<<"Acceptance: "<<(float)accmu/genmu<<endl;
   return 0;
 }
+bool find_mother(int momIdx, int dauIdx, const std::vector<int> &genDecayIdxVec, const std::vector<int> &genDecayMomIdxVec){
+  if( momIdx == -1 || dauIdx == -1 ) return false;
+  if( dauIdx == momIdx ) return true;
 
-vector<TLorentzVector> combjet (const vector<TLorentzVector> &seljet, const vector<TLorentzVector> &simjet){
-  vector<TLorentzVector> combNJet;
-  combNJet.clear();
-  unsigned int idx = seljet.size();
-  for(unsigned int i=0; i<seljet.size(); i++){
-    TLorentzVector comb;
-    if(seljet.at(i).Pt()>simjet.at(0).Pt()){
-      comb.SetPtEtaPhiM(seljet.at(i).Pt(), seljet.at(i).Eta(), seljet.at(i).Phi(), seljet.at(i).M());
-      combNJet.push_back(comb);
-    }
-    else {
-      comb.SetPtEtaPhiM(simjet.at(0).Pt(), simjet.at(0).Eta(), simjet.at(0).Phi(), simjet.at(0).M());
-      combNJet.push_back(comb);
-      idx=i;
-      break;
-    }
+  int thisIdx = dauIdx;
+  while( thisIdx >=0 ){
+    int momGenIdx = genDecayMomIdxVec[thisIdx];
+    thisIdx = find_idx(momGenIdx, genDecayIdxVec);
+    if( thisIdx == momIdx ) return true;
   }
-  if(idx<seljet.size()){
-    for(unsigned int j=idx; j<seljet.size(); j++){
-      TLorentzVector comb;
-      comb.SetPtEtaPhiM(seljet.at(j).Pt(), seljet.at(j).Eta(), seljet.at(j).Phi(), seljet.at(j).M());
-      combNJet.push_back(comb);
-    }
-  }
-  if(combNJet.size()==seljet.size()){
-    TLorentzVector comb;
-    comb.SetPtEtaPhiM(simjet.at(0).Pt(), simjet.at(0).Eta(), simjet.at(0).Phi(), simjet.at(0).M());
-    combNJet.push_back(comb);
-  }
-  return combNJet;
+  return false;
 }
-vector<double> combJetBtag(const vector<double> &cleanJetBtag, const vector<TLorentzVector> &seljet, const vector<TLorentzVector> &simjet){
-  vector<double>combJetBTag;
-  combJetBTag.clear();
-  unsigned int idx = cleanJetBtag.size();
-  for(unsigned int i=0; i<cleanJetBtag.size(); i++){
-    if(seljet.at(i).Pt()>simjet.at(0).Pt()){
-      combJetBTag.push_back(cleanJetBtag.at(i));
-    }
-    else{
-      combJetBTag.push_back(0);
-      idx = i;
-      break;    
+bool passIsoTrks1(const TLorentzVector isoTrksLVec, const double isoTrksIso, const double isoTrksMtw, const int isoTrkspdgId){
+  bool passIsoTrks = false;
+  if( std::abs(isoTrkspdgId) == 11 || std::abs(isoTrkspdgId) == 13 ){
+    if( AnaFunctions::passIsoTrk(isoTrksLVec, isoTrksIso, isoTrksMtw, AnaConsts::isoLepTrksArr ) ) passIsoTrks = true;
+  }
+  if( std::abs(isoTrkspdgId) == 211 ){
+    if(AnaFunctions::passIsoTrk(isoTrksLVec, isoTrksIso, isoTrksMtw, AnaConsts::isoHadTrksArr ) ) passIsoTrks = true;
+  }
+  return passIsoTrks;
+}
+bool findTauMatchedisoJet(int matchedObjIdx, const std::vector<TLorentzVector> &genvisiblehadtauLVec, const std::vector<TLorentzVector> &jetsLVec, std::vector<int> &IsotrkMatchedHadtau){
+  bool isisotrack = false;
+  if(matchedObjIdx == -1){
+    cout<<"Input matchedObjIdx is -1, please add extra function.."<<endl;
+    return isisotrack;
+  }
+  TLorentzVector jetLVec = jetsLVec[matchedObjIdx];
+  for(int is =0; is<genvisiblehadtauLVec.size(); is++){
+    const double deltaRMax = deltaRmax(genvisiblehadtauLVec.at(is).Pt());  
+    const double dr = jetLVec.DeltaR(genvisiblehadtauLVec.at(is));
+    if( dr < deltaRMax ) {
+      isisotrack = true;
+      IsotrkMatchedHadtau[is]=1;
     }
   }
-  if(idx<cleanJetBtag.size()){
-    for(unsigned int j=idx; j<cleanJetBtag.size(); j++){
-      combJetBTag.push_back(cleanJetBtag.at(j));
-    }
-  }
-    if(combJetBTag.size()==cleanJetBtag.size()){
-      combJetBTag.push_back(0);
-    }
-    return combJetBTag;
+  return isisotrack;
+}
+double deltaRmax(double pt){
+  double rmax = 0.25;
+  if(pt>30) rmax = 0.2;
+  if(pt>50) rmax = 0.15;
+  if(pt>100) rmax = 0.1;
+  return rmax;
 }

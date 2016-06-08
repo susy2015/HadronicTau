@@ -15,23 +15,35 @@ namespace utils {
     return sqrt( deta*deta + dphi*dphi );
   }
 
-  // Find index 'matchedObjIdx' of the obj that is closest in deltaR
-  // around the vector (eta,phi). Returns
-  //  - true  : if an obj has been found.
-  //  - false : otherwise. In that case, 'matchedObjIdx == -1'
-  // If deltaRMax is specified, it is in addition required  that 
-  // the objects are closer than deltaRMax.
-  bool findTauMatchedObject(int &matchedObjIdx, double eta, double phi, std::vector<double> jetseta, std::vector<double> jetsphi, unsigned nObj, float deltaRMax) {
+  bool findBMatchedTauJet(int matchedObjIdx, const std::vector<TLorentzVector> &bLVec, const std::vector<TLorentzVector> &jetsLVec, double DeltaR){
+    bool match = false;
+    if(matchedObjIdx ==-1 ) return match;
+
+    double deltaRMin = 100000.;
+    for(unsigned objIdx = 0; objIdx < bLVec.size(); ++objIdx) { // Loop over objects
+      const double dr = jetsLVec[matchedObjIdx].DeltaR(bLVec.at(objIdx));
+      if( dr < deltaRMin ) deltaRMin = dr;
+    }
+    if(deltaRMin < DeltaR) match = true;
+    return match;
+  }
+
+  // Find index 'matchedObjIdx' of the obj that is closest in deltaR                                                                          
+  // around the vector (eta,phi). Returns                                                                                                     
+  //  - true  : if an obj has been found.                                                                                                     
+  //  - false : otherwise. In that case, 'matchedObjIdx == -1'                                                                                
+  // If deltaRMax is specified, it is in addition required  that                                                                              
+  // the objects are closer than deltaRMax. 
+  bool findTauMatchedJet(int &matchedObjIdx, const TLorentzVector &tauLVec, const std::vector<TLorentzVector> &jetsLVec, float deltaRMax){
     matchedObjIdx = -1;
     double deltaRMin = 100000.;
-    for(unsigned objIdx = 0; objIdx < nObj; ++objIdx) { // Loop over objects
-      const double dr = deltaR(eta,jetseta.at(objIdx),phi,jetsphi.at(objIdx));
+    for(unsigned objIdx = 0; objIdx < jetsLVec.size(); ++objIdx) { // Loop over objects                                                       
+      const double dr = tauLVec.DeltaR(jetsLVec.at(objIdx));
       if( dr < deltaRMin ) {
-	deltaRMin = dr;
-	matchedObjIdx = objIdx;
+        deltaRMin = dr;
+        matchedObjIdx = objIdx;
       }
-    } // End of loop over objects
-
+    } // End of loop over objects  
     bool match = false;
     if( deltaRMin < deltaRMax ) {
       match = true;
@@ -47,6 +59,21 @@ namespace utils {
     double deltaRMin = 100000.;
     for(unsigned objIdx = 0; objIdx < nObj; ++objIdx) { // Loop over objects                                                                  
       const double dr = deltaR(eta,jetseta.at(objIdx),phi,jetsphi.at(objIdx));
+      if( dr < deltaRMin ) {
+        deltaRMin = dr;
+        matchedObjIdx = objIdx;
+      }
+    } // End of loop over objects                                                                                                             
+    if( deltaRMin > deltaRMax ) {
+      matchedObjIdx = -1;
+    }
+  }
+
+  void findMatchedObject(int &matchedObjIdx, const TLorentzVector &muLVec, const std::vector<TLorentzVector> &jetsLVec, float deltaRMax) {
+    matchedObjIdx = -1;
+    double deltaRMin = 100000.;
+    for(unsigned objIdx = 0; objIdx < jetsLVec.size(); ++objIdx) { // Loop over objects
+      const double dr = muLVec.DeltaR(jetsLVec.at(objIdx));
       if( dr < deltaRMin ) {
         deltaRMin = dr;
         matchedObjIdx = objIdx;

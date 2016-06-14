@@ -63,7 +63,8 @@ int main(int argc, char* argv[]) {
   const int maxevent = std::atoi(Maxevent);  
   
   TString sampleString(subsamplename);
-
+  //Searchbin                                                                                                                                                                      
+  SearchBins SB("SB_69_2016");
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "SignalCont";
   ExpBaselineVessel = new BaselineVessel(spec, "fastsim");
@@ -334,7 +335,7 @@ int main(int argc, char* argv[]) {
 	//Activity variable calculation:
 	const double muact = muonspfActivity[isomuonsIdxVec.at(0)];
 	// iSR: this should be determined by search region requirement
-	const int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
+	const int kSR = SB.find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
 	//correction factor:                                                                                              
 	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                    
 	const double corrBRTauToMu = 1-Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));//correction from tauonic mu contamination   

@@ -64,7 +64,8 @@ int main(int argc, char* argv[]) {
   
   TString sampleString(subsamplename);
   if(sampleString.Contains("Data")){Lumiscale = 1.0; isData = true;}
-
+  //Searchbin                                                                                                                                                                              
+  SearchBins SB("SB_69_2016");
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "ClosureExp";
   std::string filterevent = "SingleMuon_csc2015.txt";
@@ -97,12 +98,6 @@ int main(int argc, char* argv[]) {
   int k = 0;
   while(tr->getNextEvent()){
     k++;
-    double prntwgt = -1;
-    double prntcor = -1;
-    double wgtSB[45] = {0};
-    for(int b=0; b<45; b++){
-      wgtSB[b]= -1;
-    }
     if(maxevent>=0 && tr->getEvtNum() > maxevent ) break;
     // Add print out of the progress of looping
     if( tr->getEvtNum()-1 == 0 || tr->getEvtNum() == entries || (tr->getEvtNum()-1)%(entries/10) == 0 ) std::cout<<"\n   Processing the "<<tr->getEvtNum()-1<<"th event ..."<<std::endl;
@@ -127,19 +122,8 @@ int main(int argc, char* argv[]) {
 
     double met=tr->getVar<double>("met");
     double metphi=tr->getVar<double>("metphi");
-    //const std::vector<double> &metMagUp = tr->getVec<double>("metMagUp");
-    //const std::vector<double> &metMagDown = tr->getVec<double>("metMagDown");
 
     TLorentzVector metLVec; metLVec.SetPtEtaPhiM(met, 0, metphi, 0);
-    /*double metjecUp = metMagUp[1];//met Uncertainty
-    double metjecLow = metMagDown[1];//met Uncertainty
-    double metjerUp = metMagUp[0];//met Uncertainty
-    double metjerLow = metMagDown[0];//met Uncertainty
-    TLorentzVector metLVecjecUp;metLVecjecUp.SetPtEtaPhiM(metjecUp, 0, metphi, 0);
-    TLorentzVector metLVecjecLow;metLVecjecLow.SetPtEtaPhiM(metjecLow, 0, metphi, 0);
-    TLorentzVector metLVecjerUp;metLVecjerUp.SetPtEtaPhiM(metjerUp, 0, metphi, 0);
-    TLorentzVector metLVecjerLow;metLVecjerLow.SetPtEtaPhiM(metjerLow, 0, metphi, 0);
-    */
     int run = tr->getVar<int>("run");
     int lumi = tr->getVar<int>("lumi");
     int event = tr->getVar<int>("event");
@@ -149,7 +133,6 @@ int main(int argc, char* argv[]) {
     const double EvtWt = tr->getVar<double>("evtWeight");
     //change event weight for MC sample
     EventWeight = EvtWt;
-    // if(EventWeight<1) cout<<"EventWeight: "<<EventWeight<<endl;
     //Lumiscale = Lumiscale * EventWeight;
     //Event Filter                                                                                                                           
     if(!passNoiseEventFilter) continue;
@@ -195,20 +178,7 @@ int main(int argc, char* argv[]) {
         
       //Select only events where the W decayed into a hadronically decaying tau      
       if(W_tau_prongsVec.size()!=0){
-      //	myBaseHistgram.hTruecutFlow->Fill("original", Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("Filter", passNoiseEventFilter * Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("nJets", passNoiseEventFilter * passnJets_tru * Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("MuonVeto", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("EleVeto", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("IskVeto",passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * passIsoTrkVeto_tru * Lumiscale);	
-	myBaseHistgram.hTruecutFlow->Fill("dPhis", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * passIsoTrkVeto_tru *  passdPhis_tru * Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("BJets", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * passIsoTrkVeto_tru *  passdPhis_tru * passBJets_tru * Lumiscale);	
-	myBaseHistgram.hTruecutFlow->Fill("MET", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * passIsoTrkVeto_tru *  passdPhis_tru * passBJets_tru * passMET_tru * Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("Tagger", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * passIsoTrkVeto_tru *  passdPhis_tru * passBJets_tru * passMET_tru * passTagger_tru * Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("MT2", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * passIsoTrkVeto_tru *  passdPhis_tru * passBJets_tru * passMET_tru * passTagger_tru * passMT2_tru* Lumiscale);
-	myBaseHistgram.hTruecutFlow->Fill("HT", passNoiseEventFilter * passnJets_tru * passMuonVeto_tru * passEleVeto_tru * passIsoTrkVeto_tru *  passdPhis_tru * passBJets_tru * passMET_tru * passTagger_tru * passMT2_tru*  passHT_tru * Lumiscale);	
-
-	//Dihad fraction calculation to calculate lostlepton contribution
+      	//Dihad fraction calculation to calculate lostlepton contribution
 	if(sampleString.Contains("DiLep")){
 	  int gentau(0);
 	  for(unsigned ig=0; ig<genDecayLVec.size(); ig++){
@@ -220,7 +190,7 @@ int main(int argc, char* argv[]) {
 	  bool isdihadtau = false;
 	  if(gentau==2 && W_tau_emuVec.size()==0) isdihadtau = true;
 	  if(passBaselineClosure){
-	    int kSR = find_Binning_Index(nbJets_tru, nTops_tru, MT2_tru, met);
+	    int kSR = SB.find_Binning_Index(nbJets_tru, nTops_tru, MT2_tru, met);
 	    myBaseHistgram.hnodihadtau->Fill(kSR, Lumiscale);
 	    if(isdihadtau)myBaseHistgram.hdihadtau->Fill(kSR, Lumiscale);
 	  }
@@ -228,7 +198,7 @@ int main(int argc, char* argv[]) {
       }
       //Exp Dist.
       if(W_tau_prongsVec.size() !=0 && passBaselineClosure && passNoiseEventFilter){
-	int jSR = find_Binning_Index(nbJets_tru, nTops_tru, MT2_tru, met);
+	int jSR = SB.find_Binning_Index(nbJets_tru, nTops_tru, MT2_tru, met);
 	if( jSR!= -1 ) {
 	  myBaseHistgram.hTrueYields->Fill(jSR, Lumiscale);
 	}
@@ -274,18 +244,11 @@ int main(int argc, char* argv[]) {
       if( muLVec.Pt() < TauResponse::ptMin() ) continue;
       if( fabs(muLVec.Eta()) > TauResponse::etaMax() ) continue;
      
-      myBaseHistgram.hPredcutFlow->Fill("CS", Lumiscale);
-      
       //mtW correction
       const double mtw = calcMT(muLVec, metLVec);
       bool pass_mtw = false;
       if(mtw<100)pass_mtw = true;
 
-      /*const double mtwjecUp = calcMT(muLVec, metLVecjecUp);
-      const double mtwjecLow = calcMT(muLVec, metLVecjecLow);
-      const double mtwjerUp = calcMT(muLVec, metLVecjerUp);
-      const double mtwjerLow = calcMT(muLVec, metLVecjerLow);
-      */
       bool istaumu = false, istaumu_genRecoMatch = false;
       if(!isData){
 	const vector<TLorentzVector> &genDecayLVec1 = tr->getVec<TLorentzVector>("genDecayLVec");
@@ -330,7 +293,6 @@ int main(int argc, char* argv[]) {
       // rejecting events with nJets less than requirements even adding one more tau jet
       if( selNJetPt30Eta24 < AnaConsts::nJetsSelPt30Eta24 - 1 ) continue;
       if( selNJetPt50Eta24 < AnaConsts::nJetsSelPt50Eta24 - 1 ) continue;
-      myBaseHistgram.hPredcutFlow->Fill("CS njet-1 cut", Lumiscale);
 
       // Get random number from tau-response template
       // The template is chosen according to the muon pt 
@@ -430,41 +392,12 @@ int main(int argc, char* argv[]) {
 	double MT2_pre = -1;
 	double mTcomb_pre = -1;
 	
-	myBaseHistgram.hPredcutFlow->Fill("ht cut", passhtpred * Lumiscale * weight);
-	bool passNjet6 = true;
-	bool passNjet9 = true;
-	if(combNJetPt30Eta24 < 6) passNjet6 = false;
-	if(combNJetPt30Eta24 < 9) passNjet9 = false;
-
+	
 	//Apply baseline cut
 	if(!passNJetPred)continue;
-	myBaseHistgram.hPredcutFlow->Fill("njet cut", passhtpred * Lumiscale * weight);
 	if(!passdeltaPhi) continue;
-	myBaseHistgram.hPredcutFlow->Fill("dPhi cut",passhtpred * Lumiscale * weight);
-	FillDouble(myBaseHistgram.hCheckmet_dPhi, simmet, passhtpred * Lumiscale * weight);
 	if(!passmetPred)continue;
-	myBaseHistgram.hPredcutFlow->Fill("met cut",passhtpred * Lumiscale * weight);
-	FillDouble(myBaseHistgram.hCheckmet_met, simmet, passhtpred * Lumiscale * weight);
-	FillInt(myBaseHistgram.hChecknjet_met, combNJetPt30Eta24, passhtpred * Lumiscale * weight);
-	for(int ij = 0; ij < combNJetVec.size(); ij++){
-	  if(!AnaFunctions::jetPassCuts(combNJetVec[ij], AnaConsts::pt30Eta24Arr)) continue;
-	  FillDouble(myBaseHistgram.hCheckjetpt_met, combNJetVec[ij].Pt(), passhtpred * Lumiscale * weight);
-	  FillDouble(myBaseHistgram.hCheckjetmass_met, combNJetVec[ij].M(), passhtpred * Lumiscale * weight);
-	  if(combJetsBtag[ij] > AnaConsts::cutCSVS) FillDouble(myBaseHistgram.hCheckBjetpt_met, combNJetVec[ij].Pt(), passhtpred * Lumiscale * weight);
-	}
 	if(!passbJets) continue;
-	myBaseHistgram.hPredcutFlow->Fill("bjet cut", passhtpred * Lumiscale * weight);
-	FillDouble(myBaseHistgram.hCheckmet_bjet, simmet, passhtpred * Lumiscale * weight);
-	FillInt(myBaseHistgram.hChecknjet_bjet, combNJetPt30Eta24, passhtpred * Lumiscale * weight);
-        for(int ij = 0; ij < combNJetVec.size(); ij++){
-          if(!AnaFunctions::jetPassCuts(combNJetVec[ij], AnaConsts::pt30Eta24Arr)) continue;
-          FillDouble(myBaseHistgram.hCheckjetpt_bjet, combNJetVec[ij].Pt(), passhtpred * Lumiscale * weight);
-          FillDouble(myBaseHistgram.hCheckjetmass_bjet, combNJetVec[ij].M(), passhtpred * Lumiscale * weight);
-          if(combJetsBtag[ij] > AnaConsts::cutCSVS) FillDouble(myBaseHistgram.hCheckBjetpt_bjet, combNJetVec[ij].Pt(), passhtpred * Lumiscale * weight);
-        }
-	myBaseHistgram.hPredcutFlow->Fill("6 njet cut", passNjet6 * passhtpred * Lumiscale * weight);
-	myBaseHistgram.hPredcutFlow->Fill("9 njet cut", passNjet9 * passNjet6 * passhtpred * Lumiscale * weight);
-
 	//Apply TopTagger        
 	if(comb30_pre >= AnaConsts::nJetsSel ){
 	  type3Ptr->processEvent(jetsLVec_forTagger_pre, recoJetsBtag_forTagger_pre, simmetLVec);
@@ -477,22 +410,12 @@ int main(int argc, char* argv[]) {
 	bool passTopTagger = type3Ptr->passNewTaggerReq() && nTopCandSortedCnt_pre >= AnaConsts::low_nTopCandSortedSel;
 	if(!passTopTagger) continue;
 
-	myBaseHistgram.hPredcutFlow->Fill("ntop cut", passhtpred * Lumiscale * weight);	
-        FillDouble(myBaseHistgram.hCheckmet_ntop, simmet, passhtpred * Lumiscale * weight);
-        FillInt(myBaseHistgram.hChecknjet_ntop, combNJetPt30Eta24, passhtpred * Lumiscale * weight);
-	for(int ij = 0; ij < combNJetVec.size(); ij++){
-          if(!AnaFunctions::jetPassCuts(combNJetVec[ij], AnaConsts::pt30Eta24Arr)) continue;
-          FillDouble(myBaseHistgram.hCheckjetpt_ntop, combNJetVec[ij].Pt(), passhtpred * Lumiscale * weight);
-          FillDouble(myBaseHistgram.hCheckjetmass_ntop, combNJetVec[ij].M(), passhtpred * Lumiscale * weight);
-          if(combJetsBtag[ij] > AnaConsts::cutCSVS) FillDouble(myBaseHistgram.hCheckBjetpt_ntop, combNJetVec[ij].Pt(), passhtpred * Lumiscale * weight);
-        }
-
 	//if(!passMT2pred) continue;  	
 	//Activity variable calculation:
 	//double muact = AnaFunctions::getMuonActivity(muLVec, jetsLVec, recoJetschargedHadronEnergyFraction, recoJetschargedEmEnergyFraction, AnaConsts::muonsAct);
 	const double muact = muonspfActivity[isomuonsIdxVec.at(0)];
 	// iSR: this should be determined by search region requirement
-	const int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
+	const int kSR = SB.find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
 	
 	//correction factor:                                                                                                                      
 	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                                                   
@@ -500,48 +423,17 @@ int main(int argc, char* argv[]) {
 	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency                                        
 	const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency
 	const double corrMuAcc = 1./Efficiency::SBaccMix(kSR); // Correction for muon acceptance
+	//	const double corrMuAcc = 1;
 	const double corrmtWEff =  1./Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)); //correction for mtW cut
 	const double corrisotrkEff = 1- Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS));//correction for isotrackveto eff.
 	const double corrllcont = 1-llcont;//correction for lost lepton overlap
 	const double corrTrgeff = trgeff;//correction for trigger efficiency
-	//const double corrllcont = 1;
-	//const double corrTrgeff = 1;
 
 	//The overall correction factor                                                                                                       
 	const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * corrllcont * corrTrgeff * weight;
 	const double Evt_weight = Lumiscale * weight;
 	const double Evt_corr = corr * Lumiscale;
 
-	myBaseHistgram.hPredcutFlow->Fill("mtw cut", passhtpred * pass_mtw * Lumiscale  * weight);
-	myBaseHistgram.hPredcutFlow->Fill("With corr", passhtpred * pass_mtw * Lumiscale  * corr);		
-	myBaseHistgram.hPredcutFlow->Fill("With corr and MT2", passhtpred * pass_mtw *  passMT2pred * Lumiscale  * corr);		
-
-	//Correction factor plot
-	bool frstadd = true;
-	bool frstadd1 = true;
-	bool frstadd2 = true;
-	if(pass_mtw && passhtpred && passMT2pred) {
-	  myBaseHistgram.hcorrection->Fill(corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu);
-	  myBaseHistgram.hSB->Fill(kSR, Evt_corr);
-	  myBaseHistgram.hweight_SB->Fill(kSR, Evt_corr);
-	  if(prntwgt==-1){
-	    prntwgt = weight;
-	    frstadd = false;
-	  }
-          if(prntcor==-1){
-            prntcor = corr;
-            frstadd1 = false;
-          }
-	  // for(int b=0;b<45;b++){
-	    if(wgtSB[kSR]==-1){
-	      wgtSB[kSR]=corr;
-	      frstadd2=false;
-	    }
-	    if(frstadd2)wgtSB[kSR] = wgtSB[kSR] + corr;
-	    //}
-	  if(frstadd) prntwgt = prntwgt + weight;	
-	  if(frstadd1)prntcor = prntcor + corr;
-	}
 	// Fill the prediction dist
 	if( pass_mtw && passhtpred && passMT2pred){
 	  FillDouble(myBaseHistgram.hPredHt, simHt, Evt_corr);
@@ -555,11 +447,6 @@ int main(int argc, char* argv[]) {
 	  FillDouble(myBaseHistgram.hPreddPhi0_wt, dPhi0_pred, Evt_corr);
 	  FillDouble(myBaseHistgram.hPreddPhi1_wt, dPhi1_pred, Evt_corr);
 	  FillDouble(myBaseHistgram.hPreddPhi2_wt, dPhi2_pred, Evt_corr);
-	  //corelation hist.
-	  FillDouble(myBaseHistgram.h1DMET_wt, simmet, Evt_corr);
-	  FillDouble(myBaseHistgram.h1DMT2_wt, simmet, Evt_corr);
-	  FillInt(myBaseHistgram.h1DNb_wt, cnt1CSVS, Evt_corr);
-	  FillInt(myBaseHistgram.h1DNt_wt, nTopCandSortedCnt_pre, Evt_corr);
 	}
 	
 	//Fill search bin prediction
@@ -569,64 +456,26 @@ int main(int argc, char* argv[]) {
 	    const double SBcorr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * corrllcont * corrTrgeff * weight;
 	    const double Evt_SBcorr = SBcorr * Lumiscale;
 	    myBaseHistgram.hPredYields_wt->Fill(kSR, Evt_SBcorr);
-	    myBaseHistgram.h1DSB_wt->Fill(kSR, Evt_SBcorr);//for corelation
-
 	  }
 	}
 
 	//mtW correction
 	if(!isData){ 
 	  if( !istaumu_genRecoMatch && passhtpred && passMT2pred){
-	    FillInt(myBaseHistgram.hnomtW_Njet_wt,combNJetPt30Eta24,Evt_weight);
-	    FillDouble(myBaseHistgram.hnomtW_Ht_wt,simHt,Evt_weight);
-	    FillDouble(myBaseHistgram.hnomtW_met_wt,simmet,Evt_weight);
-	    FillDouble(myBaseHistgram.hnomtW_MT2_wt,MT2_pre,Evt_weight);
-	    FillInt(myBaseHistgram.hnomtW_Nbjet_wt,cnt1CSVS,Evt_weight);
-	    FillInt(myBaseHistgram.hnomtW_Ntop_wt,nTopCandSortedCnt_pre,Evt_weight);
 	    Fill2D(myBaseHistgram.hnomtW_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
-	    Fill2D(myBaseHistgram.hnomtWSys_Njetmet, combNJetPt30Eta24, simmet, Evt_weight);
 	    if(pass_mtw){
-	      FillInt(myBaseHistgram.hmtW_Njet_wt,combNJetPt30Eta24,Evt_weight);
-	      FillDouble(myBaseHistgram.hmtW_Ht_wt,simHt,Evt_weight);
-	      FillDouble(myBaseHistgram.hmtW_met_wt,simmet,Evt_weight);
-	      FillDouble(myBaseHistgram.hmtW_MT2_wt,MT2_pre,Evt_weight);
-	      FillInt(myBaseHistgram.hmtW_Nbjet_wt,cnt1CSVS,Evt_weight);
-	      FillInt(myBaseHistgram.hmtW_Ntop_wt,nTopCandSortedCnt_pre,Evt_weight);
 	      Fill2D(myBaseHistgram.hmtW_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
-	    }
-	    /*    if(mtwjecUp<100)Fill2D(myBaseHistgram.hmtWSysjecUp_Njetmet, combNJetPt30Eta24, simmet, Evt_weight);
-	    if(mtwjecLow<100)Fill2D(myBaseHistgram.hmtWSysjecLow_Njetmet, combNJetPt30Eta24, simmet, Evt_weight);
-	    if(mtwjerUp<100)Fill2D(myBaseHistgram.hmtWSysjerUp_Njetmet, combNJetPt30Eta24, simmet, Evt_weight);
-	    if(mtwjerLow<100)Fill2D(myBaseHistgram.hmtWSysjerLow_Njetmet, combNJetPt30Eta24, simmet, Evt_weight);
-	    */
+	      }
 	    if(kSR!=-1){
 	      myBaseHistgram.hnomtW_wt->Fill(kSR, Evt_weight);
 	      if(pass_mtw) myBaseHistgram.hmtW_wt->Fill(kSR, Evt_weight);
 	    }
 	  }
-	  const unsigned int BjetBin = Efficiency::NBjetbin(cnt1CSVS);
-	  const unsigned int HTBin = Efficiency::Htbin(simHt);
 	  //tau mu contamination
 	  if( passhtpred && passMT2pred){
-            FillInt(myBaseHistgram.hnotaumu_Njet_wt,combNJetPt30Eta24,Evt_weight);
-            FillDouble(myBaseHistgram.hnotaumu_Ht_wt,simHt,Evt_weight);
-            FillDouble(myBaseHistgram.hnotaumu_met_wt,simmet,Evt_weight);
-            FillDouble(myBaseHistgram.hnotaumu_MT2_wt,MT2_pre,Evt_weight);
-            FillInt(myBaseHistgram.hnotaumu_Nbjet_wt,cnt1CSVS,Evt_weight);
-            FillInt(myBaseHistgram.hnotaumu_Ntop_wt,nTopCandSortedCnt_pre,Evt_weight);
 	    Fill2D(myBaseHistgram.hnotaumu_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
-	    Fill2D(myBaseHistgram.hnotaumu_Njetmet_Bjet.at(BjetBin), combNJetPt30Eta24, simmet, Evt_weight);
-	    Fill2D(myBaseHistgram.hnotaumu_Njetmet_Ht.at(HTBin), combNJetPt30Eta24, simmet, Evt_weight);
 	    if(istaumu_genRecoMatch) {
-	      FillInt(myBaseHistgram.htaumu_Njet_wt,combNJetPt30Eta24,Evt_weight);
-	      FillDouble(myBaseHistgram.htaumu_Ht_wt,simHt,Evt_weight);
-	      FillDouble(myBaseHistgram.htaumu_met_wt,simmet,Evt_weight);
-	      FillDouble(myBaseHistgram.htaumu_MT2_wt,MT2_pre,Evt_weight);
-	      FillInt(myBaseHistgram.htaumu_Nbjet_wt,cnt1CSVS,Evt_weight);
-	      FillInt(myBaseHistgram.htaumu_Ntop_wt,nTopCandSortedCnt_pre,Evt_weight);
 	      Fill2D(myBaseHistgram.htaumu_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
-	      Fill2D(myBaseHistgram.htaumu_Njetmet_Bjet.at(BjetBin), combNJetPt30Eta24, simmet, Evt_weight);
-	      Fill2D(myBaseHistgram.htaumu_Njetmet_Ht.at(HTBin), combNJetPt30Eta24, simmet, Evt_weight);
 	    }	    
 	    if(kSR!=-1){
 	      myBaseHistgram.hnotaumu_wt->Fill(kSR, Evt_weight);
@@ -638,19 +487,8 @@ int main(int argc, char* argv[]) {
       }//template bin loop
     }//control sample loop
 
-    //Fill corelation histo
-    TauResponse::HistfillCorr(myBaseHistgram.h1DSB_wt, myBaseHistgram.h2DSB_corr);
-    TauResponse::HistfillCorr(myBaseHistgram.h1DMET_wt, myBaseHistgram.h2DMET_corr);
-    TauResponse::HistfillCorr(myBaseHistgram.h1DMT2_wt, myBaseHistgram.h2DMT2_corr);
-    TauResponse::HistfillCorr(myBaseHistgram.h1DNb_wt, myBaseHistgram.h2DNb_corr);
-    TauResponse::HistfillCorr(myBaseHistgram.h1DNt_wt, myBaseHistgram.h2DNt_corr);
-
     //correct the uncertainties in pred histo
     TauResponse::Histfill(myBaseHistgram.hPredYields_wt, myBaseHistgram.hPredYields);
-    TauResponse::Histfill(myBaseHistgram.hnomtW_wt, myBaseHistgram.hnomtW);    
-    TauResponse::Histfill(myBaseHistgram.hmtW_wt, myBaseHistgram.hmtW);    
-    TauResponse::Histfill(myBaseHistgram.hnotaumu_wt, myBaseHistgram.hnotaumu);
-    TauResponse::Histfill(myBaseHistgram.htaumu_wt, myBaseHistgram.htaumu);
     TauResponse::Histfill(myBaseHistgram.hPredmet_wt, myBaseHistgram.hPredmet);
     TauResponse::Histfill(myBaseHistgram.hPredmht_wt, myBaseHistgram.hPredmht);
     TauResponse::Histfill(myBaseHistgram.hPredMT2_wt, myBaseHistgram.hPredMT2);
@@ -659,42 +497,15 @@ int main(int argc, char* argv[]) {
     TauResponse::Histfill(myBaseHistgram.hPreddPhi0_wt, myBaseHistgram.hPreddPhi0);  
     TauResponse::Histfill(myBaseHistgram.hPreddPhi1_wt, myBaseHistgram.hPreddPhi1);  
     TauResponse::Histfill(myBaseHistgram.hPreddPhi2_wt, myBaseHistgram.hPreddPhi2);  
-    TauResponse::Histfill(myBaseHistgram.hnomtW_Njet_wt, myBaseHistgram.hnomtW_Njet);
-    TauResponse::Histfill(myBaseHistgram.hnomtW_Ht_wt, myBaseHistgram.hnomtW_Ht);
-    TauResponse::Histfill(myBaseHistgram.hnomtW_met_wt, myBaseHistgram.hnomtW_met);
-    TauResponse::Histfill(myBaseHistgram.hnomtW_MT2_wt, myBaseHistgram.hnomtW_MT2);
-    TauResponse::Histfill(myBaseHistgram.hnomtW_Nbjet_wt, myBaseHistgram.hnomtW_Nbjet);
-    TauResponse::Histfill(myBaseHistgram.hnomtW_Ntop_wt, myBaseHistgram.hnomtW_Ntop);
-    TauResponse::Histfill(myBaseHistgram.hmtW_Njet_wt, myBaseHistgram.hmtW_Njet);
-    TauResponse::Histfill(myBaseHistgram.hmtW_Ht_wt, myBaseHistgram.hmtW_Ht);
-    TauResponse::Histfill(myBaseHistgram.hmtW_met_wt, myBaseHistgram.hmtW_met);
-    TauResponse::Histfill(myBaseHistgram.hmtW_MT2_wt, myBaseHistgram.hmtW_MT2);
-    TauResponse::Histfill(myBaseHistgram.hmtW_Nbjet_wt, myBaseHistgram.hmtW_Nbjet);
-    TauResponse::Histfill(myBaseHistgram.hmtW_Ntop_wt, myBaseHistgram.hmtW_Ntop);
-    TauResponse::Histfill(myBaseHistgram.hnotaumu_Njet_wt, myBaseHistgram.hnotaumu_Njet);
-    TauResponse::Histfill(myBaseHistgram.hnotaumu_Ht_wt, myBaseHistgram.hnotaumu_Ht);
-    TauResponse::Histfill(myBaseHistgram.hnotaumu_met_wt, myBaseHistgram.hnotaumu_met);
-    TauResponse::Histfill(myBaseHistgram.hnotaumu_MT2_wt, myBaseHistgram.hnotaumu_MT2);
-    TauResponse::Histfill(myBaseHistgram.hnotaumu_Nbjet_wt, myBaseHistgram.hnotaumu_Nbjet);
-    TauResponse::Histfill(myBaseHistgram.hnotaumu_Ntop_wt, myBaseHistgram.hnotaumu_Ntop);
-    TauResponse::Histfill(myBaseHistgram.htaumu_Njet_wt, myBaseHistgram.htaumu_Njet);
-    TauResponse::Histfill(myBaseHistgram.htaumu_Ht_wt, myBaseHistgram.htaumu_Ht);
-    TauResponse::Histfill(myBaseHistgram.htaumu_met_wt, myBaseHistgram.htaumu_met);
-    TauResponse::Histfill(myBaseHistgram.htaumu_MT2_wt, myBaseHistgram.htaumu_MT2);
-    TauResponse::Histfill(myBaseHistgram.htaumu_Nbjet_wt, myBaseHistgram.htaumu_Nbjet);
-    TauResponse::Histfill(myBaseHistgram.htaumu_Ntop_wt, myBaseHistgram.htaumu_Ntop);
+     TauResponse::Histfill(myBaseHistgram.hnomtW_wt, myBaseHistgram.hnomtW);    
+    TauResponse::Histfill(myBaseHistgram.hmtW_wt, myBaseHistgram.hmtW);    
+    TauResponse::Histfill(myBaseHistgram.hnotaumu_wt, myBaseHistgram.hnotaumu);
+    TauResponse::Histfill(myBaseHistgram.htaumu_wt, myBaseHistgram.htaumu);
     /*    TauResponse::Histfill2D(myBaseHistgram.hnomtW_Njetmet_wt, myBaseHistgram.hnomtW_Njetmet);
     TauResponse::Histfill2D(myBaseHistgram.hmtW_Njetmet_wt, myBaseHistgram.hmtW_Njetmet);
     TauResponse::Histfill2D(myBaseHistgram.hnotaumu_Njetmet_wt, myBaseHistgram.hnotaumu_Njetmet);
     TauResponse::Histfill2D(myBaseHistgram.htaumu_Njetmet_wt, myBaseHistgram.htaumu_Njetmet);
     */
-    TauResponse::Histfill1Dto2D(myBaseHistgram.hSB, myBaseHistgram.hweight_SBCpy);
-    myBaseHistgram.htempweight->Fill(prntwgt, Lumiscale);
-    myBaseHistgram.htotweight->Fill(prntcor, Lumiscale);
-    for(int b=0; b<45; b++){
-      myBaseHistgram.htotweight_SB->Fill(b, wgtSB[b], Lumiscale);
-    }
-    myBaseHistgram.hevtWt->Fill(EventWeight, Lumiscale);
   }	//event loop
   // --- Save the Histograms to File -----------------------------------
   (myBaseHistgram.oFile)->Write();

@@ -64,7 +64,8 @@ int main(int argc, char* argv[]) {
   
   TString sampleString(subsamplename);
   if(sampleString.Contains("Data")){Lumiscale = 1.0; isData = true;}
-
+  //Searchbin                                                                                                                                                                             
+  SearchBins SB("SB_69_2016");
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "Pred";
   std::string filterevent = "SingleMuon_csc2015.txt";
@@ -310,7 +311,7 @@ int main(int argc, char* argv[]) {
 	//Activity variable calculation:
 	const double muact = muonspfActivity[isomuonsIdxVec.at(0)];
 	// iSR: this should be determined by search region requirement
-	const int kSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
+	const int kSR = SB.find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
 	
 	//correction factor:                                                                                                                      
 	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                                                   

@@ -64,7 +64,8 @@ int main(int argc, char* argv[]) {
   NTupleReader *tr =0;
   tr = new NTupleReader(fChain);
   tr->registerFunction(&passBaselineFuncIsoTrack);
-
+  //Searchbin                                                                                                                                                                             
+  SearchBins SB("SB_69_2016");
   BaseHistgram myBaseHistgram;
   myBaseHistgram.BookHistgram(subsamplename, startfile);
 
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]) {
   //  const double isotrkEff = 1./Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(njets), Efficiency::NBjetbin(nbjets));//correction for isotrackveto eff.
   
   // iSR: this should be determined by search region requirement
-  int iSR = find_Binning_Index(nbjets, nTops, MT2, met);
+  int iSR = SB.find_Binning_Index(nbjets, nTops, MT2, met);
   if(iSR!=-1) {
     if( isIsotrack ){
       myBaseHistgram.hSB_num->Fill(iSR, Lumiscale);

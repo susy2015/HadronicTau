@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     {
       std::cerr <<"Please give 5 arguments "<<"SubsampleName"<<" Input Template" <<" MaxEvent"<<" Startfile"<<" No. of Files to run"<<std::endl;
       std::cerr <<" Valid configurations are " << std::endl;
-      std::cerr <<" ./Acc TTbarSingleLep Mixv3_Template.root 1000 0 1" << std::endl;
+      std::cerr <<" ./Acc TTbarSingleLep Template_2015.root 1000 0 1" << std::endl;
       return -1;
     }
 
@@ -63,7 +63,8 @@ int main(int argc, char* argv[]) {
       std::cerr << "Cannot get the tree " << std::endl;
     }
   const int maxevent = std::atoi(Maxevent);
-  
+  //Searchbin                                                                                                                                                                                     
+  SearchBins SB("SB_69_2016");
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "Acc";
   AccBaselineVessel = new BaselineVessel(spec);
@@ -193,26 +194,10 @@ int main(int argc, char* argv[]) {
 	}//finish isotrack loop
 	if((nTotal-nHadtau)==0) othrIsotrackVeto = true;//isotrackveto on the remaing part (exclude hadtau)
 	if(usetauLVec.Pt()>TauResponse::ptMin() && fabs(usetauLVec.Eta())<TauResponse::etaMax()) istauAcc = true;
-	int jSR = find_Binning_Index(nbJets_tru,nTops_tru,MT2_tru,met);
+	int jSR = SB.find_Binning_Index(nbJets_tru,nTops_tru,MT2_tru,met);
 	if(othrIsotrackVeto){
-	  FillIntAcc(myBaseHistgram.hTauNjet_gen, nJets_tru, Lumiscale);
-	  FillDoubleAcc(myBaseHistgram.hTaumet_gen, met, Lumiscale);
-	  FillDoubleAcc(myBaseHistgram.hTauMT2_gen, MT2_tru, Lumiscale);
-	  FillIntAcc(myBaseHistgram.hTauNbjet_gen, nbJets_tru, Lumiscale);
-	  FillIntAcc(myBaseHistgram.hTauNtop_gen, nTops_tru, Lumiscale);
-	  Fill2DAcc(myBaseHistgram.hTauNjetMT2_gen, nJets_tru, MT2_tru, Lumiscale);
-	  Fill2DAcc(myBaseHistgram.hTauNjetmet_gen, nJets_tru, met, Lumiscale);
-	  Fill2DAcc(myBaseHistgram.hTauNjetMT2_met_gen.at(taumetbin), nJets_tru, MT2_tru, Lumiscale);
 	  if(jSR!=-1)myBaseHistgram.hTaugen->Fill(jSR, Lumiscale);
 	  if(istauAcc){
-	    FillIntAcc(myBaseHistgram.hTauNjet_acc, nJets_tru, Lumiscale);
-	    FillDoubleAcc(myBaseHistgram.hTaumet_acc, met, Lumiscale);
-	    FillDoubleAcc(myBaseHistgram.hTauMT2_acc, MT2_tru, Lumiscale);
-	    FillIntAcc(myBaseHistgram.hTauNbjet_acc, nbJets_tru, Lumiscale);
-	    FillIntAcc(myBaseHistgram.hTauNtop_acc, nTops_tru, Lumiscale);
-	    Fill2DAcc(myBaseHistgram.hTauNjetMT2_acc, nJets_tru, MT2_tru, Lumiscale);
-	    Fill2DAcc(myBaseHistgram.hTauNjetmet_acc, nJets_tru, met, Lumiscale);
-	    Fill2DAcc(myBaseHistgram.hTauNjetMT2_met_acc.at(taumetbin), nJets_tru, MT2_tru, Lumiscale);
 	    if(jSR!=-1)myBaseHistgram.hTauacc->Fill(jSR, Lumiscale);
 	  }
 	}
@@ -403,29 +388,16 @@ int main(int argc, char* argv[]) {
 	if(!passht)continue;
 
 	// iSR: this should be determined by search region requirement
-	int iSR = find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_acc, MT2_acc, combmet);
+	int iSR = SB.find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_acc, MT2_acc, combmet);
 
 	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                          
 	
 	//const double corrMuAcc = 1./Efficiency::accMix_NjetMT2(Efficiency::Njetbin(nJetPt30Eta24), Efficiency::MT2bin(MT2_acc)); // Correction for muon acceptance
 	const double corr = corrBRWToTauHad;
 	const double Evt_weight = Lumiscale * weight * corr;
-	
-	const unsigned int metbin = Efficiency::metbin(combmet);
-	const unsigned int topbin = Efficiency::topbin(nTopCandSortedCnt_acc);
 
 	//histogram
 	if(passMT2){
-	  FillIntAcc(myBaseHistgram.hNjet_gen_wt, nJetPt30Eta24, Evt_weight);
-	  FillDoubleAcc(myBaseHistgram.hmet_gen, combmet, Evt_weight);
-	  FillDoubleAcc(myBaseHistgram.hMT2_gen, MT2_acc, Evt_weight);
-	  FillIntAcc(myBaseHistgram.hNbjet_gen, cnt1CSVS, Evt_weight);
-	  FillIntAcc(myBaseHistgram.hNtop_gen, nTopCandSortedCnt_acc, Evt_weight);
-	  FillDoubleAcc(myBaseHistgram.hht_gen, Ht, Evt_weight);
-	  Fill2DAcc(myBaseHistgram.hNjetMT2_gen_wt, nJetPt30Eta24, MT2_acc, Evt_weight);
-	  Fill2DAcc(myBaseHistgram.hNjetmet_gen_wt, nJetPt30Eta24, combmet, Evt_weight);
-	  Fill2DAcc(myBaseHistgram.hNjetMT2_met_gen.at(metbin), nJetPt30Eta24, MT2_acc, Evt_weight);
-	  Fill2DAcc(myBaseHistgram.hNjetMT2_top_gen.at(topbin), nJetPt30Eta24, MT2_acc, Evt_weight);
 	  if(iSR!=-1){
 	    myBaseHistgram.hgen_wt->Fill(iSR, Evt_weight);
 	    myBaseHistgram.hgen_pdfCentral_wt->Fill(iSR, Evt_weight*pdfCentral);
@@ -435,16 +407,6 @@ int main(int argc, char* argv[]) {
 	    myBaseHistgram.hgen_scaleDown_wt->Fill(iSR, Evt_weight*scaleDown);
 	  }
 	  if(passKinCuts){
-	    FillIntAcc(myBaseHistgram.hNjet_acc_wt, nJetPt30Eta24, Evt_weight);
-	    FillDoubleAcc(myBaseHistgram.hmet_acc, combmet, Evt_weight);
-	    FillDoubleAcc(myBaseHistgram.hMT2_acc, MT2_acc, Evt_weight);
-	    FillIntAcc(myBaseHistgram.hNbjet_acc, cnt1CSVS, Evt_weight);
-	    FillIntAcc(myBaseHistgram.hNtop_acc, nTopCandSortedCnt_acc, Evt_weight);
-	    FillDoubleAcc(myBaseHistgram.hht_acc, Ht, Evt_weight);
-	    Fill2DAcc(myBaseHistgram.hNjetMT2_acc_wt, nJetPt30Eta24, MT2_acc, Evt_weight);
-	    Fill2DAcc(myBaseHistgram.hNjetmet_acc_wt, nJetPt30Eta24, combmet, Evt_weight);
-	    Fill2DAcc(myBaseHistgram.hNjetMT2_met_acc.at(metbin), nJetPt30Eta24, MT2_acc, Evt_weight);
-	    Fill2DAcc(myBaseHistgram.hNjetMT2_top_acc.at(topbin), nJetPt30Eta24, MT2_acc, Evt_weight);
 	    if(iSR!=-1){
 	      myBaseHistgram.hacc_wt->Fill(iSR, Evt_weight);
 	      myBaseHistgram.hacc_pdfCentral_wt->Fill(iSR, Evt_weight*pdfCentral);
@@ -461,9 +423,6 @@ int main(int argc, char* argv[]) {
     //correct the uncertainties in pred histo
     TauResponse::Histfill(myBaseHistgram.hacc_wt, myBaseHistgram.hacc);
     TauResponse::Histfill(myBaseHistgram.hgen_wt, myBaseHistgram.hgen);
-    TauResponse::Histfill(myBaseHistgram.hNjet_gen_wt, myBaseHistgram.hNjet_gen);
-    TauResponse::Histfill(myBaseHistgram.hNjet_acc_wt, myBaseHistgram.hNjet_acc); 
-
     /*    TauResponse::Histfill(myBaseHistgram.hacc_pdfCentral_wt, myBaseHistgram.hacc_pdfCentral);
     TauResponse::Histfill(myBaseHistgram.hacc_pdfUp_wt, myBaseHistgram.hacc_pdfUp);
     TauResponse::Histfill(myBaseHistgram.hacc_pdfDown_wt, myBaseHistgram.hacc_pdfDown);

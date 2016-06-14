@@ -16,7 +16,7 @@
 #include "TauResponse.h"
 #include "SusyAnaTools/Tools/samples.h"
 
-static const int nSB = 45; //We use 37 serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
 
 using namespace std;
 

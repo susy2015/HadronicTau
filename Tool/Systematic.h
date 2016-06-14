@@ -16,7 +16,7 @@
 #include "SusyAnaTools/Tools/NTupleReader.h"
 #include "TauResponse.h"
 
-static const int nSB = 37; //We use 37 serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
 static const double mtWErr = 0.3;
 static const double effErr = 0.1;
 static const double BmistagErr = 0.5;
@@ -85,41 +85,41 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   filename+= "_Systematic"+index+".root";
   oFile = new TFile(filename, "recreate");
 
-  hPredYields_wt = new TH1D("hPredYields_wt", title+";search bin;Events",nSB,0,37);
+  hPredYields_wt = new TH1D("hPredYields_wt", title+";search bin;Events",nSB,0,nSB);
   hPredYields_wt->Sumw2();
-  hPredYields = new TH1D("hPredYields", title+";search bin;Events",nSB,0,37);
+  hPredYields = new TH1D("hPredYields", title+";search bin;Events",nSB,0,nSB);
   hPredYields->Sumw2();
 
-  hPredAccStatUp = new TH1D("hPredAccStatUp", title+";search bin;Events",nSB,0,37);
-  hPredAccStatLow = new TH1D("hPredAccStatLow", title+";search bin;Events",nSB,0,37);
-  hPredAccPDFUp = new TH1D("hPredAccPDFUp", title+";search bin;Events",nSB,0,37);
-  hPredAccPDFLow = new TH1D("hPredAccPDFLow", title+";search bin;Events",nSB,0,37);
-  hPredAccScaleUp = new TH1D("hPredAccScaleUp", title+";search bin;Events",nSB,0,37);
-  hPredAccScaleLow = new TH1D("hPredAccScaleLow", title+";search bin;Events",nSB,0,37);
-  hPredmtWStatUp = new TH1D("hPredmtWStatUp", title+";search bin;Events",nSB,0,37);
-  hPredmtWStatLow = new TH1D("hPredmtWStatLow", title+";search bin;Events",nSB,0,37);
-  hPredmtWMetjecUp = new TH1D("hPredmtWMetjecUp", title+";search bin;Events",nSB,0,37);
-  hPredmtWMetjecLow = new TH1D("hPredmtWMetjecLow", title+";search bin;Events",nSB,0,37);
-  hPredmtWMetjerUp = new TH1D("hPredmtWMetjerUp", title+";search bin;Events",nSB,0,37);
-  hPredmtWMetjerLow = new TH1D("hPredmtWMetjerLow", title+";search bin;Events",nSB,0,37);
-  hPredMuRecoStatUp = new TH1D("hPredMuRecoStatUp", title+";search bin;Events",nSB,0,37);
-  hPredMuRecoStatLow = new TH1D("hPredMuRecoStatLow", title+";search bin;Events",nSB,0,37);
-  hPredMuRecoTPUp = new TH1D("hPredMuRecoTPUp", title+";search bin;Events",nSB,0,37);
-  hPredMuRecoTPLow = new TH1D("hPredMuRecoTPLow", title+";search bin;Events",nSB,0,37);
-  hPredMuIsoStatUp = new TH1D("hPredMuIsoStatUp", title+";search bin;Events",nSB,0,37);
-  hPredMuIsoStatLow = new TH1D("hPredMuIsoStatLow", title+";search bin;Events",nSB,0,37);
-  hPredMuIsoTPUp = new TH1D("hPredMuIsoTPUp", title+";search bin;Events",nSB,0,37);
-  hPredMuIsoTPLow = new TH1D("hPredMuIsoTPLow", title+";search bin;Events",nSB,0,37);
-  hPredIsoTrkEffStatUp = new TH1D("hPredIsoTrkEffStatUp", title+";search bin;Events",nSB,0,37);
-  hPredIsoTrkEffStatLow = new TH1D("hPredIsoTrkEffStatLow", title+";search bin;Events",nSB,0,37);
-  hPredIsoTrkEffTPUp = new TH1D("hPredIsoTrkEffTPUp", title+";search bin;Events",nSB,0,37);
-  hPredIsoTrkEffTPLow = new TH1D("hPredIsoTrkEffTPLow", title+";search bin;Events",nSB,0,37);
-  hPredTemplateUp = new TH1D("hPredTemplateUp", title+";search bin;Events",nSB,0,37);
-  hPredTemplateLow = new TH1D("hPredTemplateLow", title+";search bin;Events",nSB,0,37);
-  hPredtaumuStatUp = new TH1D("hPredtaumuStatUp", title+";search bin;Events",nSB,0,37);
-  hPredtaumuStatLow = new TH1D("hPredtaumuStatLow",title+";search bin;Events",nSB,0,37);
-  hPredBmistagUp = new TH1D("hPredBmistagUp", title+";search bin;Events",nSB,0,37);
-  hPredBmistagLow = new TH1D("hPredBmistagLow", title+";search bin;Events",nSB,0,37);
+  hPredAccStatUp = new TH1D("hPredAccStatUp", title+";search bin;Events",nSB,0,nSB);
+  hPredAccStatLow = new TH1D("hPredAccStatLow", title+";search bin;Events",nSB,0,nSB);
+  hPredAccPDFUp = new TH1D("hPredAccPDFUp", title+";search bin;Events",nSB,0,nSB);
+  hPredAccPDFLow = new TH1D("hPredAccPDFLow", title+";search bin;Events",nSB,0,nSB);
+  hPredAccScaleUp = new TH1D("hPredAccScaleUp", title+";search bin;Events",nSB,0,nSB);
+  hPredAccScaleLow = new TH1D("hPredAccScaleLow", title+";search bin;Events",nSB,0,nSB);
+  hPredmtWStatUp = new TH1D("hPredmtWStatUp", title+";search bin;Events",nSB,0,nSB);
+  hPredmtWStatLow = new TH1D("hPredmtWStatLow", title+";search bin;Events",nSB,0,nSB);
+  hPredmtWMetjecUp = new TH1D("hPredmtWMetjecUp", title+";search bin;Events",nSB,0,nSB);
+  hPredmtWMetjecLow = new TH1D("hPredmtWMetjecLow", title+";search bin;Events",nSB,0,nSB);
+  hPredmtWMetjerUp = new TH1D("hPredmtWMetjerUp", title+";search bin;Events",nSB,0,nSB);
+  hPredmtWMetjerLow = new TH1D("hPredmtWMetjerLow", title+";search bin;Events",nSB,0,nSB);
+  hPredMuRecoStatUp = new TH1D("hPredMuRecoStatUp", title+";search bin;Events",nSB,0,nSB);
+  hPredMuRecoStatLow = new TH1D("hPredMuRecoStatLow", title+";search bin;Events",nSB,0,nSB);
+  hPredMuRecoTPUp = new TH1D("hPredMuRecoTPUp", title+";search bin;Events",nSB,0,nSB);
+  hPredMuRecoTPLow = new TH1D("hPredMuRecoTPLow", title+";search bin;Events",nSB,0,nSB);
+  hPredMuIsoStatUp = new TH1D("hPredMuIsoStatUp", title+";search bin;Events",nSB,0,nSB);
+  hPredMuIsoStatLow = new TH1D("hPredMuIsoStatLow", title+";search bin;Events",nSB,0,nSB);
+  hPredMuIsoTPUp = new TH1D("hPredMuIsoTPUp", title+";search bin;Events",nSB,0,nSB);
+  hPredMuIsoTPLow = new TH1D("hPredMuIsoTPLow", title+";search bin;Events",nSB,0,nSB);
+  hPredIsoTrkEffStatUp = new TH1D("hPredIsoTrkEffStatUp", title+";search bin;Events",nSB,0,nSB);
+  hPredIsoTrkEffStatLow = new TH1D("hPredIsoTrkEffStatLow", title+";search bin;Events",nSB,0,nSB);
+  hPredIsoTrkEffTPUp = new TH1D("hPredIsoTrkEffTPUp", title+";search bin;Events",nSB,0,nSB);
+  hPredIsoTrkEffTPLow = new TH1D("hPredIsoTrkEffTPLow", title+";search bin;Events",nSB,0,nSB);
+  hPredTemplateUp = new TH1D("hPredTemplateUp", title+";search bin;Events",nSB,0,nSB);
+  hPredTemplateLow = new TH1D("hPredTemplateLow", title+";search bin;Events",nSB,0,nSB);
+  hPredtaumuStatUp = new TH1D("hPredtaumuStatUp", title+";search bin;Events",nSB,0,nSB);
+  hPredtaumuStatLow = new TH1D("hPredtaumuStatLow",title+";search bin;Events",nSB,0,nSB);
+  hPredBmistagUp = new TH1D("hPredBmistagUp", title+";search bin;Events",nSB,0,nSB);
+  hPredBmistagLow = new TH1D("hPredBmistagLow", title+";search bin;Events",nSB,0,nSB);
 
   hweight = new TH1D("hweight", "Total wight", 20,0,1);
 }

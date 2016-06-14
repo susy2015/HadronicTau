@@ -16,7 +16,7 @@
 #include "TauResponse.h"
 #include "SusyAnaTools/Tools/samples.h"
 
-static const int nSB = 45; //We use 45 serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
 
 using namespace std;
 
@@ -86,9 +86,9 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hMT2->Sumw2();
   hMT2_wt = new TH1D("hMT2_wt","MT2;M_{T2}[GeV];Events",24,200,800);
   hMT2_wt->Sumw2();
-  hSearchBins_wt = new TH1D("hSearchBins_wt", "SearchBins;Search bin;Events",nSB,0,45);
+  hSearchBins_wt = new TH1D("hSearchBins_wt", "SearchBins;Search bin;Events",nSB,0, nSB);
   hSearchBins_wt->Sumw2();
-  hSearchBins = new TH1D("hSearchBins", "SearchBins;Search bin;Events",nSB,0,45);
+  hSearchBins = new TH1D("hSearchBins", "SearchBins;Search bin;Events",nSB,0,nSB);
   hSearchBins->Sumw2();
 
 

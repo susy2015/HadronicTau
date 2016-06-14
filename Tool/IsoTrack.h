@@ -16,7 +16,7 @@
 #include "SusyAnaTools/Tools/samples.h"
 #include "TauResponse.h"
 
-static const int nSB = 37; //We use 37 serach bins depending on Nbjet, Ntop, met and MT2 value.                                               
+static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.                                               
 
 using namespace std;
 
@@ -68,9 +68,9 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   TString index(std::to_string(filerun));
   filename+= "_IsoTrack"+index+".root";
   oFile = new TFile(filename, "recreate");
-  hSB_num = new TH1D("hSB_num", title1+";Search bin;Events", nSB, 0, 37);
+  hSB_num = new TH1D("hSB_num", title1+";Search bin;Events", nSB, 0, nSB);
   hSB_num->Sumw2();
-  hSB_den = new TH1D("hSB_den", title2+";Search bin;Events", nSB, 0, 37);
+  hSB_den = new TH1D("hSB_den", title2+";Search bin;Events", nSB, 0, nSB);
   hSB_den->Sumw2();
   hmet_den = new TH1D("hmet_den", "met", 50, 200, 1200);
   hmet_den->Sumw2();
@@ -100,13 +100,13 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hNjetNbjet_num->Sumw2();
   hNjetNbjet_den = new TH2D("hNjetNbjet_den", "Njet_Nbjet", njetbin, jetbins, nbjetbin, bjetbins);
   hNjetNbjet_den->Sumw2();
-  hSB_num1pr = new TH1D("hSB_num1pr", title1+";Search bin;Events", nSB, 0, 37);
+  hSB_num1pr = new TH1D("hSB_num1pr", title1+";Search bin;Events", nSB, 0, nSB);
   hSB_num1pr->Sumw2();
-  hSB_den1pr = new TH1D("hSB_den1pr", title2+";Search bin;Events", nSB, 0, 37);
+  hSB_den1pr = new TH1D("hSB_den1pr", title2+";Search bin;Events", nSB, 0, nSB);
   hSB_den1pr->Sumw2();
-  hSB_num3pr = new TH1D("hSB_num3pr", title1+";Search bin;Events", nSB, 0, 37);
+  hSB_num3pr = new TH1D("hSB_num3pr", title1+";Search bin;Events", nSB, 0, nSB);
   hSB_num3pr->Sumw2();
-  hSB_den3pr = new TH1D("hSB_den3pr", title2+";Search bin;Events", nSB, 0, 37);
+  hSB_den3pr = new TH1D("hSB_den3pr", title2+";Search bin;Events", nSB, 0, nSB);
   hSB_den3pr->Sumw2();
 }
 

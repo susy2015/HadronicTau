@@ -54,31 +54,31 @@ $(ODIR)/%.o : $(IDIR)/%.cc
 Template: $(ODIR)/Template.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-Closure: $(ODIR)/Closure.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
+Closure: $(ODIR)/Closure.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o $(ODIR)/searchBins.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-Acc: $(ODIR)/Acc.o $(ODIR)/NTupleReader.o $(ODIR)/PDFUncertainty.o $(ODIR)/samples.o
+Acc: $(ODIR)/Acc.o $(ODIR)/NTupleReader.o $(ODIR)/PDFUncertainty.o $(ODIR)/samples.o $(ODIR)/searchBins.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 $(LHAPDFLIB) -o $@
 
 FakeRate: $(ODIR)/FakeRate.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-IsoTrack: $(ODIR)/IsoTrack.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
+IsoTrack: $(ODIR)/IsoTrack.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o $(ODIR)/searchBins.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
 DataMC: $(ODIR)/DataMC.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-Data: $(ODIR)/Data.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
+Data: $(ODIR)/Data.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o $(ODIR)/searchBins.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-Systematic: $(ODIR)/Systematic.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
+Systematic: $(ODIR)/Systematic.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o $(ODIR)/searchBins.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-SignalCont: $(ODIR)/SignalCont.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
+SignalCont: $(ODIR)/SignalCont.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o $(ODIR)/searchBins.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-PrintSearchBins: $(ODIR)/PrintSearchBins.o
+PrintSearchBins: $(ODIR)/PrintSearchBins.o $(ODIR)/searchBins.o
 	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
 clean:

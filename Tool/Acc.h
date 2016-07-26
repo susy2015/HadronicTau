@@ -18,7 +18,7 @@
 
 using namespace std;
 
-static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 59; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
 
 static BaselineVessel *AccBaselineVessel;
 void AccpassBaselineFunc(NTupleReader& tr)
@@ -55,17 +55,6 @@ class BaseHistgram
   const double metbins[5] = {200, 275, 350, 450, 800};
   const int nmetbin = sizeof(metbins)/sizeof(metbins[0])-1;
 
-  
-  TH1D *hgen_pdfCentral;
-  TH1D *hgen_pdfUp;
-  TH1D *hgen_pdfDown;
-  TH1D *hgen_scaleUp;
-  TH1D *hgen_scaleDown;
-  TH1D *hacc_pdfCentral;
-  TH1D *hacc_pdfUp;
-  TH1D *hacc_pdfDown;
-  TH1D *hacc_scaleUp;
-  TH1D *hacc_scaleDown;
   TH1D *hgen_pdfCentral_wt;
   TH1D *hgen_pdfUp_wt;
   TH1D *hgen_pdfDown_wt;
@@ -77,6 +66,12 @@ class BaseHistgram
   TH1D *hacc_scaleUp_wt;
   TH1D *hacc_scaleDown_wt;
 
+  //PDF & Scale check
+  TH1D *hpdfUp;
+  TH1D *hpdfDown;
+  TH1D *hscaleUp;
+  TH1D *hscaleDown;
+  
 };
 void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
 {
@@ -93,26 +88,6 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hacc_wt = new TH1D("hacc_wt", title2+";Search bin;Events", nSB, 0, nSB);
   hacc_wt->Sumw2();
 
-  hgen_pdfCentral = new TH1D("hgen_pdfCentral", title1+";Search bin;Events", nSB, 0, nSB);
-  hgen_pdfCentral->Sumw2();
-  hgen_pdfUp = new TH1D("hgen_pdfUp", title1+";Search bin;Events", nSB, 0, nSB);
-  hgen_pdfUp->Sumw2();
-  hgen_pdfDown = new TH1D("hgen_pdfDown", title1+";Search bin;Events", nSB, 0, nSB);
-  hgen_pdfDown->Sumw2();
-  hgen_scaleUp = new TH1D("hgen_scaleUp", title1+";Search bin;Events", nSB, 0, nSB);
-  hgen_scaleUp->Sumw2();
-  hgen_scaleDown = new TH1D("hgen_scaleDown", title1+";Search bin;Events", nSB, 0, nSB);
-  hgen_scaleDown->Sumw2();
-  hacc_pdfCentral = new TH1D("hacc_pdfCentral", title1+";Search bin;Events", nSB, 0, nSB);
-  hacc_pdfCentral->Sumw2();
-  hacc_pdfUp = new TH1D("hacc_pdfUp", title1+";Search bin;Events", nSB, 0, nSB);
-  hacc_pdfUp->Sumw2();
-  hacc_pdfDown = new TH1D("hacc_pdfDown", title1+";Search bin;Events", nSB, 0, nSB);
-  hacc_pdfDown->Sumw2();
-  hacc_scaleUp = new TH1D("hacc_scaleUp", title1+";Search bin;Events", nSB, 0, nSB);
-  hacc_scaleUp->Sumw2();
-  hacc_scaleDown = new TH1D("hacc_scaleDown", title1+";Search bin;Events", nSB, 0, nSB);
-  hacc_scaleDown->Sumw2();
   hgen_pdfCentral_wt = new TH1D("hgen_pdfCentral_wt", title1+";Search bin;Events", nSB, 0, nSB);
   hgen_pdfCentral_wt->Sumw2();
   hgen_pdfUp_wt = new TH1D("hgen_pdfUp_wt", title1+";Search bin;Events", nSB, 0, nSB);
@@ -139,6 +114,11 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hTaugen->Sumw2();
   hTauacc = new TH1D("hTauacc", "Acc Tau;Search bin;Events", nSB, 0, nSB);
   hTauacc->Sumw2();
+
+  hpdfUp = new TH1D("hpdfUp", "pdfUp;pdfUp;Event", 100, -100, 100);
+  hpdfDown = new TH1D("hpdfDown", "pdfDown;pdfDown;Event", 100, -100, 100);
+  hscaleUp = new TH1D("hscaleUp", "MCscaleUp;scaleUp;Event", 100, -100, 100);
+  hscaleDown = new TH1D("hscaleDown", "MCscaleDown;scaleDown;Event", 100, -100, 100);
 
 }
 

@@ -16,7 +16,7 @@
 #include "SusyAnaTools/Tools/samples.h"
 #include "TauResponse.h"
 
-static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.                                               
+static const int nSB = 59; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.                                               
 
 using namespace std;
 
@@ -58,7 +58,7 @@ class BaseHistgram
  
  const double jetbins[7] = {4, 5, 6, 7, 8, 9, 10};
  const int njetbin = sizeof(jetbins)/sizeof(jetbins[0])-1;
- const double bjetbins[3] = {1, 2, 3};
+ const double bjetbins[4] = {1, 2, 3, 4};
  const int nbjetbin = sizeof(bjetbins)/sizeof(bjetbins[0])-1;
 };
 

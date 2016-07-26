@@ -72,12 +72,12 @@ TString BaseHistgram::Title2(int j){
 }
 
 TString BaseHistgram::Title3(int j){
-  TString title = "hTauRespUp__";
+  TString title = "hTauRespUp_";
   title += j;
   return title;
 }
 TString BaseHistgram::Title4(int j){
-  TString title = "hTauRespDown__";
+  TString title = "hTauRespDown_";
   title += j;
   return title;
 }

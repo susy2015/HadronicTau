@@ -16,15 +16,18 @@
 #include "SusyAnaTools/Tools/NTupleReader.h"
 #include "TauResponse.h"
 
-static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 59; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
 static const double mtWErr = 0.3;
 static const double effErr = 0.1;
 static const double BmistagErr = 0.5;
 static const double pdfErr = 0.04;
 static const double scaleErr = 0.04;
-static const double recoErr = 0.01;
-static const double isoErr = 0.01;
+static const double recoErr = sqrt(0.02*0.02 + 0.01*0.01);
+static const double isoErr = sqrt(0.02*0.02 + 0.01*0.01);
 static const double isotrkErr = 0.1;
+static const double trgeff = 100/91.4;
+static const double trgeffUp = 100/(91.4 + 0.02);
+static const double trgeffLow = 100/(91.4 - 0.03);
 
 using namespace std;
 
@@ -74,6 +77,10 @@ class BaseHistgram
   TH1D *hPredTemplateLow;
   TH1D *hPredBmistagUp;
   TH1D *hPredBmistagLow;
+  TH1D *hPredCStrgUp;
+  TH1D *hPredCStrgLow;
+  TH1D *hPredSBtrgUp;
+  TH1D *hPredSBtrgLow;
   TH1D *hweight;
   const TString title = "Hadronic-Tau Prediction";
 };
@@ -120,7 +127,11 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hPredtaumuStatLow = new TH1D("hPredtaumuStatLow",title+";search bin;Events",nSB,0,nSB);
   hPredBmistagUp = new TH1D("hPredBmistagUp", title+";search bin;Events",nSB,0,nSB);
   hPredBmistagLow = new TH1D("hPredBmistagLow", title+";search bin;Events",nSB,0,nSB);
-
+  hPredCStrgUp = new TH1D("hPredCStrgUp", title+";search bin;Events",nSB,0,nSB);
+  hPredCStrgLow = new TH1D("hPredCStrgLow", title+";search bin;Events",nSB,0,nSB);
+  hPredSBtrgUp = new TH1D("hPredSBtrgUp", title+";search bin;Events",nSB,0,nSB);
+  hPredSBtrgLow = new TH1D("hPredSBtrgLow", title+";search bin;Events",nSB,0,nSB);
+ 
   hweight = new TH1D("hweight", "Total wight", 20,0,1);
 }
 bool FillChain(TChain* &chain, const char *subsample, const string condorSpec, const int& startfile, const int& filerun){

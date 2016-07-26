@@ -16,11 +16,10 @@
 #include "TauResponse.h"
 #include "SusyAnaTools/Tools/samples.h"
 
-static const int nSB = 69; //We use nSB serach bins depending on Nbjet, Ntop, met and MT2 value.
-static const int nTB = nSB + 2;// one extra bin for baseline and another bin for MT2 value less than 200 GeV 
+static const int nSB = 59; //We use nSB serach bins depending on Nbjet, Ntop, met and MT2 value.
 
-static const double llcont = 0.024;
-static const double trgeff = 100/95.1;
+static const double llcont = 0.035;
+static const double trgeff = 100/91.4;
 
 using namespace std;
 
@@ -83,6 +82,12 @@ class BaseHistgram
   TH1D *hnotaumu;
   TH1D *htaumu_wt;
   TH1D *hnotaumu_wt;
+  //jec, jer corr.
+  TH1D *hnomtWSys;
+  TH1D *hmtWSysjecUp;
+  TH1D *hmtWSysjecLow;
+  TH1D *hmtWSysjerUp;
+  TH1D *hmtWSysjerLow;
 
   TH2D *hmtW_Njetmet_wt;
   TH2D *hmtW_Njetmet;
@@ -93,21 +98,33 @@ class BaseHistgram
   TH2D *htaumu_Njetmet;
   TH2D *hnotaumu_Njetmet;
 
+  TH1D *hmtW_Njet;
+  TH1D *hnomtW_Njet;
+  TH1D *hmtW_Nbjet;
+  TH1D *hnomtW_Nbjet;
+  TH1D *hmtW_Ntop;
+  TH1D *hnomtW_Ntop;
+  TH1D *hmtW_met;
+  TH1D *hnomtW_met;
+  TH1D *hmtW_MT2;
+  TH1D *hnomtW_MT2;
+  TH1D *htaumu_Njet;
+  TH1D *hnotaumu_Njet;
+  TH1D *htaumu_Nbjet;
+  TH1D *hnotaumu_Nbjet;
+  TH1D *htaumu_Ntop;
+  TH1D *hnotaumu_Ntop;
+  TH1D *htaumu_met;
+  TH1D *hnotaumu_met;
+  TH1D *htaumu_MT2;
+  TH1D *hnotaumu_MT2;
+
   const double jetbins[7] = {4, 5, 6, 7, 8, 9, 10};
   const int njetbin = sizeof(jetbins)/sizeof(jetbins[0])-1;
   const double metbins[5] = {200, 350, 500, 650, 800};
   const int nmetbin = sizeof(metbins)/sizeof(metbins[0])-1;
   const int nbjetbin = 3;
   const int nhtbin = 4;
-
-  const double METbin[5] ={200, 275, 350, 450, 800};
-  const int nMETbin = sizeof(METbin)/sizeof(METbin[0])-1;
-  const double MT2bin[4] ={200, 300, 400, 800};
-  const int nMT2bin = sizeof(MT2bin)/sizeof(MT2bin[0])-1;
-  const double Nbbin[3] ={1, 2, 3};
-  const int nNbbin = sizeof(Nbbin)/sizeof(Nbbin[0])-1;
-  const double Ntbin[3] ={1, 2, 3};
-  const int nNtbin = sizeof(Ntbin)/sizeof(Ntbin[0])-1;
 
   const TString title = "Hadronic-Tau Closure Test";
 };
@@ -197,6 +214,17 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hnomtW_wt = new TH1D("hnomtW_wt", "mtW correction;Search bin;Events", nSB, 0, nSB);
   hnomtW_wt->Sumw2();
 
+  hnomtWSys = new TH1D("hnomtWSys", "mtW correction;Search bin;Events", nSB, 0, nSB);
+  hnomtWSys->Sumw2();
+  hmtWSysjecUp = new TH1D("hmtWSysjecUp", "mtW correction;Search bin;Events", nSB, 0, nSB);
+  hmtWSysjecUp->Sumw2();
+  hmtWSysjecLow = new TH1D("hmtWSysjecLow", "mtW correction;Search bin;Events", nSB, 0, nSB);
+  hmtWSysjecLow->Sumw2();
+  hmtWSysjerUp = new TH1D("hmtWSysjerUp", "mtW correction;Search bin;Events", nSB, 0, nSB);
+  hmtWSysjerUp->Sumw2();
+  hmtWSysjerLow = new TH1D("hmtWSysjerLow", "mtW correction;Search bin;Events", nSB, 0, nSB);
+  hmtWSysjerLow->Sumw2();
+
   hmtW_Njetmet = new TH2D("hmtW_Njetmet", "mtW correction;N_{jet};met", njetbin, jetbins, nmetbin, metbins);
   hmtW_Njetmet->Sumw2();
   hmtW_Njetmet_wt = new TH2D("hmtW_Njetmet_wt", "mtW correction;N_{jet};met", njetbin, jetbins, nmetbin, metbins);
@@ -206,6 +234,27 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hnomtW_Njetmet_wt = new TH2D("hnomtW_Njetmet_wt", "mtW correction;N_{jet};met", njetbin, jetbins, nmetbin, metbins);
   hnomtW_Njetmet_wt->Sumw2();
   
+  hmtW_Njet = new TH1D("hmtW_Njet", "taumu correction;N_{jet};Events", 6, 4, 10);
+  hmtW_Njet->Sumw2();
+  hnomtW_Njet = new TH1D("hnomtW_Njet", "taumu correction;N_{jet};Events", 6, 4, 10);
+  hnomtW_Njet->Sumw2();
+  hmtW_Nbjet = new TH1D("hmtW_Nbjet", "taumu correction;N_{bjet};Events", 4, 1, 5);
+  hmtW_Nbjet->Sumw2();
+  hnomtW_Nbjet = new TH1D("hnomtW_Nbjet", "taumu correction;N_{bjet};Events", 4, 1, 5);
+  hnomtW_Nbjet->Sumw2();
+  hmtW_Ntop = new TH1D("hmtW_Ntop", "taumu correction;N_{top};Events", 4, 1, 5);
+  hmtW_Ntop->Sumw2();
+  hnomtW_Ntop = new TH1D("hnomtW_Ntop", "taumu correction;N_{top};Events", 4, 1, 5);
+  hnomtW_Ntop->Sumw2();
+  hmtW_met = new TH1D("hmtW_met", "taumu correction;p_{T}^{miss};Events", 32, 200, 1000);
+  hmtW_met->Sumw2();
+  hnomtW_met = new TH1D("hnomtW_met", "taumu correction;p_{T}^{miss};Events", 32, 200, 1000);
+  hnomtW_met->Sumw2();
+  hmtW_MT2 = new TH1D("hmtW_MT2", "taumu correction;M_{T2};Events", 24, 200, 800);
+  hmtW_MT2->Sumw2();
+  hnomtW_MT2 = new TH1D("hnomtW_MT2", "taumu correction;M_{T2};Events", 24, 200, 800);
+  hnomtW_MT2->Sumw2();
+
   htaumu = new TH1D("htaumu", "taumu contamination;Search bin;Events", nSB, 0, nSB);
   htaumu->Sumw2();
   hnotaumu = new TH1D("hnotaumu", "taumu contamination;Search bin;Events", nSB, 0, nSB);
@@ -223,6 +272,27 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hnotaumu_Njetmet->Sumw2();
   hnotaumu_Njetmet_wt = new TH2D("hnotaumu_Njetmet_wt", "taumu correction;N_{jet};met", njetbin, jetbins, nmetbin, metbins);
   hnotaumu_Njetmet_wt->Sumw2();
+
+  htaumu_Njet = new TH1D("htaumu_Njet", "taumu correction;N_{jet};Events", 6, 4, 10);
+  htaumu_Njet->Sumw2();
+  hnotaumu_Njet = new TH1D("hnotaumu_Njet", "taumu correction;N_{jet};Events", 6, 4, 10);
+  hnotaumu_Njet->Sumw2();
+  htaumu_Nbjet = new TH1D("htaumu_Nbjet", "taumu correction;N_{bjet};Events", 4, 1, 5);
+  htaumu_Nbjet->Sumw2();
+  hnotaumu_Nbjet = new TH1D("hnotaumu_Nbjet", "taumu correction;N_{bjet};Events", 4, 1, 5);
+  hnotaumu_Nbjet->Sumw2();
+  htaumu_Ntop = new TH1D("htaumu_Ntop", "taumu correction;N_{top};Events", 4, 1, 5);
+  htaumu_Ntop->Sumw2();
+  hnotaumu_Ntop = new TH1D("hnotaumu_Ntop", "taumu correction;N_{top};Events", 4, 1, 5);
+  hnotaumu_Ntop->Sumw2();
+  htaumu_met = new TH1D("htaumu_met", "taumu correction;p_{T}^{miss};Events", 32, 200, 1000);
+  htaumu_met->Sumw2();
+  hnotaumu_met = new TH1D("hnotaumu_met", "taumu correction;p_{T}^{miss};Events", 32, 200, 1000);
+  hnotaumu_met->Sumw2();
+  htaumu_MT2 = new TH1D("htaumu_MT2", "taumu correction;M_{T2};Events", 24, 200, 800);
+  htaumu_MT2->Sumw2();
+  hnotaumu_MT2 = new TH1D("hnotaumu_MT2", "taumu correction;M_{T2};Events", 24, 200, 800);
+  hnotaumu_MT2->Sumw2();
 
   hdihadtau = new TH1D("hdihadtau", "Di Hadronic tau fraction;Search bin;Events", nSB, 0, nSB);
   hdihadtau->Sumw2();

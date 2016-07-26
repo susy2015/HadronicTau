@@ -16,7 +16,7 @@
 #include "TauResponse.h"
 #include "SusyAnaTools/Tools/samples.h"
 
-static const int nSB = 69; //We use 69 serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 59; //We use 59 serach bins depending on Nbjet, Ntop, met and MT2 value.
 
 using namespace std;
 
@@ -39,20 +39,20 @@ class BaseHistgram
   const TString title = "Hadronic-Tau Closure Test";
   TString name1 = "hPredYields_wt_";
   TString name = "hPredYields_";
-  //int msMax = 950;//stop mass highest range(T2tt)
-  // int msMin = 100;//stop mass lowest range(T2tt)
+  //int msMax = 1200;//stop mass highest range(T2tt)
+  //int msMin = 150;//stop mass lowest range(T2tt)
   //int msMax = 1125;//stop mass highest range(T2tb)
   //int msMin = 350;//stop mass lowest range(T2tb)
-  //int mlMax = 475;//lsp mass highest range
-  //   int msMax = 1950;//gluino mass highest range(T1tttt)
-  //int msMin = 600;//gluino mass lowest range(T1tttt)
-  //int mlMax = 1450;//lsp mass highest range
+  //int mlMax = 650;//lsp mass highest range
+  int msMax = 2300;//gluino mass highest range(T1tttt)
+  int msMin = 600;//gluino mass lowest range(T1tttt)
+  int mlMax = 1600;//lsp mass highest range
   // int msMax = 2000;//gluino mass highest range(T1ttbb)
   //int msMin = 600;//gluino mass lowest range(T1ttbb)
   //int mlMax = 1450;//lsp mass highest range
-  int msMax = 1700;//gluino mass highest range(T5ttcc,T5ttttDM, T5ttttdgen)
-  int msMin = 600;//gluino mass lowest range(T5ttcc,T5ttttDM, T5ttttdgen)
-  int mlMax = 1375;//lsp mass highest range
+  //int msMax = 1700;//gluino mass highest range(T5ttcc,T5ttttDM, T5ttttdgen)
+  //int msMin = 600;//gluino mass lowest range(T5ttcc,T5ttttDM, T5ttttdgen)
+  //int mlMax = 1375;//lsp mass highest range
 
   int find_idx(const double m1, const double m2);
   std::map<std::pair<double, double>, int> histidx;

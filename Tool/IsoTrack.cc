@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
   tr = new NTupleReader(fChain);
   tr->registerFunction(&passBaselineFuncIsoTrack);
   //Searchbin                                                                                                                                                                             
-  SearchBins SB("SB_69_2016");
+  SearchBins SB("SB_59_2016");
   BaseHistgram myBaseHistgram;
   myBaseHistgram.BookHistgram(subsamplename, startfile);
 
@@ -114,13 +114,16 @@ int main(int argc, char* argv[]) {
   bool passTagger = tr->getVar<bool>("passTagger"+spec);
   bool passHT =  tr->getVar<bool>("passHT"+spec);
   bool passMT2 = tr->getVar<bool>("passMT2" + spec);
+  bool passNoiseEventFilter = tr->getVar<bool>("passNoiseEventFilter"+spec);
 
   // Select only events where the W decayed into a hadronically decaying tau
   if(W_tau_prongsVec.size()==0 ) continue;
   bool IsotrkBaseline = passMuonVeto && passEleVeto && passnJets && passdPhis && passMET && passBJets && passTagger && passHT;
   if(!IsotrkBaseline) continue;
+  //Event Filter                                                                                                                           
+  if(!passNoiseEventFilter) continue;
+
   std::vector<TLorentzVector>genvisiblehadtauLVec;
-  
   for(unsigned ig=0; ig<genDecayLVec.size(); ig++){
     int pdgId = genDecayPdgIdVec.at(ig);
     if(abs(pdgId)==15){  

@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
       std::cerr << "Cannot get the tree " << std::endl;
     }
   const int maxevent = std::atoi(Maxevent);
-  //Searchbin                                                                                                                                                                                     
-  SearchBins SB("SB_69_2016");
+  //Searchbin                                                                                                                  
+  SearchBins SB("SB_59_2016");
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "Acc";
   AccBaselineVessel = new BaselineVessel(spec);
@@ -395,23 +395,30 @@ int main(int argc, char* argv[]) {
 	//const double corrMuAcc = 1./Efficiency::accMix_NjetMT2(Efficiency::Njetbin(nJetPt30Eta24), Efficiency::MT2bin(MT2_acc)); // Correction for muon acceptance
 	const double corr = corrBRWToTauHad;
 	const double Evt_weight = Lumiscale * weight * corr;
-
+	//if((iSR==48 || iSR==50 || iSR==53 || iSR==35) && (pdfDown>2 || pdfDown<0)) cout<<" pdfDown: "<<pdfDown<<endl;
+	//if((iSR==48 || iSR==50 || iSR==53 || iSR==35) && (pdfUp>2 || pdfUp<0)) cout<<" pdfUp: "<<pdfUp<<endl;
+	//if(scaleDown==0 || scaleDown >4 ||scaleDown<0 ) cout<<" scaleDown: "<<scaleDown<<endl;
+	//if(scaleUp==0 || scaleUp >4 ||scaleUp<0) cout<<" scaleUp: "<<scaleUp<<endl;
 	//histogram
 	if(passMT2){
+	  myBaseHistgram.hpdfUp->Fill(pdfUp,Evt_weight);
+	  myBaseHistgram.hpdfDown->Fill(pdfDown,Evt_weight);
+	  myBaseHistgram.hscaleUp->Fill(scaleUp,Evt_weight);
+	  myBaseHistgram.hscaleDown->Fill(scaleDown,Evt_weight);
 	  if(iSR!=-1){
 	    myBaseHistgram.hgen_wt->Fill(iSR, Evt_weight);
 	    myBaseHistgram.hgen_pdfCentral_wt->Fill(iSR, Evt_weight*pdfCentral);
-	    myBaseHistgram.hgen_pdfUp_wt->Fill(iSR, Evt_weight*pdfUp);
-	    myBaseHistgram.hgen_pdfDown_wt->Fill(iSR, Evt_weight*pdfDown);
-	    myBaseHistgram.hgen_scaleUp_wt->Fill(iSR, Evt_weight*scaleUp);
+	    if(pdfUp>0 && pdfUp<2){myBaseHistgram.hgen_pdfUp_wt->Fill(iSR, Evt_weight*pdfUp);}
+	    if(pdfDown>0 && pdfDown<2){myBaseHistgram.hgen_pdfDown_wt->Fill(iSR, Evt_weight*pdfDown);}
+	      myBaseHistgram.hgen_scaleUp_wt->Fill(iSR, Evt_weight*scaleUp);
 	    myBaseHistgram.hgen_scaleDown_wt->Fill(iSR, Evt_weight*scaleDown);
 	  }
 	  if(passKinCuts){
 	    if(iSR!=-1){
 	      myBaseHistgram.hacc_wt->Fill(iSR, Evt_weight);
 	      myBaseHistgram.hacc_pdfCentral_wt->Fill(iSR, Evt_weight*pdfCentral);
-	      myBaseHistgram.hacc_pdfUp_wt->Fill(iSR, Evt_weight*pdfUp);
-	      myBaseHistgram.hacc_pdfDown_wt->Fill(iSR, Evt_weight*pdfDown);
+	      if(pdfUp>0 && pdfUp<2){myBaseHistgram.hacc_pdfUp_wt->Fill(iSR, Evt_weight*pdfUp);}
+	      if(pdfDown>0 && pdfDown<2){myBaseHistgram.hacc_pdfDown_wt->Fill(iSR, Evt_weight*pdfDown);}
 	      myBaseHistgram.hacc_scaleUp_wt->Fill(iSR, Evt_weight*scaleUp);
 	      myBaseHistgram.hacc_scaleDown_wt->Fill(iSR,Evt_weight*scaleDown);
 	    }
@@ -423,17 +430,6 @@ int main(int argc, char* argv[]) {
     //correct the uncertainties in pred histo
     TauResponse::Histfill(myBaseHistgram.hacc_wt, myBaseHistgram.hacc);
     TauResponse::Histfill(myBaseHistgram.hgen_wt, myBaseHistgram.hgen);
-    /*    TauResponse::Histfill(myBaseHistgram.hacc_pdfCentral_wt, myBaseHistgram.hacc_pdfCentral);
-    TauResponse::Histfill(myBaseHistgram.hacc_pdfUp_wt, myBaseHistgram.hacc_pdfUp);
-    TauResponse::Histfill(myBaseHistgram.hacc_pdfDown_wt, myBaseHistgram.hacc_pdfDown);
-    TauResponse::Histfill(myBaseHistgram.hacc_scaleUp_wt, myBaseHistgram.hacc_scaleUp);
-    TauResponse::Histfill(myBaseHistgram.hacc_scaleDown_wt, myBaseHistgram.hacc_scaleDown);
-    TauResponse::Histfill(myBaseHistgram.hgen_pdfCentral_wt, myBaseHistgram.hgen_pdfCentral);
-    TauResponse::Histfill(myBaseHistgram.hgen_pdfUp_wt, myBaseHistgram.hgen_pdfUp);
-    TauResponse::Histfill(myBaseHistgram.hgen_pdfDown_wt, myBaseHistgram.hgen_pdfDown);
-    TauResponse::Histfill(myBaseHistgram.hgen_scaleUp_wt, myBaseHistgram.hgen_scaleUp);
-    TauResponse::Histfill(myBaseHistgram.hgen_scaleDown_wt, myBaseHistgram.hgen_scaleDown);
-    */
   }//event loop
   (myBaseHistgram.oFile)->Write();
 

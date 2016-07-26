@@ -64,11 +64,10 @@ int main(int argc, char* argv[]) {
   if(sampleString.Contains("Data")){Lumiscale = 1.0; isData = true;}
   
   //Searchbin                                                                                                                                                                              
-  SearchBins SB("SB_69_2016");
+  SearchBins SB("SB_59_2016");
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "Systemetics";
-  std::string filterevent = "SingleMuon_csc2015.txt";
-  ExpBaselineVessel = new BaselineVessel(spec, filterevent);
+  ExpBaselineVessel = new BaselineVessel(spec);
   AnaFunctions::prepareForNtupleReader();
   AnaFunctions::prepareTopTagger();
   NTupleReader *tr =0;
@@ -207,8 +206,8 @@ int main(int argc, char* argv[]) {
 	      // Default set to be 0 (low enough to be NOT a b jet)
 	      double oriJetCSVS = 0;
 	      if( muJetIdx >= 0) oriJetCSVS = recoJetsBtag_0[muJetIdx];
-	      //double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt));
-	      double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt)) - (Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt)) * BmistagErr); //Bmistag uncertainty
+	      double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt));
+	      //double mistag = Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt)) + (Efficiency::mistag(Efficiency::Ptbin1(simTauJetPt)) * BmistagErr); //Bmistag uncertainty
 	      double rno = rndm->Rndm();
 	      if( rno < mistag) oriJetCSVS = 1.0;
 	      //Adjustment of tau jet to the remaining part of mu cleaned jet    
@@ -306,16 +305,23 @@ int main(int argc, char* argv[]) {
 	      const int kSR = SB.find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
 	      //correction factor:             
 	      const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays         
-	      const double corrBRTauToMu = 1-Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));//correction from tauonic mu contamination
+	      // const double corrBRTauToMu = 1-Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));//correction from tauonic mu contamination
+	      const double corrBRTauToMu = 1-Efficiency::SBtaumucorMix(kSR);//correction from tauonic mu contamination
 	      const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency
 	      const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency                                                                 
 	      const double corrMuAcc = 1./Efficiency::SBaccMix(kSR); // Correction for muon acceptance 
-	      const double corrmtWEff =  1./Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)); //correction for mtW cut
-	      const double corrisotrkEff = 1- Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS));//correction for isotrackveto eff.
+	      // const double corrmtWEff =  1./Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)); //correction for mtW cut
+	      const double corrmtWEff =  1./Efficiency::SBmtwMix(kSR); //correction for mtW cut
+	      //const double corrisotrkEff = 1- Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS));//correction for isotrackveto eff.
+	      const double corrisotrkEff = 1- Efficiency::SBisotrkeffMix(kSR);//correction for isotrackveto eff.
+	      const double corrCSTrgeff = trgeff;//correction for CS trigger efficiency                                                                               
+	      const double corrSBTrgeff = Efficiency::HTMHT_trgEff(simHt, Efficiency::Trgmetbin(simmet));//correction for search trigger efficiency
 
-	      const double corr = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight;
+	      const double corr = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight;
 	      const double Evt_corr = corr * Lumiscale;
 	      
+	      // if(kSR==6||kSR==7||kSR==21||kSR==31) cout<<"kSR: "<<kSR<<"\tcorrCSTrgeff: "<<corrCSTrgeff<<"\tcorrSBTrgeff: "<<corrSBTrgeff<<endl;
+
 	      //weight distribution
 	      myBaseHistgram.hweight->Fill(corr, Lumiscale);
 
@@ -325,28 +331,28 @@ int main(int argc, char* argv[]) {
 	      }
 	      //for template uncertainty
 	      if( pass_mtw && passhtpred){
-                if( kSR!=-1) myBaseHistgram.hPredTemplateLow->Fill(kSR,Evt_corr);
+                if( kSR!=-1) myBaseHistgram.hPredTemplateUp->Fill(kSR,Evt_corr);
 	      }
               //for Bmistag uncertainty                                                                                                      
               if( pass_mtw && passhtpred){
-                if( kSR!=-1) myBaseHistgram.hPredBmistagLow->Fill(kSR,Evt_corr);
+                if( kSR!=-1) myBaseHistgram.hPredBmistagUp->Fill(kSR,Evt_corr);
               }
-	      
+	            
 	      //for Acc. uncertainty
 	      const double corrMuAccStatUp = 1./(Efficiency::SBaccMix(kSR) + Efficiency::accErr(kSR));
 	      const double corrMuAccStatLow = 1./(Efficiency::SBaccMix(kSR) - Efficiency::accErr(kSR));
-	      const double Evt_corrAccStatUp = corrBRWToTauHad * corrBRTauToMu * corrMuAccStatUp * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
-	      const double Evt_corrAccStatLow = corrBRWToTauHad * corrBRTauToMu * corrMuAccStatLow * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
+	      const double Evt_corrAccStatUp = corrBRWToTauHad * corrBRTauToMu * corrMuAccStatUp * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrAccStatLow = corrBRWToTauHad * corrBRTauToMu * corrMuAccStatLow * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
 
 	      const double corrMuAccPDFUp = 1./Efficiency::accpdfUp(kSR);
 	      const double corrMuAccPDFLow = 1./Efficiency::accpdfDown(kSR);
-	      const double Evt_corrAccPDFUp = corrBRWToTauHad * corrBRTauToMu * corrMuAccPDFUp * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
-	      const double Evt_corrAccPDFLow = corrBRWToTauHad * corrBRTauToMu * corrMuAccPDFLow * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
+	      const double Evt_corrAccPDFUp = corrBRWToTauHad * corrBRTauToMu * corrMuAccPDFUp * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrAccPDFLow = corrBRWToTauHad * corrBRTauToMu * corrMuAccPDFLow * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
 
 	      const double corrMuAccScaleUp = 1./Efficiency::accscaleUp(kSR);
 	      const double corrMuAccScaleLow = 1./Efficiency::accscaleDown(kSR);
-	      const double Evt_corrAccScaleUp = corrBRWToTauHad * corrBRTauToMu * corrMuAccScaleUp * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
-	      const double Evt_corrAccScaleLow = corrBRWToTauHad * corrBRTauToMu * corrMuAccScaleLow * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
+	      const double Evt_corrAccScaleUp = corrBRWToTauHad * corrBRTauToMu * corrMuAccScaleUp * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrAccScaleLow = corrBRWToTauHad * corrBRTauToMu * corrMuAccScaleLow * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
 
               if( pass_mtw && passhtpred){
 		if( kSR!=-1){ 
@@ -360,18 +366,19 @@ int main(int argc, char* argv[]) {
 	      }
 
               //for mtW. uncertainty                                                                        
-	      const double corrmtWEffMetjecUp = 1./Efficiency::mtwMetjecUp(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));
-	      const double corrmtWEffMetjecLow = 1./Efficiency::mtwMetjecLow(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));
-	      const double Evt_corrmtWMetjecUp = corrBRWToTauHad * corrBRTauToMu *corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjecUp * corrisotrkEff * weight * Lumiscale;
-              const double Evt_corrmtWMetjecLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjecLow * corrisotrkEff * weight * Lumiscale;
-	      const double corrmtWEffMetjerUp = 1./Efficiency::mtwMetjerUp(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));
-              const double corrmtWEffMetjerLow = 1./Efficiency::mtwMetjerLow(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));
-              const double Evt_corrmtWMetjerUp = corrBRWToTauHad * corrBRTauToMu *corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjerUp * corrisotrkEff * weight * Lumiscale;
-              const double Evt_corrmtWMetjerLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjerLow * corrisotrkEff * weight * Lumiscale;
-	      const double corrmtWEffStatUp = 1./(Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)) + Efficiency::mtwErr(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)));
-	      const double corrmtWEffStatLow = 1./(Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)) - Efficiency::mtwErr(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)));
-	      const double Evt_corrmtWStatUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffStatUp * corrisotrkEff * weight * Lumiscale;
-              const double Evt_corrmtWStatLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffStatLow * corrisotrkEff * weight * Lumiscale;
+	      const double corrmtWEffMetjecUp = 1./Efficiency::mtwMetjecUp(kSR);
+	      const double corrmtWEffMetjecLow = 1./Efficiency::mtwMetjecLow(kSR);
+	      const double Evt_corrmtWMetjecUp = corrBRWToTauHad * corrBRTauToMu *corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjecUp * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+              const double Evt_corrmtWMetjecLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjecLow * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      
+	      const double corrmtWEffMetjerUp = 1./Efficiency::mtwMetjerUp(kSR);
+	      const double corrmtWEffMetjerLow = 1./Efficiency::mtwMetjerLow(kSR);
+              const double Evt_corrmtWMetjerUp = corrBRWToTauHad * corrBRTauToMu *corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjerUp * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+              const double Evt_corrmtWMetjerLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffMetjerLow * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double corrmtWEffStatUp = 1./(Efficiency::SBmtwMix(kSR) + Efficiency::mtwErr(kSR));
+	      const double corrmtWEffStatLow = 1./(Efficiency::SBmtwMix(kSR) - Efficiency::mtwErr(kSR));
+	      const double Evt_corrmtWStatUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffStatUp * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+              const double Evt_corrmtWStatLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEffStatLow * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
 
 	      if( pass_mtw && passhtpred){
                 if( kSR!=-1){
@@ -385,10 +392,10 @@ int main(int argc, char* argv[]) {
 	      }
 
 	      //for Taumu uncertainty
-	      const double corrBRTauToMuStatUp = 1-(Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)) + Efficiency::taumucorErr(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)));
-	      const double corrBRTauToMuStatLow = 1-(Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)) - Efficiency::taumucorErr(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)));
-	    const double Evt_corrBRTauMuStatUp = corrBRWToTauHad * corrBRTauToMuStatUp * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
-              const double Evt_corrBRTauMuStatLow = corrBRWToTauHad * corrBRTauToMuStatLow * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
+	      const double corrBRTauToMuStatUp = 1-(Efficiency::SBtaumucorMix(kSR) + Efficiency::taumucorErr(kSR));
+	    const double corrBRTauToMuStatLow = 1-(Efficiency::SBtaumucorMix(kSR) - Efficiency::taumucorErr(kSR));
+	      const double Evt_corrBRTauMuStatUp = corrBRWToTauHad * corrBRTauToMuStatUp * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+              const double Evt_corrBRTauMuStatLow = corrBRWToTauHad * corrBRTauToMuStatLow * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
               if( pass_mtw && passhtpred){
                 if( kSR!=-1){
                   myBaseHistgram.hPredtaumuStatUp->Fill(kSR,Evt_corrBRTauMuStatUp);
@@ -399,13 +406,13 @@ int main(int argc, char* argv[]) {
 	      //for efficiency uncertainty (from tag and probe)
 	      const double corrMuRecoEffUp = 1/(Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)) + Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact))*recoErr);
 	      const double corrMuRecoEffLow = 1/(Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)) - Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact))*recoErr);
-	      const double Evt_corrMuRecoeffTPUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEffUp * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
-	      const double Evt_corrMuRecoeffTPLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEffLow * corrMuIsoEff * corrmtWEff * corrisotrkEff * weight * Lumiscale;
+	      const double Evt_corrMuRecoeffTPUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEffUp * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrMuRecoeffTPLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEffLow * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
 	      
 	      const double corrMuIsoEffUp = 1/( Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)) + Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact))*isoErr);
 	      const double corrMuIsoEffLow = 1/( Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)) - Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact))*isoErr);
-	      const double Evt_corrMuIsoeffTPUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEffUp * corrmtWEff * corrisotrkEff * weight * Lumiscale;
-	      const double Evt_corrMuIsoeffTPLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEffLow * corrmtWEff * corrisotrkEff * weight * Lumiscale;
+	      const double Evt_corrMuIsoeffTPUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEffUp * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrMuIsoeffTPLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEffLow * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
 
 	      if( pass_mtw && passhtpred){
 		if( kSR!=-1){ 
@@ -417,21 +424,43 @@ int main(int argc, char* argv[]) {
 	      }
 	      
 	      //for isotrack uncertainty
-	      const double corrisotrkEffStatUp = 1- (Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS))+Efficiency::isotrkeffErr(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS)));
-	      const double corrisotrkEffStatLow = 1- (Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS))-Efficiency::isotrkeffErr(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS)));
-	      const double Evt_corrIsotrkStatUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffStatUp * weight * Lumiscale;
-	      const double Evt_corrIsotrkStatLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffStatLow * weight * Lumiscale;
+	      const double corrisotrkEffStatUp = 1- (Efficiency::SBisotrkeffMix(kSR)+Efficiency::isotrkeffErrUp(kSR));
+	      const double corrisotrkEffStatLow = 1- (Efficiency::SBisotrkeffMix(kSR)-Efficiency::isotrkeffErrLow(kSR));
+	      const double Evt_corrIsotrkStatUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffStatUp * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrIsotrkStatLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffStatLow * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
 
-	      const double corrisotrkEffTPUp = 1- (Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS)) + Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS))*isotrkErr);
-	      const double corrisotrkEffTPLow = 1- (Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS)) - Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS))*isotrkErr);
-	      const double Evt_corrIsotrkTPUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffTPUp * weight * Lumiscale;
-	      const double Evt_corrIsotrkTPLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffTPLow * weight * Lumiscale;
+	      const double corrisotrkEffTPUp = 1- (Efficiency::SBisotrkeffMix(kSR) + Efficiency::SBisotrkeffMix(kSR)*isotrkErr);
+	      const double corrisotrkEffTPLow = 1- (Efficiency::SBisotrkeffMix(kSR) - Efficiency::SBisotrkeffMix(kSR)*isotrkErr);
+	      const double Evt_corrIsotrkTPUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffTPUp * corrCSTrgeff * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrIsotrkTPLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEffTPLow * corrCSTrgeff * corrSBTrgeff * weight * Lumiscale;
 	      if( pass_mtw && passhtpred){
                 if( kSR!=-1){
 		  myBaseHistgram.hPredIsoTrkEffStatUp->Fill(kSR, Evt_corrIsotrkStatUp);
 		  myBaseHistgram.hPredIsoTrkEffStatLow->Fill(kSR, Evt_corrIsotrkStatLow);
 		  myBaseHistgram.hPredIsoTrkEffTPUp->Fill(kSR, Evt_corrIsotrkTPUp);
 		  myBaseHistgram.hPredIsoTrkEffTPLow->Fill(kSR, Evt_corrIsotrkTPLow);
+		}
+	      }
+
+	      //for trigger uncertainty
+	      //CS trigger
+	      const double corrCSTrgeffUp = trgeffUp;
+	      const double corrCSTrgeffLow = trgeffLow;
+	      const double Evt_corrCSTrgeffUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeffUp * corrSBTrgeff * weight *  Lumiscale;
+	      const double Evt_corrCSTrgeffLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeffLow * corrSBTrgeff * weight *  Lumiscale;
+	      //SB trigger
+	      const double corrSBTrgeffUp = Efficiency::HTMHT_trgEff(simHt, Efficiency::Trgmetbin(simmet)) + Efficiency::HTMHT_trgEffUp(simHt, Efficiency::Trgmetbin(simmet));
+	      const double corrSBTrgeffLow = Efficiency::HTMHT_trgEff(simHt, Efficiency::Trgmetbin(simmet)) - Efficiency::HTMHT_trgEffDown(simHt, Efficiency::Trgmetbin(simmet));
+	      const double Evt_corrSBTrgeffUp = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeffUp * weight *  Lumiscale;
+	      const double Evt_corrSBTrgeffLow = corrBRWToTauHad * corrBRTauToMu * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrCSTrgeff * corrSBTrgeffLow * weight *  Lumiscale;
+	      //if(kSR==6||kSR==7||kSR==21||kSR==31) cout<<"kSR: "<<kSR<<"\tcorrCSTrgeffUp: "<<corrCSTrgeffUp<<"\tcorrSBTrgeffUp: "<<corrSBTrgeffUp<<endl;
+
+              if( pass_mtw && passhtpred){
+                if( kSR!=-1){
+		  myBaseHistgram.hPredCStrgUp->Fill(kSR, Evt_corrCSTrgeffUp);
+		  myBaseHistgram.hPredCStrgLow->Fill(kSR, Evt_corrCSTrgeffLow);
+		  myBaseHistgram.hPredSBtrgUp->Fill(kSR, Evt_corrSBTrgeffUp);
+		  myBaseHistgram.hPredSBtrgLow->Fill(kSR, Evt_corrSBTrgeffLow);
 		}
 	      }
 	    }//template bin loop

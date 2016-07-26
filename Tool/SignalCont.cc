@@ -66,8 +66,9 @@ int main(int argc, char* argv[]) {
   //Searchbin                                                                                                                                                                      
   SearchBins SB("SB_69_2016");
   //Use BaselineVessel class for baseline variables and selections
-  std::string spec = "SignalCont";
-  ExpBaselineVessel = new BaselineVessel(spec, "fastsim");
+  //std::string spec = "SignalCont";
+  std::string spec = "usegenmet";
+  ExpBaselineVessel = new BaselineVessel(spec , "fastsim");
   AnaFunctions::prepareForNtupleReader();
   AnaFunctions::prepareTopTagger();
   NTupleReader *tr =0;
@@ -126,7 +127,7 @@ int main(int argc, char* argv[]) {
 
     double stopmass = tr->getVar<double>("SusyMotherMass");
     double lspmass = tr->getVar<double>("SusyLSPMass");
-    //    cout<<"stopmass: "<<stopmass<<"\tlspmass: "<<lspmass<<endl;
+
     //Event Filter                                                                                                                                                                                                                         
     if(!passNoiseEventFilter) continue;
     
@@ -338,19 +339,27 @@ int main(int argc, char* argv[]) {
 	const int kSR = SB.find_Binning_Index(cnt1CSVS, nTopCandSortedCnt_pre, MT2_pre, simmet);
 	//correction factor:                                                                                              
 	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                    
-	const double corrBRTauToMu = 1-Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));//correction from tauonic mu contamination   
-	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency                                        
+	const double corrBRTauToMu = 1-Efficiency::SBtaumucorMix(kSR);//correction from tauonic mu contamination 
+	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency                     	
+	//const double corrBRTauToMu = 1-Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));//correction from tauonic mu contamination   
 	const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency
 	const double corrMuAcc = 1./Efficiency::SBaccMix(kSR); // Correction for muon acceptance
-	const double corrmtWEff =  1./Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)); //correction for mtW cut
-	const double corrisotrkEff = 1- Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS));//correction for isotrackveto eff.
+	//const double corrmtWEff =  1./Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)); //correction for mtW cut
+	const double corrmtWEff =  1./Efficiency::SBmtwMix(kSR); //correction for mtW cut
+	//const double corrisotrkEff = 1- Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS));//correction for isotrackveto eff.
+	const double corrisotrkEff = 1- Efficiency::SBisotrkeffMix(kSR);//correction for isotrackveto eff.
+	const double corrSBTrgeff = Efficiency::HTMHT_trgEff(simHt, Efficiency::Trgmetbin(simmet));//correction for search trigger efficiency
+        const double corrMuTrkSF = Efficiency::MuonTrkSF(Efficiency::etabin(muLVec.Eta()));
+        const double corrMuIdSF = Efficiency::MuonIDSF(Efficiency::PtbinIDSF(muLVec.Pt()), Efficiency::etabinIDSF(fabs(muLVec.Eta())));
+
 	//The overall correction factor                                                                                                       
-	const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * weight;
+	const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * corrSBTrgeff * corrMuTrkSF * corrMuIdSF * weight;
 	const double Evt_corr = corr * Lumiscale;
 
 	//Prediction yield
 	int hstidx = myBaseHistgram.find_idx(stopmass, lspmass);
 	if( pass_mtw && passhtpred && passMT2pred){
+	  // cout<<"stopmass: "<<stopmass<<"\tlspmass: "<<lspmass<<endl;
 	  if( kSR!=-1) {
 	    //correction in each SB  
 	    const double SBcorr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * weight;

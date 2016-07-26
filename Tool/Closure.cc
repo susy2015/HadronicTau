@@ -65,11 +65,10 @@ int main(int argc, char* argv[]) {
   TString sampleString(subsamplename);
   if(sampleString.Contains("Data")){Lumiscale = 1.0; isData = true;}
   //Searchbin                                                                                                                                                                              
-  SearchBins SB("SB_69_2016");
+  SearchBins SB("SB_59_2016");
   //Use BaselineVessel class for baseline variables and selections
   std::string spec = "ClosureExp";
-  std::string filterevent = "SingleMuon_csc2015.txt";
-  ExpBaselineVessel = new BaselineVessel(spec, filterevent);
+  ExpBaselineVessel = new BaselineVessel(spec);
   AnaFunctions::prepareForNtupleReader();
   AnaFunctions::prepareTopTagger();
   NTupleReader *tr =0;
@@ -220,8 +219,8 @@ int main(int argc, char* argv[]) {
       bool foundTrigger = false;
       for(unsigned it=0; it<TriggerNames.size(); it++){
 	if( sampleString.Contains("SingleMuon") ){
-	  //	  if( TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT350_v") || TriggerNames[it].find("HLT_PFMET170_NoiseCleaned_v") || TriggerNames[it].find("HLT_PFMET170_JetIdCleaned_v") || TriggerNames[it].find("HLT_Mu50_v")){
-	  if( TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT350_v") != string::npos){
+	  if( TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT350_v") != string::npos || TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT400_v")!= string::npos || TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT600_v")!= string::npos || TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT350_PFMET50_v")!= string::npos ||TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT400_PFMET50_v")!= string::npos){
+	    //if( TriggerNames[it].find("HLT_Mu15_IsoVVVL_PFHT350_v") != string::npos){
 	    if( PassTrigger[it] ) foundTrigger = true;
 	  }
 	}
@@ -248,7 +247,22 @@ int main(int argc, char* argv[]) {
       const double mtw = calcMT(muLVec, metLVec);
       bool pass_mtw = false;
       if(mtw<100)pass_mtw = true;
-
+      //jec, jer corr. on mtW
+      /*      const std::vector<double> &metMagUp = tr->getVec<double>("metMagUp");
+      const std::vector<double> &metMagDown = tr->getVec<double>("metMagDown");
+      double metjecUp = metMagUp[1];//met Uncertainty
+      double metjecLow = metMagDown[1];//met Uncertainty
+      double metjerUp = metMagUp[0];//met Uncertainty
+      double metjerLow = metMagDown[0];//met Uncertainty
+      TLorentzVector metLVecjecUp;metLVecjecUp.SetPtEtaPhiM(metjecUp, 0, metphi, 0);
+      TLorentzVector metLVecjecLow;metLVecjecLow.SetPtEtaPhiM(metjecLow, 0, metphi, 0);
+      TLorentzVector metLVecjerUp;metLVecjerUp.SetPtEtaPhiM(metjerUp, 0, metphi, 0);
+      TLorentzVector metLVecjerLow;metLVecjerLow.SetPtEtaPhiM(metjerLow, 0, metphi, 0);
+      const double mtwjecUp = calcMT(muLVec, metLVecjecUp);
+      const double mtwjecLow = calcMT(muLVec, metLVecjecLow);
+      const double mtwjerUp = calcMT(muLVec, metLVecjerUp);
+      const double mtwjerLow = calcMT(muLVec, metLVecjerLow);
+      */
       bool istaumu = false, istaumu_genRecoMatch = false;
       if(!isData){
 	const vector<TLorentzVector> &genDecayLVec1 = tr->getVec<TLorentzVector>("genDecayLVec");
@@ -271,7 +285,6 @@ int main(int argc, char* argv[]) {
       const std::vector<double>& cleanJetBtag             = tr->getVec<double>("cleanJetBTag");
       // Get the cleaned jet indice (pointing to the jetsLVec) for the corresponding muons                                              
       const std::vector<int>& rejectJetIdx_formuVec = tr->getVec<int>("rejectJetIdx_formuVec");
-      
       //Implement IsoTrackVeto
       if(looseisoTrksMatchedJetIdx.size()!=loose_isoTrksLVec.size())cout<<"Error: isotrack vetor size mismatch"<<endl;
       int nisoTotal = 0, nisomu = 0;	    
@@ -419,18 +432,25 @@ int main(int argc, char* argv[]) {
 	
 	//correction factor:                                                                                                                      
 	const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays                                                   
-	const double corrBRTauToMu = 1-Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));//correction from tauonic mu contamination   
-	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency                                        
+	//	const double corrBRTauToMu = 1-Efficiency::taumucorMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet));//correction from tauonic mu contamination   
+	const double corrBRTauToMu = 1-Efficiency::SBtaumucorMix(kSR);//correction from tauonic mu contamination   
+	const double corrMuRecoEff = 1./Efficiency::reco(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon reconstruction efficiency                
 	const double corrMuIsoEff = 1./Efficiency::iso(Efficiency::Ptbin(muLVec.Pt()), Efficiency::Actbin(muact)); // Correction for muon isolation efficiency
 	const double corrMuAcc = 1./Efficiency::SBaccMix(kSR); // Correction for muon acceptance
-	//	const double corrMuAcc = 1;
-	const double corrmtWEff =  1./Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)); //correction for mtW cut
-	const double corrisotrkEff = 1- Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS));//correction for isotrackveto eff.
-	const double corrllcont = 1-llcont;//correction for lost lepton overlap
-	const double corrTrgeff = trgeff;//correction for trigger efficiency
+	//	const double corrmtWEff =  1./Efficiency::mtwMix(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::metbin(simmet)); //correction for mtW cut
+	const double corrmtWEff =  1./Efficiency::SBmtwMix(kSR); //correction for mtW cut
+	//	const double corrisotrkEff = 1- Efficiency::isotrkeffMix_NjetNbjet(Efficiency::Njetbin(combNJetPt30Eta24), Efficiency::NBjetbin(cnt1CSVS));//correction for isotrackveto eff.
+	const double corrisotrkEff = 1- Efficiency::SBisotrkeffMix(kSR);//correction for isotrackveto eff.
 
-	//The overall correction factor                                                                                                       
-	const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * corrllcont * corrTrgeff * weight;
+	const double corrllcont = 1-llcont;//correction for lost lepton overlap
+	const double corrCSTrgeff = trgeff;//correction for CS trigger efficiency
+	const double corrSBTrgeff = Efficiency::HTMHT_trgEff(simHt, Efficiency::Trgmetbin(simmet));//correction for search trigger efficiency
+	const double corrMuTrkSF = Efficiency::MuonTrkSF(Efficiency::etabin(muLVec.Eta()));
+	const double corrMuIdSF = Efficiency::MuonIDSF(Efficiency::PtbinIDSF(muLVec.Pt()), Efficiency::etabinIDSF(fabs(muLVec.Eta())));
+	cout<<"Pt: "<<muLVec.Pt()<<"\tEta: "<<muLVec.Eta()<<"\tcorrMuTrkSF: "<<corrMuTrkSF<<"\tcorrMuIdSF: "<<corrMuIdSF<<endl;
+	//The overall correction factor      
+	//const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu  * weight;
+	const double corr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * corrllcont * corrCSTrgeff * corrSBTrgeff * corrMuTrkSF * corrMuIdSF * weight;
 	const double Evt_weight = Lumiscale * weight;
 	const double Evt_corr = corr * Lumiscale;
 
@@ -452,10 +472,7 @@ int main(int argc, char* argv[]) {
 	//Fill search bin prediction
 	if( pass_mtw && passhtpred && passMT2pred){
 	  if( kSR!=-1) {
-	    //correction in each SB  
-	    const double SBcorr = corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff * corrmtWEff * corrisotrkEff * corrBRTauToMu * corrllcont * corrTrgeff * weight;
-	    const double Evt_SBcorr = SBcorr * Lumiscale;
-	    myBaseHistgram.hPredYields_wt->Fill(kSR, Evt_SBcorr);
+	    myBaseHistgram.hPredYields_wt->Fill(kSR, Evt_corr);
 	  }
 	}
 
@@ -463,19 +480,46 @@ int main(int argc, char* argv[]) {
 	if(!isData){ 
 	  if( !istaumu_genRecoMatch && passhtpred && passMT2pred){
 	    Fill2D(myBaseHistgram.hnomtW_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
+	    FillDouble(myBaseHistgram.hnomtW_met, simmet, Evt_weight);
+	    FillDouble(myBaseHistgram.hnomtW_MT2, MT2_pre, Evt_weight);
+	    FillInt(myBaseHistgram.hnomtW_Njet, combNJetPt30Eta24, Evt_weight);
+	    FillInt(myBaseHistgram.hnomtW_Nbjet, cnt1CSVS, Evt_weight);
+	    FillInt(myBaseHistgram.hnomtW_Ntop, nTopCandSortedCnt_pre, Evt_weight);
 	    if(pass_mtw){
 	      Fill2D(myBaseHistgram.hmtW_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
+	      FillDouble(myBaseHistgram.hmtW_met, simmet, Evt_weight);
+	      FillDouble(myBaseHistgram.hmtW_MT2, MT2_pre, Evt_weight);
+	      FillInt(myBaseHistgram.hmtW_Njet, combNJetPt30Eta24, Evt_weight);
+	      FillInt(myBaseHistgram.hmtW_Nbjet, cnt1CSVS, Evt_weight);
+	      FillInt(myBaseHistgram.hmtW_Ntop, nTopCandSortedCnt_pre, Evt_weight);
 	      }
+	   
 	    if(kSR!=-1){
 	      myBaseHistgram.hnomtW_wt->Fill(kSR, Evt_weight);
+	      // myBaseHistgram.hnomtWSys->Fill(kSR, Evt_weight);
 	      if(pass_mtw) myBaseHistgram.hmtW_wt->Fill(kSR, Evt_weight);
+	      /*if(mtwjecUp<100)myBaseHistgram.hmtWSysjecUp->Fill(kSR, Evt_weight);
+	      if(mtwjecLow<100)myBaseHistgram.hmtWSysjecLow->Fill(kSR, Evt_weight);
+	      if(mtwjerUp<100)myBaseHistgram.hmtWSysjerUp->Fill(kSR, Evt_weight);
+	      if(mtwjerLow<100)myBaseHistgram.hmtWSysjerLow->Fill(kSR, Evt_weight);
+	      */
 	    }
 	  }
 	  //tau mu contamination
 	  if( passhtpred && passMT2pred){
 	    Fill2D(myBaseHistgram.hnotaumu_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
+	    FillDouble(myBaseHistgram.hnotaumu_met, simmet, Evt_weight);
+            FillDouble(myBaseHistgram.hnotaumu_MT2, MT2_pre, Evt_weight);
+            FillInt(myBaseHistgram.hnotaumu_Njet, combNJetPt30Eta24, Evt_weight);
+            FillInt(myBaseHistgram.hnotaumu_Nbjet, cnt1CSVS, Evt_weight);
+            FillInt(myBaseHistgram.hnotaumu_Ntop, nTopCandSortedCnt_pre, Evt_weight);
 	    if(istaumu_genRecoMatch) {
 	      Fill2D(myBaseHistgram.htaumu_Njetmet_wt, combNJetPt30Eta24, simmet, Evt_weight);
+	      FillDouble(myBaseHistgram.htaumu_met, simmet, Evt_weight);
+	      FillDouble(myBaseHistgram.htaumu_MT2, MT2_pre, Evt_weight);
+	      FillInt(myBaseHistgram.htaumu_Njet, combNJetPt30Eta24, Evt_weight);
+	      FillInt(myBaseHistgram.htaumu_Nbjet, cnt1CSVS, Evt_weight);
+	      FillInt(myBaseHistgram.htaumu_Ntop, nTopCandSortedCnt_pre, Evt_weight);
 	    }	    
 	    if(kSR!=-1){
 	      myBaseHistgram.hnotaumu_wt->Fill(kSR, Evt_weight);
@@ -497,7 +541,7 @@ int main(int argc, char* argv[]) {
     TauResponse::Histfill(myBaseHistgram.hPreddPhi0_wt, myBaseHistgram.hPreddPhi0);  
     TauResponse::Histfill(myBaseHistgram.hPreddPhi1_wt, myBaseHistgram.hPreddPhi1);  
     TauResponse::Histfill(myBaseHistgram.hPreddPhi2_wt, myBaseHistgram.hPreddPhi2);  
-     TauResponse::Histfill(myBaseHistgram.hnomtW_wt, myBaseHistgram.hnomtW);    
+    TauResponse::Histfill(myBaseHistgram.hnomtW_wt, myBaseHistgram.hnomtW);    
     TauResponse::Histfill(myBaseHistgram.hmtW_wt, myBaseHistgram.hmtW);    
     TauResponse::Histfill(myBaseHistgram.hnotaumu_wt, myBaseHistgram.hnotaumu);
     TauResponse::Histfill(myBaseHistgram.htaumu_wt, myBaseHistgram.htaumu);

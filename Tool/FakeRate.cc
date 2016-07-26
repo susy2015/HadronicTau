@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
 	if(taujetPt>=200 && taujetPt<400) FillDoubleFakeRate(myBaseHistgram.htaub4, *dR_taubmin, Lumiscale);
 	if(taujetPt>=400                ) FillDoubleFakeRate(myBaseHistgram.htaub5, *dR_taubmin, Lumiscale);
       }
-      if(utils::findBMatchedTauJet(tauJetIdx, genbLVec,jetsLVec, DeltaR))continue;
+      // if(utils::findBMatchedTauJet(tauJetIdx, genbLVec,jetsLVec, DeltaR))continue;//exclude taujet-B overlapping
       myBaseHistgram.htauBjetEta_den->Fill(jetsLVec.at(tauJetIdx).Eta(), Lumiscale);
       myBaseHistgram.htauBjetPt_den->Fill(jetsLVec.at(tauJetIdx).Pt(), Lumiscale);
       

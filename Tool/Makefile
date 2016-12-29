@@ -1,32 +1,42 @@
-IDIR = .
-ODIR = obj
-SDIR = ../../SusyAnaTools/Tools/
+IDIR       = .
+ODIR       = obj
+SDIR       = $(CMSSW_BASE)/src/SusyAnaTools/Tools
 
-CXX = g++
-CXXFLAGS += -I. -std=c++0x -I${CMSSW_BASE}/src/ -I$(LHAPDF_DATA_PATH)/../../include
+
+OPENCV_DIRECTORY=$(CMSSW_BASE)/src/opencv
+
+CXX        = g++
+
+CXXFLAGS  += -I. -I$(CMSSW_BASE)/src -I$(OPENCV_DIRECTORY)/include/ -I$(OPENCV_DIRECTORY)/modules/core/include -I$(OPENCV_DIRECTORY)/modules/video/include -I$(OPENCV_DIRECTORY)/modules/objdetect/include -I$(OPENCV_DIRECTORY)/modules/ml/include/ -I$(OPENCV_DIRECTORY)/modules/photo/include/ -I$(OPENCV_DIRECTORY)/modules/imgproc/include/ -std=c++0x
+
 ## Optimization flag
-CXXFLAGS += -g
+CXXFLAGS += -g #-O3
 ## Enable the maximun warning
 #CXXFLAGS += -Wall -Wextra -Weffc++ -g
 
 ## Include ROOT
-CXXFLAGS += $(shell root-config --cflags)
+CXXFLAGS  += $(shell root-config --cflags)
+
 CXXDEPFLAGS = -MMD -MP
-LD = g++
-LDFLAGS =
-LIBS = $(shell root-config --glibs)
 
-LHAPDFLIB = -L$(LHAPDF_DATA_PATH)/../../lib -lLHAPDF
-#OBJS = $(patsubst %, $(ODIR)/%, $(OBJ))
+LD         = g++
+LDFLAGS    =
 
-PROGRAMS = Template Closure Acc FakeRate IsoTrack DataMC Data Systematic SignalCont PrintSearchBins
+ROOTLIBS   = $(shell root-config --glibs)
+MT2LIB     = -L$(CMSSW_BASE)/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2
+TOPLIB     = -L$(CMSSW_BASE)/lib/${SCRAM_ARCH}/ -lTopTaggerTopTagger -lTopTaggerCfgParser
+OPENVCLIBS = -L$(OPENCV_DIRECTORY)/lib/ -lopencv_ml -lopencv_core
 
-all: sampPyWrap $(PROGRAMS)
+#OBJS       = $(patsubst %, $(ODIR)/%, $(OBJ))
 
-#mkobj:
-#	@mkdir -p obj
+PROGRAMS = CS
 
-#code to compile shared library to link samples to python
+all: mkobj sampPyWrap $(PROGRAMS)
+
+mkobj:
+	@mkdir -p obj
+
+#code to compile shared library to link samples to python                                                                                                                               
 sampPyWrap: $(ODIR)/samplesModule.so
 
 $(ODIR)/samplesModule.so: $(ODIR)/samplesPyWrap.o $(ODIR)/samplesModulePyWrap.o
@@ -39,49 +49,26 @@ $(ODIR)/samplesModulePyWrap.o: $(SDIR)/samplesModule.cc
 	$(CXX) --std=c++11 -c -fPIC -o $@ $<
 
 
-$(ODIR)/%.o : $(SDIR)/%.C
-	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
-
-$(ODIR)/%.o : $(SDIR)/%.cc
-	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
-
 $(ODIR)/%.o : $(IDIR)/%.C
 	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
 $(ODIR)/%.o : $(IDIR)/%.cc
 	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-Template: $(ODIR)/Template.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+$(ODIR)/%.o : $(SDIR)/%.C
+	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-Closure: $(ODIR)/Closure.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+$(ODIR)/%.o : $(SDIR)/%.cc
+	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-Acc: $(ODIR)/Acc.o $(ODIR)/NTupleReader.o $(ODIR)/PDFUncertainty.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 $(LHAPDFLIB) -o $@
+$(ODIR)/%.o : $(SDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-FakeRate: $(ODIR)/FakeRate.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-IsoTrack: $(ODIR)/IsoTrack.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
-
-DataMC: $(ODIR)/DataMC.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
-
-Data: $(ODIR)/Data.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
-
-Systematic: $(ODIR)/Systematic.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
-
-SignalCont: $(ODIR)/SignalCont.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
-
-PrintSearchBins: $(ODIR)/PrintSearchBins.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+CS: $(ODIR)/CS.o $(ODIR)/NTupleReader.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o $(ODIR)/baselineDef.o
+	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) -o $@
 
 clean:
-	rm -f $(ODIR)/*.o $(ODIR)/*.d $(PROGRAMS) core
+	rm -f $(ODIR)/*.o $(ODIR)/*.so $(ODIR)/*.d $(PROGRAMS) core 
 
 -include $(ODIR)/*.d

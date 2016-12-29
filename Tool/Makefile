@@ -10,7 +10,7 @@ CXX        = g++
 CXXFLAGS  += -I. -I$(CMSSW_BASE)/src -I$(OPENCV_DIRECTORY)/include/ -I$(OPENCV_DIRECTORY)/modules/core/include -I$(OPENCV_DIRECTORY)/modules/video/include -I$(OPENCV_DIRECTORY)/modules/objdetect/include -I$(OPENCV_DIRECTORY)/modules/ml/include/ -I$(OPENCV_DIRECTORY)/modules/photo/include/ -I$(OPENCV_DIRECTORY)/modules/imgproc/include/ -std=c++0x
 
 ## Optimization flag
-CXXFLAGS += -g #-O3
+CXXFLAGS += -g
 ## Enable the maximun warning
 #CXXFLAGS += -Wall -Wextra -Weffc++ -g
 

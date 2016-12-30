@@ -29,7 +29,7 @@ OPENVCLIBS = -L$(OPENCV_DIRECTORY)/lib/ -lopencv_ml -lopencv_core
 
 #OBJS       = $(patsubst %, $(ODIR)/%, $(OBJ))
 
-PROGRAMS = CS
+PROGRAMS = CS HadTauLL
 
 all: mkobj sampPyWrap $(PROGRAMS)
 
@@ -67,6 +67,10 @@ $(ODIR)/%.o : $(SDIR)/%.cpp
 
 CS: $(ODIR)/CS.o $(ODIR)/NTupleReader.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o $(ODIR)/baselineDef.o
 	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) -o $@
+
+HadTauLL: $(ODIR)/HadTauLL.o $(ODIR)/NTupleReader.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o $(ODIR)/baselineDef.o
+	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) -o $@
+
 
 clean:
 	rm -f $(ODIR)/*.o $(ODIR)/*.so $(ODIR)/*.d $(PROGRAMS) core 

@@ -29,17 +29,28 @@ class BaseHistgram
  public:
   void BookHistgram(const char *, const int&);
   TFile *oFile;
-  TH1D *hMET;
-  TH1D *hNbJets;
-  TH1D *hNTops;
-  TH1D *hMT2;
-  
-  TH1D *hNJets;
-  TH1D *hHT;
-  TH1D *hYields;
-  TH1D *hdPhi0;
-  TH1D *hdPhi1;
-  TH1D *hdPhi2;
+  TH1D *hMET_mu;
+  TH1D *hNbJets_mu;
+  TH1D *hNTops_mu;
+  TH1D *hMT2_mu;
+  TH1D *hNJets_mu;
+  TH1D *hHT_mu;
+  TH1D *hYields_mu;
+  TH1D *hdPhi0_mu;
+  TH1D *hdPhi1_mu;
+  TH1D *hdPhi2_mu;
+
+  TH1D *hMET_el;
+  TH1D *hNbJets_el;
+  TH1D *hNTops_el;
+  TH1D *hMT2_el;
+  TH1D *hNJets_el;
+  TH1D *hHT_el;
+  TH1D *hYields_el;
+  TH1D *hdPhi0_el;
+  TH1D *hdPhi1_el;
+  TH1D *hdPhi2_el;
+
 
   const TString title = "Muon CS";
 
@@ -52,27 +63,47 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   filename+= "_CS"+index+".root";
   oFile = new TFile(filename, "recreate");
  
-  hMET = new TH1D("hMET",title+";met [GeV];Events",24,200.,800.);
-  hMET->Sumw2();
-  hNbJets = new TH1D("hNbJets",title+";N_{bjets};Events",4, 1, 5);
-  hNbJets->Sumw2();
-  hNTops = new TH1D("hNTops",title+";N_{tops};Events",4, 1, 5);
-  hNTops->Sumw2();
-  hMT2 = new TH1D("hMT2",title+";M_{T2}[GeV];Events",12,200,500);
-  hMT2->Sumw2();
-  hYields = new TH1D("hYields", title+";search bin;Events",nSB,0,nSB);
-  hYields->Sumw2();
- 
-  hNJets = new TH1D("hNJets",title+";N_{jets};Events",6 ,4,10);
-  hNJets->Sumw2();
-  hHT = new TH1D("hHT",title+";H_{T} [GeV];Events",20,500.,1000.);
-  hHT->Sumw2();  
-  hdPhi0 = new TH1D("hdPhi0", title+";dPhi0;Events", 16, 0, 3.2);
-  hdPhi0->Sumw2();
-  hdPhi1 = new TH1D("hdPhi1", title+";dPhi1;Events", 16, 0, 3.2);
-  hdPhi1->Sumw2();
-  hdPhi2 = new TH1D("hdPhi2", title+";dPhi2;Events", 16, 0, 3.2);
-  hdPhi2->Sumw2();
+  hMET_mu = new TH1D("hMET_mu",title+";met [GeV];Events",24,200.,800.);
+  hMET_mu->Sumw2();
+  hNbJets_mu = new TH1D("hNbJets_mu",title+";N_{bjets};Events",4, 1, 5);
+  hNbJets_mu->Sumw2();
+  hNTops_mu = new TH1D("hNTops_mu",title+";N_{tops};Events",4, 1, 5);
+  hNTops_mu->Sumw2();
+  hMT2_mu = new TH1D("hMT2_mu",title+";M_{T2}[GeV];Events",12,200,500);
+  hMT2_mu->Sumw2();
+  hYields_mu = new TH1D("hYields_mu", title+";search bin;Events",nSB,0,nSB);
+  hYields_mu->Sumw2();
+  hNJets_mu = new TH1D("hNJets_mu",title+";N_{jets};Events",6 ,4,10);
+  hNJets_mu->Sumw2();
+  hHT_mu = new TH1D("hHT_mu",title+";H_{T} [GeV];Events",20,500.,1000.);
+  hHT_mu->Sumw2();  
+  hdPhi0_mu = new TH1D("hdPhi0_mu", title+";dPhi0;Events", 16, 0, 3.2);
+  hdPhi0_mu->Sumw2();
+  hdPhi1_mu = new TH1D("hdPhi1_mu", title+";dPhi1;Events", 16, 0, 3.2);
+  hdPhi1_mu->Sumw2();
+  hdPhi2_mu = new TH1D("hdPhi2_mu", title+";dPhi2;Events", 16, 0, 3.2);
+  hdPhi2_mu->Sumw2();
+  
+  hMET_el = new TH1D("hMET_el",title+";met [GeV];Events",24,200.,800.);
+  hMET_el->Sumw2();
+  hNbJets_el = new TH1D("hNbJets_el",title+";N_{bjets};Events",4, 1, 5);
+  hNbJets_el->Sumw2();
+  hNTops_el = new TH1D("hNTops_el",title+";N_{tops};Events",4, 1, 5);
+  hNTops_el->Sumw2();
+  hMT2_el = new TH1D("hMT2_el",title+";M_{T2}[GeV];Events",12,200,500);
+  hMT2_el->Sumw2();
+  hYields_el = new TH1D("hYields_el", title+";search bin;Events",nSB,0,nSB);
+  hYields_el->Sumw2();
+  hNJets_el = new TH1D("hNJets_el",title+";N_{jets};Events",6 ,4,10);
+  hNJets_el->Sumw2();
+  hHT_el = new TH1D("hHT_el",title+";H_{T} [GeV];Events",20,500.,1000.);
+  hHT_el->Sumw2();  
+  hdPhi0_el = new TH1D("hdPhi0_el", title+";dPhi0;Events", 16, 0, 3.2);
+  hdPhi0_el->Sumw2();
+  hdPhi1_el = new TH1D("hdPhi1_el", title+";dPhi1;Events", 16, 0, 3.2);
+  hdPhi1_el->Sumw2();
+  hdPhi2_el = new TH1D("hdPhi2_el", title+";dPhi2;Events", 16, 0, 3.2);
+  hdPhi2_el->Sumw2();
   
 }
 

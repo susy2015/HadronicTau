@@ -75,7 +75,10 @@ int main(int argc, char* argv[]) {
   std::cout<<"\nentries : "<<entries<<"\t MC Scale: "<<Lumiscale<<std::endl; 
   cout<<"maxevent: "<<maxevent<<endl;
   // Loop over the events (tree entries)
+  int k = 0;
   while(tr->getNextEvent()){
+    k++;
+    std::cout<<"Evt: "<<k<<std::endl;
     if(maxevent>=0 && tr->getEvtNum() > maxevent ) break;
     // Add print out of the progress of looping
     if( tr->getEvtNum()-1 == 0 || tr->getEvtNum() == entries || (tr->getEvtNum()-1)%(entries/10) == 0 ) std::cout<<"\n   Processing the "<<tr->getEvtNum()-1<<"th event ..."<<std::endl;
@@ -135,25 +138,9 @@ int main(int argc, char* argv[]) {
     
     bool passBaselineFull = passMuonVeto && passEleVeto && passIsoTrkVeto && passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2;
     
-    //Exp Hadtau Dist.
-    if(W_tau_prongsVec.size() !=0 && passBaselineFull && passNoiseEventFilter){
-      int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
-      if( jSR!= -1 ) {
-	myBaseHistgram.hYields_tau->Fill(jSR, Lumiscale);
-      }
-      
-      FillDouble(myBaseHistgram.hMET_tau, met, Lumiscale);
-      FillDouble(myBaseHistgram.hMT2_tau, MT2, Lumiscale);
-      FillInt(myBaseHistgram.hNbJets_tau, nbJets, Lumiscale);
-      FillInt(myBaseHistgram.hNTops_tau, nTops, Lumiscale);	
-      FillInt(myBaseHistgram.hNJets_tau, nJets, Lumiscale);
-      FillDouble(myBaseHistgram.hHT_tau, ht, Lumiscale);
-      FillDouble(myBaseHistgram.hdPhi0_tau, dPhiVec[0], Lumiscale);
-      FillDouble(myBaseHistgram.hdPhi1_tau, dPhiVec[1], Lumiscale);
-      FillDouble(myBaseHistgram.hdPhi2_tau, dPhiVec[2], Lumiscale);
-    }
+    if(!(passBaselineFull && passNoiseEventFilter)) continue;
     //Exp LostLepton Dist.
-    if((W_emuVec.size() !=0 || W_tau_emuVec.size() !=0) && passBaselineFull && passNoiseEventFilter){
+    if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0){
       int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
       if( kSR!= -1 ) {
 	myBaseHistgram.hYields_LL->Fill(kSR, Lumiscale);
@@ -169,6 +156,23 @@ int main(int argc, char* argv[]) {
       FillDouble(myBaseHistgram.hdPhi1_LL, dPhiVec[1], Lumiscale);
       FillDouble(myBaseHistgram.hdPhi2_LL, dPhiVec[2], Lumiscale);
     }        
+    //Exp Hadtau Dist.
+    else if(W_tau_prongsVec.size() !=0){
+      int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+      if( jSR!= -1 ) {
+	myBaseHistgram.hYields_tau->Fill(jSR, Lumiscale);
+      }
+      
+      FillDouble(myBaseHistgram.hMET_tau, met, Lumiscale);
+      FillDouble(myBaseHistgram.hMT2_tau, MT2, Lumiscale);
+      FillInt(myBaseHistgram.hNbJets_tau, nbJets, Lumiscale);
+      FillInt(myBaseHistgram.hNTops_tau, nTops, Lumiscale);	
+      FillInt(myBaseHistgram.hNJets_tau, nJets, Lumiscale);
+      FillDouble(myBaseHistgram.hHT_tau, ht, Lumiscale);
+      FillDouble(myBaseHistgram.hdPhi0_tau, dPhiVec[0], Lumiscale);
+      FillDouble(myBaseHistgram.hdPhi1_tau, dPhiVec[1], Lumiscale);
+      FillDouble(myBaseHistgram.hdPhi2_tau, dPhiVec[2], Lumiscale);
+    }
 
   }	//event loop
   // --- Save the Histograms to File -----------------------------------

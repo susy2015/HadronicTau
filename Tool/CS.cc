@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     const vector<int> &loose_isoTrks_pdgId = tr->getVec<int>("loose_isoTrks_pdgId");
     const std::vector<double> muonspfActivity = tr->getVec<double>("muonspfActivity");
     const std::vector<int> & muonsFlagIDVec = tr->getVec<int>("muonsFlagMedium");
-    const std::vector<int> & elesFlagIDVec = tr->getVec<int>("elesFlagMedium");
+    const std::vector<int> & elesFlagIDVec = tr->getVec<int>("elesFlagVeto");
     const std::vector<double>& recoJetschargedHadronEnergyFraction = tr->getVec<double>("recoJetschargedHadronEnergyFraction");
     const std::vector<double>& recoJetschargedEmEnergyFraction = tr->getVec<double>("recoJetschargedEmEnergyFraction");
     const std::vector<std::string> & TriggerNames = tr->getVec<std::string>("TriggerNames");
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
 	}
 	if( !foundTrigger ) passTrigger = false;
       }
-
+      if(!passTrigger) continue;
       // Muon Control sample                                                                                                                              // The kinematic properties of the well-reconstructed, isolated muon                                                         
       vector<TLorentzVector> isomuonsLVec;
       vector<int> isomuonsIdxVec;

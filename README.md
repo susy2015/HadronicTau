@@ -6,6 +6,7 @@ cd $CMSSW_BASE/src
 git clone -b Moriond2017 git@github.com:susy2015/HadronicTau.git
 scram b -j9
 cd HadronicTau/Tool/
+source $CMSSW_BASE/src/SusyAnaTools/Tools/setup.csh
 make
 ```
 #To check the control sample distribution, run CS
@@ -16,7 +17,7 @@ make
 ```
 TTbarSingleLepT is sample name, -1 is the number of events to be run, 0 and 1 are start and end root files respectively.
 
-It will create a root file with naming convention TTbarSingleLepT_CS0.root(o for start file) which contains all the histograms.
+It will create a root file with naming convention TTbarSingleLepT_CS0.root(0 for start file) which contains all the histograms.
 
 ##Running in condor
 ```

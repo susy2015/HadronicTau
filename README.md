@@ -8,9 +8,9 @@ scram b -j9
 cd HadronicTau/Tool/
 make
 ```
-##To check the control sample distribution, run CS
+#To check the control sample distribution, run CS
 
-#Running interactively
+##Running interactively
 ```
 ./CS TTbarSingleLepT -1 0 1
 ```
@@ -18,7 +18,7 @@ TTbarSingleLepT is sample name, -1 is the number of events to be run, 0 and 1 ar
 
 It will create a root file with naming convention TTbarSingleLepT_CS0.root(o for start file) which contains all the histograms.
 
-#Running in condor
+##Running in condor
 ```
 cd condorCS
 voms-proxy-init
@@ -26,7 +26,7 @@ voms-proxy-init
 ```
 TTbarSingleLep: sample set, 10 is number of files per job.
 
-##To check the hadtau and lostlepton yield distribution, run HadTauLL
+#To check the hadtau and lostlepton yield distribution, run HadTauLL
 ```
 ./HadTauLL TTbarSingleLepT -1 0 1
 ```

@@ -61,7 +61,18 @@ int main(int argc, char* argv[]) {
   if(sampleString.Contains("Data")){Lumiscale = 1.0; isData = true;}
   //Searchbin                                                                                                                                                                                    
   SearchBins SB("SB_v1_2017");
-  //Use BaselineVessel class for baseline variables and selections
+
+//  const int nTotBins = SB.nSearchBins();
+  std::vector<int> cachedMT2binIdx_mu_3DVec, cachedHTbinIdx_mu_3DVec;
+  std::vector<TH1D*> cachedMT2hist_mu_3DVec, cachedHThist_mu_3DVec;
+  std::vector<int> cachedMT2binIdx_el_3DVec, cachedHTbinIdx_el_3DVec;
+  std::vector<TH1D*> cachedMT2hist_el_3DVec, cachedHThist_el_3DVec;
+
+  std::vector<int> cachedMT2binIdx_mu_2DVec, cachedHTbinIdx_mu_2DVec;
+  std::vector<TH1D*> cachedMT2hist_mu_2DVec, cachedHThist_mu_2DVec, cachedmethist_mu_2DVec;
+  std::vector<int> cachedMT2binIdx_el_2DVec, cachedHTbinIdx_el_2DVec;
+  std::vector<TH1D*> cachedMT2hist_el_2DVec, cachedHThist_el_2DVec, cachedmethist_el_2DVec;
+
   std::string spec = "CS";
 
   AnaFunctions::prepareForNtupleReader();
@@ -126,15 +137,6 @@ int main(int argc, char* argv[]) {
     Lumiscale = Lumiscale * EventWeight;
     //Event Filter                                                                                                                           
     //if(!passNoiseEventFilter) continue;
-    
-    if(!isData){      
-      const vector<TLorentzVector> &genDecayLVec = tr->getVec<TLorentzVector>("genDecayLVec");
-      const vector<int> &genDecayIdxVec =  tr->getVec<int>("genDecayIdxVec");
-      const vector<int> &genDecayPdgIdVec = tr->getVec<int>("genDecayPdgIdVec");
-      const vector<int> &W_emuVec =  tr->getVec<int>("W_emuVec");
-      const vector<int> &W_tau_emuVec =  tr->getVec<int>("W_tau_emuVec");
-      const vector<int> &W_tau_prongsVec =  tr->getVec<int>("W_tau_prongsVec");
-    }      
       bool passBaseline = tr->getVar<bool>("passBaseline"+spec);
       bool passMuonVeto = tr->getVar<bool>("passMuonVeto"+spec);
       bool passEleVeto = tr->getVar<bool>("passEleVeto"+spec);
@@ -202,8 +204,8 @@ int main(int argc, char* argv[]) {
 	if(mtw<100)pass_mtw = true;
 
 	//Dist.
-	if(passBaselineCS && passNoiseEventFilter){
-	  std::cout<<"running2 "<<std::endl;
+	if(passBaselineCS && passNoiseEventFilter && pass_mtw){
+//	  std::cout<<"running2 "<<std::endl;
 	  int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
 	  if( jSR!= -1 ) {
 	    myBaseHistgram.hYields_mu->Fill(jSR, Lumiscale);
@@ -219,6 +221,87 @@ int main(int argc, char* argv[]) {
 	  FillDouble(myBaseHistgram.hdPhi0_mu, dPhiVec[0], Lumiscale);
 	  FillDouble(myBaseHistgram.hdPhi1_mu, dPhiVec[1], Lumiscale);
 	  FillDouble(myBaseHistgram.hdPhi2_mu, dPhiVec[2], Lumiscale);
+
+          if( nbJets <=2 && nTops<=2 ){
+             int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, met, HT); // use the lowest MT2 bin in (nb, ntop, met) to collapse the MT2 bins
+             SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
+             auto it = std::find(cachedMT2binIdx_mu_3DVec.begin(), cachedMT2binIdx_mu_3DVec.end(), pseudo_SR);
+             if( it != cachedMT2binIdx_mu_3DVec.end() ){
+                auto index = std::distance(cachedMT2binIdx_mu_3DVec.begin(), it);
+                FillDouble(cachedMT2hist_mu_3DVec[index], MT2, Lumiscale);
+             }else{
+                cachedMT2binIdx_mu_3DVec.push_back(pseudo_SR);
+                char tmp_str[200];
+                if( pseudo_binDef.met_hi_ != -1 ){
+                   sprintf(tmp_str, "muCS_MT2_3D_nb%d_nt%d_%3.0fmet%3.0f", nbJets, nTops, pseudo_binDef.met_lo_, pseudo_binDef.met_hi_);
+                }else{
+                   sprintf(tmp_str, "muCS_MT2_3D_nb%d_nt%d_%3.0fmetInf", nbJets, nTops, pseudo_binDef.met_lo_);
+                }
+                TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 25, 250, 850);
+                cachedMT2hist_mu_3DVec.push_back(h1_tmp);
+                FillDouble(cachedMT2hist_mu_3DVec.back(), MT2, Lumiscale);
+             }
+          }else{
+             int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, MT2, met, 350); // use the lowest HT bin in (nb, ntop, met) to collapse the HT bins
+             SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
+             const int nbJetsCopy = nbJets >=3 ? 3 : nbJets; const int nTopsCopy = nTops >=3 ? 3 : nTops;
+             auto it = std::find(cachedHTbinIdx_mu_3DVec.begin(), cachedHTbinIdx_mu_3DVec.end(), pseudo_SR);
+             if( it != cachedHTbinIdx_mu_3DVec.end() ){
+                auto index = std::distance(cachedHTbinIdx_mu_3DVec.begin(), it);
+                FillDouble(cachedHThist_mu_3DVec[index], HT, Lumiscale);
+             }else{
+                cachedHTbinIdx_mu_3DVec.push_back(pseudo_SR);
+                char tmp_str[200];
+                if( pseudo_binDef.met_hi_ != -1 ){
+                   sprintf(tmp_str, "muCS_HT_3D_nb%d_nt%d_%3.0fmet%3.0f", nbJetsCopy, nTopsCopy, pseudo_binDef.met_lo_, pseudo_binDef.met_hi_);
+                }else{
+                   sprintf(tmp_str, "muCS_HT_3D_nb%d_nt%d_%3.0fmetInf", nbJetsCopy, nTopsCopy, pseudo_binDef.met_lo_);
+                }
+                TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 25, 300, 1800);
+                cachedHThist_mu_3DVec.push_back(h1_tmp);
+                FillDouble(cachedHThist_mu_3DVec.back(), HT, Lumiscale);
+             }
+          }
+
+// 2D in (nb, nt)
+          if( nbJets <=2 && nTops<=2 ){
+             int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, 300, HT); // use the lowest (MT2, met) bin in (nb, ntop) to collapse the MT2 and met
+             SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
+             auto it = std::find(cachedMT2binIdx_mu_2DVec.begin(), cachedMT2binIdx_mu_2DVec.end(), pseudo_SR);
+             if( it != cachedMT2binIdx_mu_2DVec.end() ){
+                auto index = std::distance(cachedMT2binIdx_mu_2DVec.begin(), it);
+                FillDouble(cachedMT2hist_mu_2DVec[index], MT2, Lumiscale);
+                FillDouble(cachedmethist_mu_2DVec[index], met, Lumiscale);
+             }else{
+                cachedMT2binIdx_mu_2DVec.push_back(pseudo_SR);
+                char tmp_str[200];
+                sprintf(tmp_str, "muCS_MT2_2D_nb%d_nt%d", nbJets, nTops);
+                TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 25, 250, 850);
+                cachedMT2hist_mu_2DVec.push_back(h1_tmp);
+                FillDouble(cachedMT2hist_mu_2DVec.back(), MT2, Lumiscale);
+
+                sprintf(tmp_str, "muCS_met_2D_nb%d_nt%d", nbJets, nTops);
+                TH1D * h1_tmp2 = new TH1D(tmp_str, tmp_str, 25, 250, 850);
+                cachedmethist_mu_2DVec.push_back(h1_tmp2);
+                FillDouble(cachedmethist_mu_2DVec.back(), met, Lumiscale);
+             }
+          }else{
+             int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, MT2, 300, 350); // use the lowest (HT, met) bin in (nb, ntop) to collapse the HT and met
+             SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
+             const int nbJetsCopy = nbJets >=3 ? 3 : nbJets; const int nTopsCopy = nTops >=3 ? 3 : nTops;
+             auto it = std::find(cachedHTbinIdx_mu_2DVec.begin(), cachedHTbinIdx_mu_2DVec.end(), pseudo_SR);
+             if( it != cachedHTbinIdx_mu_2DVec.end() ){
+                auto index = std::distance(cachedHTbinIdx_mu_2DVec.begin(), it);
+                FillDouble(cachedHThist_mu_2DVec[index], HT, Lumiscale);
+             }else{
+                cachedHTbinIdx_mu_2DVec.push_back(pseudo_SR);
+                char tmp_str[200];
+                sprintf(tmp_str, "muCS_HT_2D_nb%d_nt%d", nbJetsCopy, nTopsCopy);
+                TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 25, 300, 1800);
+                cachedHThist_mu_2DVec.push_back(h1_tmp);
+                FillDouble(cachedHThist_mu_2DVec.back(), HT, Lumiscale);
+             }
+          }
 	}
       }//end of muon CS
 
@@ -243,7 +326,7 @@ int main(int argc, char* argv[]) {
 	if(elemtw<100)pass_mtwele = true;
 
 	//Dist.
-	if(passBaselineCS && passNoiseEventFilter){
+	if(passBaselineCS && passNoiseEventFilter && pass_mtwele){
 	  int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
 	  if( kSR!= -1 ) {
 	    myBaseHistgram.hYields_el->Fill(kSR, Lumiscale);

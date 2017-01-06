@@ -17,6 +17,7 @@
 #include "TStopwatch.h"
 #include "TString.h"
 #include "SusyAnaTools/Tools/NTupleReader.h"
+#include "SusyAnaTools/Tools/BTagCorrector.h"
 #include "HadTauLL.h"
 #include "TH1.h"
 #include "TH1D.h"
@@ -69,6 +70,9 @@ int main(int argc, char* argv[]) {
   ExpBaseline->SetupTopTagger(true,"TopTagger.cfg");
   tr->registerFunction((*ExpBaseline));
  
+  //BTag SF
+  BTagCorrector btagcorr;
+  tr->registerFunction(btagcorr);
   // --- Analyse events --------------------------------------------
   std::cout<<"First loop begin: "<<std::endl;
   int entries = tr->getNEntries();
@@ -128,6 +132,7 @@ int main(int argc, char* argv[]) {
     double met=tr->getVar<double>("met");
     double metphi=tr->getVar<double>("metphi");
     TLorentzVector metLVec; metLVec.SetPtEtaPhiM(met, 0, metphi, 0);
+    const double bSF = tr->getVar<double>("bTagSF_EventWeightSimple_Central");
     //mht calculation
     TLorentzVector Mht_LVec;	      
     for(unsigned int ij=0; ij<jetsLVec.size(); ij++){
@@ -143,12 +148,12 @@ int main(int argc, char* argv[]) {
     if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0){
       int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
       if( kSR!= -1 ) {
-	myBaseHistgram.hYields_LL->Fill(kSR, Lumiscale);
+	myBaseHistgram.hYields_LL->Fill(kSR, bSF*Lumiscale);
       }
       
       FillDouble(myBaseHistgram.hMET_LL, met, Lumiscale);
       FillDouble(myBaseHistgram.hMT2_LL, MT2, Lumiscale);
-      FillInt(myBaseHistgram.hNbJets_LL, nbJets, Lumiscale);
+      FillInt(myBaseHistgram.hNbJets_LL, nbJets, bSF*Lumiscale);
       FillInt(myBaseHistgram.hNTops_LL, nTops, Lumiscale);	
       FillInt(myBaseHistgram.hNJets_LL, nJets, Lumiscale);
       FillDouble(myBaseHistgram.hHT_LL, ht, Lumiscale);
@@ -160,12 +165,12 @@ int main(int argc, char* argv[]) {
     else if(W_tau_prongsVec.size() !=0){
       int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
       if( jSR!= -1 ) {
-	myBaseHistgram.hYields_tau->Fill(jSR, Lumiscale);
+	myBaseHistgram.hYields_tau->Fill(jSR, bSF*Lumiscale);
       }
       
       FillDouble(myBaseHistgram.hMET_tau, met, Lumiscale);
       FillDouble(myBaseHistgram.hMT2_tau, MT2, Lumiscale);
-      FillInt(myBaseHistgram.hNbJets_tau, nbJets, Lumiscale);
+      FillInt(myBaseHistgram.hNbJets_tau, nbJets, bSF*Lumiscale);
       FillInt(myBaseHistgram.hNTops_tau, nTops, Lumiscale);	
       FillInt(myBaseHistgram.hNJets_tau, nJets, Lumiscale);
       FillDouble(myBaseHistgram.hHT_tau, ht, Lumiscale);

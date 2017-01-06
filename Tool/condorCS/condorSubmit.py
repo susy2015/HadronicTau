@@ -10,7 +10,7 @@ Executable = $ENV(CMSSW_BASE)/src/HadronicTau/Tool/condorCS/goMakePlots.sh
 Requirements = OpSys == "LINUX"&& (Arch != "DUMMY" )
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
-Transfer_Input_Files = $ENV(CMSSW_BASE)/src/HadronicTau/Tool/CS, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/condorCS/goMakePlots.sh, $ENV(CMSSW_BASE)/lib/$ENV(SCRAM_ARCH)/librecipeAUXOxbridgeMT2.so, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TopTagger.cfg, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TrainingOutput_dR20_pt30_depth14_2016_Dec2.model
+Transfer_Input_Files = $ENV(CMSSW_BASE)/src/HadronicTau/Tool/CS, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/condorCS/goMakePlots.sh, $ENV(CMSSW_BASE)/lib/$ENV(SCRAM_ARCH)/librecipeAUXOxbridgeMT2.so, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TopTagger.cfg, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TrainingOutput_dR20_pt30_depth14_2016_Dec2.model, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/CSVv2_ichep.csv, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/TTbarNoHad_bTagEff.root
 Output = logs/makePlots_$(Process).stdout
 Error = logs/makePlots_$(Process).stderr
 Log = logs/makePlots_$(Process).log

@@ -17,6 +17,7 @@
 #include "TStopwatch.h"
 #include "TString.h"
 #include "SusyAnaTools/Tools/NTupleReader.h"
+#include "SusyAnaTools/Tools/BTagCorrector.h"
 #include "CS.h"
 #include "TH1.h"
 #include "TH1D.h"
@@ -83,6 +84,9 @@ int main(int argc, char* argv[]) {
   CSBaseline = new BaselineVessel(*tr, spec);
   CSBaseline->SetupTopTagger(true,"TopTagger.cfg");
   tr->registerFunction((*CSBaseline));
+  //BTag SF
+  BTagCorrector btagcorr;
+  tr->registerFunction(btagcorr);
   //Add cleanJets function
   //stopFunctions::cleanJets.setMuonIso("mini");
   //stopFunctions::cleanJets.setElecIso("mini");
@@ -160,6 +164,7 @@ int main(int argc, char* argv[]) {
       double met=tr->getVar<double>("met");
       double metphi=tr->getVar<double>("metphi");
       TLorentzVector metLVec; metLVec.SetPtEtaPhiM(met, 0, metphi, 0);
+      const double bSF = tr->getVar<double>("bTagSF_EventWeightSimple_Central");
       //mht calculation
       TLorentzVector MhtLVec;	      
 	for(unsigned int ij=0; ij<jetsLVec.size(); ij++){
@@ -208,12 +213,12 @@ int main(int argc, char* argv[]) {
 //	  std::cout<<"running2 "<<std::endl;
 	  int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
 	  if( jSR!= -1 ) {
-	    myBaseHistgram.hYields_mu->Fill(jSR, Lumiscale);
+	    myBaseHistgram.hYields_mu->Fill(jSR, bSF*Lumiscale);
 	  }
 	  
 	  FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale);
 	  FillDouble(myBaseHistgram.hMT2_mu, MT2, Lumiscale);
-	  FillInt(myBaseHistgram.hNbJets_mu, nbJets, Lumiscale);
+	  FillInt(myBaseHistgram.hNbJets_mu, nbJets, bSF*Lumiscale);
 	  FillInt(myBaseHistgram.hNTops_mu, nTops, Lumiscale);	
 	  
 	  FillInt(myBaseHistgram.hNJets_mu, nJets, Lumiscale);
@@ -329,12 +334,12 @@ int main(int argc, char* argv[]) {
 	if(passBaselineCS && passNoiseEventFilter && pass_mtwele){
 	  int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
 	  if( kSR!= -1 ) {
-	    myBaseHistgram.hYields_el->Fill(kSR, Lumiscale);
+	    myBaseHistgram.hYields_el->Fill(kSR, bSF*Lumiscale);
 	  }
 	  
 	  FillDouble(myBaseHistgram.hMET_el, met, Lumiscale);
 	  FillDouble(myBaseHistgram.hMT2_el, MT2, Lumiscale);
-	  FillInt(myBaseHistgram.hNbJets_el, nbJets, Lumiscale);
+	  FillInt(myBaseHistgram.hNbJets_el, nbJets, bSF*Lumiscale);
 	  FillInt(myBaseHistgram.hNTops_el, nTops, Lumiscale);	
 	  
 	  FillInt(myBaseHistgram.hNJets_el, nJets, Lumiscale);

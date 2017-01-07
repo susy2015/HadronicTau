@@ -14,6 +14,7 @@
 #include "SusyAnaTools/Tools/customize.h"
 #include "SusyAnaTools/Tools/baselineDef.h"
 #include "SusyAnaTools/Tools/searchBins.h"
+#include "SusyAnaTools/Tools/ISRCorrector.h"
 #include "TStopwatch.h"
 #include "TString.h"
 #include "SusyAnaTools/Tools/NTupleReader.h"
@@ -30,6 +31,10 @@
 #include "TChain.h"
 
 using namespace std;
+
+// Set It to true when ISRweight needed
+const bool doISR = false;
+
 
 // === Main Function ===================================================
 int main(int argc, char* argv[]) {
@@ -87,6 +92,13 @@ int main(int argc, char* argv[]) {
   //BTag SF
   BTagCorrector btagcorr;
   tr->registerFunction(btagcorr);
+
+  //ISR Correcotr
+  ISRCorrector isrcorr;
+  tr->registerFunction(isrcorr);
+
+
+
   //Add cleanJets function
   //stopFunctions::cleanJets.setMuonIso("mini");
   //stopFunctions::cleanJets.setElecIso("mini");
@@ -106,6 +118,16 @@ int main(int argc, char* argv[]) {
     if(maxevent>=0 && tr->getEvtNum() > maxevent ) break;
     // Add print out of the progress of looping
     if( tr->getEvtNum()-1 == 0 || tr->getEvtNum() == entries || (tr->getEvtNum()-1)%(entries/10) == 0 ) std::cout<<"\n   Processing the "<<tr->getEvtNum()-1<<"th event ..."<<std::endl;
+
+
+
+    double isrWght = 1.0;
+    //Apply MC weights only when needed.
+    if(doISR && !isData)
+      {
+	isrWght = tr->getVar<double>("isr_Unc_Cent");
+      }
+
 
     const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
     const vector<double> &muonsRelIso = tr->getVec<double>("muonsRelIso");
@@ -213,19 +235,19 @@ int main(int argc, char* argv[]) {
 //	  std::cout<<"running2 "<<std::endl;
 	  int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
 	  if( jSR!= -1 ) {
-	    myBaseHistgram.hYields_mu->Fill(jSR, bSF*Lumiscale);
+	    myBaseHistgram.hYields_mu->Fill(jSR, bSF*Lumiscale*isrWght);
 	  }
 	  
-	  FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale);
-	  FillDouble(myBaseHistgram.hMT2_mu, MT2, Lumiscale);
-	  FillInt(myBaseHistgram.hNbJets_mu, nbJets, bSF*Lumiscale);
-	  FillInt(myBaseHistgram.hNTops_mu, nTops, Lumiscale);	
+	  FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hMT2_mu, MT2, Lumiscale*isrWght);
+	  FillInt(myBaseHistgram.hNbJets_mu, nbJets, bSF*Lumiscale*isrWght);
+	  FillInt(myBaseHistgram.hNTops_mu, nTops, Lumiscale*isrWght);	
 	  
-	  FillInt(myBaseHistgram.hNJets_mu, nJets, Lumiscale);
-	  FillDouble(myBaseHistgram.hHT_mu, HT, Lumiscale);
-	  FillDouble(myBaseHistgram.hdPhi0_mu, dPhiVec[0], Lumiscale);
-	  FillDouble(myBaseHistgram.hdPhi1_mu, dPhiVec[1], Lumiscale);
-	  FillDouble(myBaseHistgram.hdPhi2_mu, dPhiVec[2], Lumiscale);
+	  FillInt(myBaseHistgram.hNJets_mu, nJets, Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hHT_mu, HT, Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hdPhi0_mu, dPhiVec[0], Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hdPhi1_mu, dPhiVec[1], Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hdPhi2_mu, dPhiVec[2], Lumiscale*isrWght);
 
           if( nbJets <=2 && nTops<=2 ){
              int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, met, HT); // use the lowest MT2 bin in (nb, ntop, met) to collapse the MT2 bins
@@ -334,26 +356,26 @@ int main(int argc, char* argv[]) {
 	if(passBaselineCS && passNoiseEventFilter && pass_mtwele){
 	  int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
 	  if( kSR!= -1 ) {
-	    myBaseHistgram.hYields_el->Fill(kSR, bSF*Lumiscale);
+	    myBaseHistgram.hYields_el->Fill(kSR, bSF*Lumiscale*isrWght);
 	  }
 	  
-	  FillDouble(myBaseHistgram.hMET_el, met, Lumiscale);
-	  FillDouble(myBaseHistgram.hMT2_el, MT2, Lumiscale);
-	  FillInt(myBaseHistgram.hNbJets_el, nbJets, bSF*Lumiscale);
-	  FillInt(myBaseHistgram.hNTops_el, nTops, Lumiscale);	
+	  FillDouble(myBaseHistgram.hMET_el, met, Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hMT2_el, MT2, Lumiscale*isrWght);
+	  FillInt(myBaseHistgram.hNbJets_el, nbJets, bSF*Lumiscale*isrWght);
+	  FillInt(myBaseHistgram.hNTops_el, nTops, Lumiscale*isrWght);	
 	  
-	  FillInt(myBaseHistgram.hNJets_el, nJets, Lumiscale);
-	  FillDouble(myBaseHistgram.hHT_el, HT, Lumiscale);
-	  FillDouble(myBaseHistgram.hdPhi0_el, dPhiVec[0], Lumiscale);
-	  FillDouble(myBaseHistgram.hdPhi1_el, dPhiVec[1], Lumiscale);
-	  FillDouble(myBaseHistgram.hdPhi2_el, dPhiVec[2], Lumiscale);
+	  FillInt(myBaseHistgram.hNJets_el, nJets, Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hHT_el, HT, Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hdPhi0_el, dPhiVec[0], Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hdPhi1_el, dPhiVec[1], Lumiscale*isrWght);
+	  FillDouble(myBaseHistgram.hdPhi2_el, dPhiVec[2], Lumiscale*isrWght);
 	}
       }//end of electron CS
       
   }	//event loop
   // --- Save the Histograms to File -----------------------------------
   (myBaseHistgram.oFile)->Write();
-  
+  fChain->Reset();  
   return 0;
   
 }

@@ -35,7 +35,6 @@ using namespace std;
 
 const bool doISR = true;
 const bool dobSF = true;
-//const bool dolepSF = true;
 
 TFile * bTagEffFile =0;
 
@@ -248,7 +247,7 @@ int main(int argc, char* argv[])
           }
         }
   
-        if( pickedMuonIdx == -1 && pickedEleIdx == -1 )
+        if( pickedMuonIdx == -1 && pickedEleIdx == -1 && passIsoTrkVeto )
         {
            std::cout<<"Error ... mis-matching between passMuonVeto and passEleVeto from baselineDef and local evaluation??"<<std::endl;
            return 0;

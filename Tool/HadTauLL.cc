@@ -218,97 +218,119 @@ int main(int argc, char* argv[])
     const double Mht = Mht_LVec.Pt();
     
     bool passBaselineFull = passMuonVeto && passEleVeto && passIsoTrkVeto && passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2;
+    bool passBaselineNoLepVeto = passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2;
 
 // Lepton scale factor cannot be applied per-event on the passing veto events since it makes sense only on veto'ed events where we have well-defined leptons (@ per-event level),
-    if( !passMuonVeto || !passEleVeto )
+    if( passBaselineNoLepVeto )
     {
-// If multiple leptons selected, since any of them could trigger the veto we use the most probable lepton which is in general lowest in pt.
-// This is because the lepton pt spectrum drops quickly for high values
-      int pickedMuonIdx = -1;
-      for(unsigned int im=0; im<muonsLVec.size(); im++)
+      if( !passMuonVeto || !passEleVeto || !passIsoTrkVeto )
       {
-        if( AnaFunctions::passMuon(muonsLVec[im], muonsMiniIso[im], muonsMtw[im], muonsFlagMedium[im], AnaConsts::muonsMiniIsoArr) )
+  // If multiple leptons selected, since any of them could trigger the veto we use the most probable lepton which is in general lowest in pt.
+  // This is because the lepton pt spectrum drops quickly for high values.
+  // Assume isotrk data/MC SF is 1.0 for now -> no consideration of isolated tracks for now
+        int pickedMuonIdx = -1;
+        for(unsigned int im=0; im<muonsLVec.size(); im++)
         {
-          if( pickedMuonIdx == -1 ) pickedMuonIdx = (int)im;
-          else if( muonsLVec[pickedMuonIdx].Pt() > muonsLVec[im].Pt() ) pickedMuonIdx = (int)im;
+          if( AnaFunctions::passMuon(muonsLVec[im], muonsMiniIso[im], muonsMtw[im], muonsFlagMedium[im], AnaConsts::muonsMiniIsoArr) )
+          {
+            if( pickedMuonIdx == -1 ) pickedMuonIdx = (int)im;
+            else if( muonsLVec[pickedMuonIdx].Pt() > muonsLVec[im].Pt() ) pickedMuonIdx = (int)im;
+          }
         }
-      }
-
-      int pickedEleIdx = -1;
-      for(unsigned int ie=0; ie<elesLVec.size(); ie++)
-      {
-        if( AnaFunctions::passElectron(elesLVec[ie], elesMiniIso[ie], elesMtw[ie], elesisEB[ie], elesFlagVeto[ie], AnaConsts::elesMiniIsoArr) )
+  
+        int pickedEleIdx = -1;
+        for(unsigned int ie=0; ie<elesLVec.size(); ie++)
         {
-          if( pickedEleIdx == -1 ) pickedEleIdx = (int)ie;
-          else if( elesLVec[pickedEleIdx].Pt() > elesLVec[ie].Pt() ) pickedEleIdx = (int)ie;
+          if( AnaFunctions::passElectron(elesLVec[ie], elesMiniIso[ie], elesMtw[ie], elesisEB[ie], elesFlagVeto[ie], AnaConsts::elesMiniIsoArr) )
+          {
+            if( pickedEleIdx == -1 ) pickedEleIdx = (int)ie;
+            else if( elesLVec[pickedEleIdx].Pt() > elesLVec[ie].Pt() ) pickedEleIdx = (int)ie;
+          }
         }
-      }
-
-      if( pickedMuonIdx == -1 && pickedEleIdx == -1 )
-      {
-         std::cout<<"Error ... mis-matching between passMuonVeto and passEleVeto from baselineDef and local evaluation??"<<std::endl;
-         return 0;
-      }
-
-      TLorentzVector pickedLepLVec;
-      int pickedLepType = -1; // 0: muon   1 : electron
-
-      if( pickedMuonIdx != -1 && pickedEleIdx != -1 )
-      {
-        const TLorentzVector pickedMuonLVec = muonsLVec[pickedMuonIdx];
-        const TLorentzVector pickedEleLVec = elesLVec[pickedEleIdx];
-        if( pickedMuonLVec.Pt() < pickedEleLVec.Pt() )
+  
+        if( pickedMuonIdx == -1 && pickedEleIdx == -1 )
         {
-           pickedLepLVec = pickedMuonLVec;
-           pickedLepType = 0;
+           std::cout<<"Error ... mis-matching between passMuonVeto and passEleVeto from baselineDef and local evaluation??"<<std::endl;
+           return 0;
+        }
+  
+        TLorentzVector pickedLepLVec;
+        int pickedLepType = -1; // 0: muon   1 : electron
+  
+        if( pickedMuonIdx != -1 && pickedEleIdx != -1 )
+        {
+          const TLorentzVector pickedMuonLVec = muonsLVec[pickedMuonIdx];
+          const TLorentzVector pickedEleLVec = elesLVec[pickedEleIdx];
+          if( pickedMuonLVec.Pt() < pickedEleLVec.Pt() )
+          {
+             pickedLepLVec = pickedMuonLVec;
+             pickedLepType = 0;
+          }else
+          {
+             pickedLepLVec = pickedEleLVec;
+             pickedLepType = 1;
+          } 
         }else
         {
-           pickedLepLVec = pickedEleLVec;
-           pickedLepType = 1;
-        } 
-      }else
-      {
-         pickedLepLVec = pickedMuonIdx == -1? elesLVec[pickedEleIdx] : muonsLVec[pickedMuonIdx];
-         pickedLepType = pickedMuonIdx == -1? 1 : 0;
-      }
-
-      const double eta = pickedLepLVec.Eta(), pt = pickedLepLVec.Pt();
-      const double abseta = std::abs(eta);
-
-      double lep_id_SF = 1.0, lep_iso_SF = 1.0, lep_trk_SF = 1.0;
-      if( pickedLepType == 0 ) // muon
-      {
-        if( mu_mediumID_SF ){ lep_id_SF = mu_mediumID_SF->GetBinContent(mu_mediumID_SF->FindBin(pt, abseta)); if( lep_id_SF == 0 ) lep_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
-        if( mu_miniISO_SF ){ lep_iso_SF = mu_miniISO_SF->GetBinContent(mu_miniISO_SF->FindBin(pt, abseta)); if( lep_iso_SF == 0 ) lep_iso_SF = 1.0; }
-        if( pt < 10 && mu_trkptLT10_SF ){ lep_trk_SF = mu_trkptLT10_SF->GetBinContent(mu_trkptLT10_SF->FindBin(eta)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
-        if( pt >= 10 && mu_trkptGT10_SF ){ lep_trk_SF = mu_trkptGT10_SF->GetBinContent(mu_trkptGT10_SF->FindBin(eta)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
-      }else if( pickedLepType ==1 )
-      {
-        if( ele_VetoID_SF ){ lep_id_SF = ele_VetoID_SF->GetBinContent(ele_VetoID_SF->FindBin(pt, abseta)); if( lep_id_SF == 0 ) lep_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
-        if( ele_miniISO_SF ){ lep_iso_SF = ele_miniISO_SF->GetBinContent(ele_miniISO_SF->FindBin(pt, abseta)); if( lep_iso_SF == 0 ) lep_iso_SF = 1.0; }
-        if( ele_trkpt_SF ){ lep_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
-      }else
-      {
-         std::cout<<"NOT supported lepton type!"<<std::endl;
-         return 0;
-      }
-      const double lep_SF = lep_id_SF * lep_iso_SF * lep_trk_SF;
-
-      const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
-      if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0)
-      {
-        if( kSR!= -1 )
-        {
-          myBaseHistgram.hYields_Veto_LL->Fill(kSR, Lumiscale);
-          myBaseHistgram.hYields_Veto_LL_SF->Fill(kSR, Lumiscale*lep_SF);
+           pickedLepLVec = pickedMuonIdx == -1? elesLVec[pickedEleIdx] : muonsLVec[pickedMuonIdx];
+           pickedLepType = pickedMuonIdx == -1? 1 : 0;
         }
-      }
-      else if(W_tau_prongsVec.size() !=0)
-      {
-        if( kSR!= -1 )
+  
+        const double eta = pickedLepLVec.Eta(), pt = pickedLepLVec.Pt();
+        const double abseta = std::abs(eta);
+  
+        double lep_id_SF = 1.0, lep_iso_SF = 1.0, lep_trk_SF = 1.0;
+        if( pickedLepType == 0 ) // muon
         {
-          myBaseHistgram.hYields_Veto_tau->Fill(kSR, Lumiscale);
-          myBaseHistgram.hYields_Veto_tau_SF->Fill(kSR, Lumiscale*lep_SF);
+          if( mu_mediumID_SF ){ lep_id_SF = mu_mediumID_SF->GetBinContent(mu_mediumID_SF->FindBin(pt, abseta)); if( lep_id_SF == 0 ) lep_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
+          if( mu_miniISO_SF ){ lep_iso_SF = mu_miniISO_SF->GetBinContent(mu_miniISO_SF->FindBin(pt, abseta)); if( lep_iso_SF == 0 ) lep_iso_SF = 1.0; }
+          if( pt < 10 && mu_trkptLT10_SF ){ lep_trk_SF = mu_trkptLT10_SF->GetBinContent(mu_trkptLT10_SF->FindBin(eta)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
+          if( pt >= 10 && mu_trkptGT10_SF ){ lep_trk_SF = mu_trkptGT10_SF->GetBinContent(mu_trkptGT10_SF->FindBin(eta)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
+        }else if( pickedLepType ==1 )
+        {
+          if( ele_VetoID_SF ){ lep_id_SF = ele_VetoID_SF->GetBinContent(ele_VetoID_SF->FindBin(pt, abseta)); if( lep_id_SF == 0 ) lep_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
+          if( ele_miniISO_SF ){ lep_iso_SF = ele_miniISO_SF->GetBinContent(ele_miniISO_SF->FindBin(pt, abseta)); if( lep_iso_SF == 0 ) lep_iso_SF = 1.0; }
+          if( ele_trkpt_SF ){ lep_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
+        }else
+        {
+           std::cout<<"NOT supported lepton type!"<<std::endl;
+           return 0;
+        }
+        const double lep_SF = lep_id_SF * lep_iso_SF * lep_trk_SF;
+  
+        const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0)
+        {
+          if( kSR!= -1 )
+          {
+            myBaseHistgram.hYields_Veto_LL->Fill(kSR, Lumiscale);
+            myBaseHistgram.hYields_Veto_LL_SF->Fill(kSR, Lumiscale*lep_SF);
+          }
+        }
+        else if(W_tau_prongsVec.size() !=0)
+        {
+          if( kSR!= -1 )
+          {
+            myBaseHistgram.hYields_Veto_tau->Fill(kSR, Lumiscale);
+            myBaseHistgram.hYields_Veto_tau_SF->Fill(kSR, Lumiscale*lep_SF);
+          }
+        }
+      }else
+      {
+        const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0)
+        {
+          if( kSR!= -1 )
+          {
+            myBaseHistgram.hYields_Pass_LL->Fill(kSR, Lumiscale);
+          }
+        }
+        else if(W_tau_prongsVec.size() !=0)
+        {
+          if( kSR!= -1 )
+          {
+            myBaseHistgram.hYields_Pass_tau->Fill(kSR, Lumiscale);
+          }
         }
       }
     }

@@ -51,7 +51,6 @@ class BaseHistgram
   TH1D *hdPhi1_el;
   TH1D *hdPhi2_el;
 
-
   const TString title = "Muon CS";
   const TString title_el = "Electron CS";
 
@@ -105,7 +104,8 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi1_el->Sumw2();
   hdPhi2_el = new TH1D("hdPhi2_el", title_el+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_el->Sumw2();
-  
+
+
 }
 
 

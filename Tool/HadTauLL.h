@@ -48,6 +48,7 @@ class BaseHistgram
   TH1D *hdPhi1_LL;
   TH1D *hdPhi2_LL;
 
+
   const TString title = "HadTau MC";
   const TString title_LL = "LL MC";
 };
@@ -100,6 +101,7 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi1_LL->Sumw2();
   hdPhi2_LL = new TH1D("hdPhi2_LL", title_LL+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_LL->Sumw2();
+
    
 }
 

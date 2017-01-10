@@ -6,11 +6,11 @@ from os import system
 import optparse 
 
 submitFile = """universe = vanilla
-Executable = $ENV(CMSSW_BASE)/src/HadronicTau/Tool/condorCS/goMakePlots.sh
+Executable = $ENV(CMSSW_BASE)/src/HadronicTau/Tool/condorHadTauLL/goMakePlots.sh
 Requirements = OpSys == "LINUX"&& (Arch != "DUMMY" )
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
-Transfer_Input_Files = $ENV(CMSSW_BASE)/src/HadronicTau/Tool/CS, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/condorCS/goMakePlots.sh, $ENV(CMSSW_BASE)/lib/$ENV(SCRAM_ARCH)/librecipeAUXOxbridgeMT2.so, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TopTagger.cfg, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TrainingOutput_dR20_pt30_depth14_2016_Dec2.model, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/CSVFiles/CSVv2_ichep.csv, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/TTbarNoHad_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/WJetsToLNu_HT_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/SingleTop_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/SMS-T1tttt_2016_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/TTbarNoHad_NJetsISR.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/WJetsToLNu_HT_NJetsISR.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/SingleTop_NJetsISR.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/ISRWeights.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/LeptonSF_Root_Files/allINone_leptonSF.root
+Transfer_Input_Files = $ENV(CMSSW_BASE)/src/HadronicTau/Tool/HadTauLL, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/condorHadTauLL/goMakePlots.sh, $ENV(CMSSW_BASE)/lib/$ENV(SCRAM_ARCH)/librecipeAUXOxbridgeMT2.so, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TopTagger.cfg, $ENV(CMSSW_BASE)/src/HadronicTau/Tool/TrainingOutput_dR20_pt30_depth14_2016_Dec2.model, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/CSVFiles/CSVv2_ichep.csv, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/TTbarNoHad_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/WJetsToLNu_HT_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/SingleTop_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/data/SMS-T1tttt_2016_bTagEff.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/TTbarNoHad_NJetsISR.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/WJetsToLNu_HT_NJetsISR.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/SingleTop_NJetsISR.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/ISR_Root_Files/ISRWeights.root, $ENV(CMSSW_BASE)/src/SusyAnaTools/Tools/LeptonSF_Root_Files/allINone_leptonSF.root
 Output = logs/makePlots_$(Process).stdout
 Error = logs/makePlots_$(Process).stderr
 Log = logs/makePlots_$(Process).log
@@ -60,10 +60,10 @@ for ds in datasets:
                 fileParts.append("Arguments = %s $ENV(CMSSW_BASE) %i %i %s\nQueue\n\n"%(n, startFileNum, nFilesPerJob, s))
             f.close()
 
-fout = open("condorCS_submit.txt", "w")
+fout = open("condorHadTauLL_submit.txt", "w")
 fout.write(''.join(fileParts))
 fout.close()
 
 system('mkdir -p logs')
-system("echo 'condor_submit condorCS_submit.txt'")
-system('condor_submit condorCS_submit.txt')
+system("echo 'condor_submit condorHadTauLL_submit.txt'")
+system('condor_submit condorHadTauLL_submit.txt')

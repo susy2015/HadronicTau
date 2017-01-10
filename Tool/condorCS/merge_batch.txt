@@ -1,0 +1,5 @@
+hadd TTbarNoHad_CS.root TTbarNoHad/*_CS*.root
+hadd WJetsToLNu_CS.root WJetsToLNu/*_CS*.root
+hadd tW_CS.root tW/*_CS*.root
+hadd Mix_CS.root TTbarNoHad/*_CS*.root WJetsToLNu/*_CS*.root tW/*_CS*.root
+hadd Data_MET_CS.root Data_MET/*_CS*.root

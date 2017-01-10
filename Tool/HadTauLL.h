@@ -37,6 +37,9 @@ class BaseHistgram
   TH1D *hdPhi1_tau;
   TH1D *hdPhi2_tau;
 
+  TH1D *hYields_Veto_tau;
+  TH1D *hYields_Veto_tau_SF;
+
   TH1D *hMET_LL;
   TH1D *hNbJets_LL;
   TH1D *hNTops_LL;
@@ -47,6 +50,9 @@ class BaseHistgram
   TH1D *hdPhi0_LL;
   TH1D *hdPhi1_LL;
   TH1D *hdPhi2_LL;
+
+  TH1D *hYields_Veto_LL;
+  TH1D *hYields_Veto_LL_SF;
 
   const TString title = "HadTau MC";
   const TString title_LL = "LL MC";
@@ -79,6 +85,11 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi1_tau->Sumw2();
   hdPhi2_tau = new TH1D("hdPhi2_tau", title+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_tau->Sumw2();
+
+  hYields_Veto_tau = new TH1D("hYields_Veto_tau", title+";search bin;Events",nSB,0,nSB);
+  hYields_Veto_tau->Sumw2();
+  hYields_Veto_tau_SF = new TH1D("hYields_Veto_tau_SF", title+";search bin;Events",nSB,0,nSB);
+  hYields_Veto_tau_SF->Sumw2();
   
   hMET_LL = new TH1D("hMET_LL",title_LL+";met [GeV];Events",24,200.,800.);
   hMET_LL->Sumw2();
@@ -101,6 +112,11 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi2_LL = new TH1D("hdPhi2_LL", title_LL+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_LL->Sumw2();
    
+  hYields_Veto_LL = new TH1D("hYields_Veto_LL", title+";search bin;Events",nSB,0,nSB);
+  hYields_Veto_LL->Sumw2();
+  hYields_Veto_LL_SF = new TH1D("hYields_Veto_LL_SF", title+";search bin;Events",nSB,0,nSB);
+  hYields_Veto_LL_SF->Sumw2();
+  
 }
 
 

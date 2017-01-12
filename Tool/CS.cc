@@ -174,6 +174,8 @@ int main(int argc, char* argv[]) {
 
     const double isrWght = (doISR && !isData)? tr->getVar<double>("isr_Unc_Cent") : 1.0;
     const double bSF = (dobSF && !isData)? tr->getVar<double>("bTagSF_EventWeightSimple_Central") : 1.0;
+    const double bSF_up = (dobSF && !isData)? tr->getVar<double>("bTagSF_EventWeightSimple_Up") : 1.0;
+    const double bSF_down = (dobSF && !isData)? tr->getVar<double>("bTagSF_EventWeightSimple_Down") : 1.0;
 
     const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
     const vector<double> &muonsRelIso = tr->getVec<double>("muonsRelIso");
@@ -297,6 +299,8 @@ int main(int argc, char* argv[]) {
       const double mu_SF = mu_id_SF * mu_iso_SF * mu_trk_SF;
 
       const double corr_SF = bSF * isrWght * mu_SF;
+      const double corr_bSF_up = bSF_up * isrWght * mu_SF;
+      const double corr_bSF_down = bSF_down * isrWght * mu_SF;
   
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtw)
@@ -305,6 +309,9 @@ int main(int argc, char* argv[]) {
         if( jSR!= -1 )
         {
           myBaseHistgram.hYields_mu->Fill(jSR, Lumiscale*corr_SF);
+	  //bSF systematics
+          myBaseHistgram.hYields_mu_bSFup->Fill(jSR, Lumiscale*corr_bSF_up);
+	  myBaseHistgram.hYields_mu_bSFdown->Fill(jSR, Lumiscale*corr_bSF_down);
         }
   	  
         FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*corr_SF);
@@ -454,7 +461,8 @@ int main(int argc, char* argv[]) {
       const double ele_SF = ele_id_SF * ele_iso_SF * ele_trk_SF;
 
       const double corr_SF = bSF * isrWght * ele_SF;
-  
+      const double corr_bSF_up = bSF_up * isrWght * ele_SF;
+      const double corr_bSF_down = bSF_down * isrWght * ele_SF;
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtwele)
       {
@@ -462,6 +470,9 @@ int main(int argc, char* argv[]) {
         if( kSR!= -1 )
         {
           myBaseHistgram.hYields_el->Fill(kSR, Lumiscale*corr_SF);
+	  //bSF systematics
+          myBaseHistgram.hYields_el_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
+	  myBaseHistgram.hYields_el_bSFdown->Fill(kSR, Lumiscale*corr_bSF_down);
         }
   	  
         FillDouble(myBaseHistgram.hMET_el, met, Lumiscale*corr_SF);

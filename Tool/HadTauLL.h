@@ -56,6 +56,11 @@ class BaseHistgram
   TH1D *hYields_Veto_LL_SF;
   TH1D *hYields_Pass_LL;
 
+  TH1D *hYields_tau_bSFup;
+  TH1D *hYields_tau_bSFdown;
+  TH1D *hYields_LL_bSFup;
+  TH1D *hYields_LL_bSFdown;
+
   const TString title = "HadTau MC";
   const TString title_LL = "LL MC";
 };
@@ -123,6 +128,14 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hYields_Pass_LL = new TH1D("hYields_Pass_LL", title+";search bin;Events",nSB,0,nSB);
   hYields_Pass_LL->Sumw2();
   
+  hYields_tau_bSFup = new TH1D("hYields_tau_bSFup", title+";search bin;Events",nSB,0,nSB);
+  hYields_tau_bSFup->Sumw2();
+  hYields_tau_bSFdown = new TH1D("hYields_tau_bSFdown", title+";search bin;Events",nSB,0,nSB);
+  hYields_tau_bSFdown->Sumw2();
+  hYields_LL_bSFup = new TH1D("hYields_LL_bSFup", title_LL+";search bin;Events",nSB,0,nSB);
+  hYields_LL_bSFup->Sumw2();
+  hYields_LL_bSFdown = new TH1D("hYields_LL_bSFdown", title_LL+";search bin;Events",nSB,0,nSB);
+  hYields_LL_bSFdown->Sumw2();
 }
 
 

@@ -151,6 +151,8 @@ int main(int argc, char* argv[])
 
     const double isrWght = doISR? tr->getVar<double>("isr_Unc_Cent") : 1.0;
     const double bSF = dobSF? tr->getVar<double>("bTagSF_EventWeightSimple_Central") : 1.0;
+    const double bSF_up = dobSF? tr->getVar<double>("bTagSF_EventWeightSimple_Up") : 1.0;
+    const double bSF_down = dobSF? tr->getVar<double>("bTagSF_EventWeightSimple_Down") : 1.0;
 
     const vector<TLorentzVector> &jetsLVec = tr->getVec<TLorentzVector>("jetsLVec");
     const std::vector<std::string> & TriggerNames = tr->getVec<std::string>("TriggerNames");
@@ -337,6 +339,8 @@ int main(int argc, char* argv[])
     if(!(passBaselineFull && passNoiseEventFilter)) continue;
 
     const double corr_SF = bSF * isrWght;
+    const double corr_bSF_up = bSF_up * isrWght;
+    const double corr_bSF_down = bSF_down * isrWght;
 
     const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
 
@@ -346,6 +350,9 @@ int main(int argc, char* argv[])
       if( kSR!= -1 )
       {
 	myBaseHistgram.hYields_LL->Fill(kSR, Lumiscale*corr_SF);
+	//bSF systematics                                                                                                                    
+	myBaseHistgram.hYields_LL_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
+	myBaseHistgram.hYields_LL_bSFdown->Fill(kSR, Lumiscale*corr_bSF_down);
       }
       
       FillDouble(myBaseHistgram.hMET_LL, met, Lumiscale*corr_SF);
@@ -364,6 +371,9 @@ int main(int argc, char* argv[])
       if( kSR!= -1 )
       {
 	myBaseHistgram.hYields_tau->Fill(kSR, Lumiscale*corr_SF);
+	//bSF systematics                                                                                                                    
+	myBaseHistgram.hYields_tau_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
+	myBaseHistgram.hYields_tau_bSFdown->Fill(kSR, Lumiscale*corr_bSF_down);
       }
       
       FillDouble(myBaseHistgram.hMET_tau, met, Lumiscale*corr_SF);

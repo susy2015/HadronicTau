@@ -174,8 +174,16 @@ int main(int argc, char* argv[]) {
 
     const double isrWght = (doISR && !isData)? tr->getVar<double>("isr_Unc_Cent") : 1.0;
     const double bSF = (dobSF && !isData)? tr->getVar<double>("bTagSF_EventWeightSimple_Central") : 1.0;
+
     const double bSF_up = (dobSF && !isData)? tr->getVar<double>("bTagSF_EventWeightSimple_Up") : 1.0;
     const double bSF_down = (dobSF && !isData)? tr->getVar<double>("bTagSF_EventWeightSimple_Down") : 1.0;
+
+    const double isr_up = (doISR && !isData)? tr->getVar<double>("isr_Unc_Up"): 1.0;
+    const double isr_down = (doISR && !isData)? tr->getVar<double>("isr_Unc_Down"):1.0;
+
+
+
+
 
     const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
     const vector<double> &muonsRelIso = tr->getVec<double>("muonsRelIso");
@@ -299,9 +307,13 @@ int main(int argc, char* argv[]) {
       const double mu_SF = mu_id_SF * mu_iso_SF * mu_trk_SF;
 
       const double corr_SF = bSF * isrWght * mu_SF;
+      
       const double corr_bSF_up = bSF_up * isrWght * mu_SF;
       const double corr_bSF_down = bSF_down * isrWght * mu_SF;
   
+      const double corr_isr_up = isr_up * bSF  * mu_SF;
+      const double corr_isr_down = isr_down * bSF * mu_SF;
+
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtw)
       {
@@ -312,6 +324,9 @@ int main(int argc, char* argv[]) {
 	  //bSF systematics
           myBaseHistgram.hYields_mu_bSFup->Fill(jSR, Lumiscale*corr_bSF_up);
 	  myBaseHistgram.hYields_mu_bSFdown->Fill(jSR, Lumiscale*corr_bSF_down);
+	  //ISR Systematics
+	  myBaseHistgram.hYields_mu_isrup->Fill(jSR, Lumiscale*corr_isr_up);
+          myBaseHistgram.hYields_mu_isrdown->Fill(jSR, Lumiscale*corr_isr_down);
         }
   	  
         FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*corr_SF);
@@ -438,32 +453,37 @@ int main(int argc, char* argv[]) {
     // Require one and only one electron                                                                                         
     // Veto events with additional muons (same veto criteria as baseline for muons)                           
     if( nElectrons == 1 && nMuons == AnaConsts::nMuonsSel )
-    {
-      if( nElectrons != isoelesLVec.size() )
-      { 
-        std::cout<<"ERROR ... mis-matching between veto ele and selected ele! Skipping..."<<std::endl; continue; 
-      }
-  
-      //mtW cut
-      const TLorentzVector eleLVec = isoelesLVec.at(0);
-      const double elemtw = calcMT(eleLVec, metLVec);
-      const bool pass_mtwele = elemtw<100 ? true : false;
-  
-      const double eta = eleLVec.Eta(), pt = eleLVec.Pt();
-      const double abseta = std::abs(eta);
-      double ele_id_SF = 1.0, ele_iso_SF = 1.0, ele_trk_SF = 1.0;
-      if( dolepSF && !isData )
       {
-        if( ele_VetoID_SF ){ ele_id_SF = ele_VetoID_SF->GetBinContent(ele_VetoID_SF->FindBin(pt, abseta)); if( ele_id_SF == 0 ) ele_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
-        if( ele_miniISO_SF ){ ele_iso_SF = ele_miniISO_SF->GetBinContent(ele_miniISO_SF->FindBin(pt, abseta)); if( ele_iso_SF == 0 ) ele_iso_SF = 1.0; }
-        if( ele_trkpt_SF ){ ele_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt)); if( ele_trk_SF == 0 ) ele_trk_SF = 1.0; }
-      }
-      const double ele_SF = ele_id_SF * ele_iso_SF * ele_trk_SF;
-
-      const double corr_SF = bSF * isrWght * ele_SF;
-      const double corr_bSF_up = bSF_up * isrWght * ele_SF;
-      const double corr_bSF_down = bSF_down * isrWght * ele_SF;
-      //Dist.
+	if( nElectrons != isoelesLVec.size() )
+	  { 
+	    std::cout<<"ERROR ... mis-matching between veto ele and selected ele! Skipping..."<<std::endl; continue; 
+	  }
+	
+	//mtW cut
+	const TLorentzVector eleLVec = isoelesLVec.at(0);
+	const double elemtw = calcMT(eleLVec, metLVec);
+	const bool pass_mtwele = elemtw<100 ? true : false;
+	
+	const double eta = eleLVec.Eta(), pt = eleLVec.Pt();
+	const double abseta = std::abs(eta);
+	double ele_id_SF = 1.0, ele_iso_SF = 1.0, ele_trk_SF = 1.0;
+	if( dolepSF && !isData )
+	  {
+	    if( ele_VetoID_SF ){ ele_id_SF = ele_VetoID_SF->GetBinContent(ele_VetoID_SF->FindBin(pt, abseta)); if( ele_id_SF == 0 ) ele_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
+	    if( ele_miniISO_SF ){ ele_iso_SF = ele_miniISO_SF->GetBinContent(ele_miniISO_SF->FindBin(pt, abseta)); if( ele_iso_SF == 0 ) ele_iso_SF = 1.0; }
+	    if( ele_trkpt_SF ){ ele_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt)); if( ele_trk_SF == 0 ) ele_trk_SF = 1.0; }
+	  }
+	const double ele_SF = ele_id_SF * ele_iso_SF * ele_trk_SF;
+	
+	const double corr_SF = bSF * isrWght * ele_SF;
+	
+	const double corr_bSF_up = bSF_up * isrWght * ele_SF;
+	const double corr_bSF_down = bSF_down * isrWght * ele_SF;
+	
+	const double corr_isr_up = bSF * isr_up * ele_SF;
+	const double corr_isr_down = bSF * isr_down * ele_SF;
+	
+	//Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtwele)
       {
         int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
@@ -473,6 +493,9 @@ int main(int argc, char* argv[]) {
 	  //bSF systematics
           myBaseHistgram.hYields_el_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
 	  myBaseHistgram.hYields_el_bSFdown->Fill(kSR, Lumiscale*corr_bSF_down);
+
+	  myBaseHistgram.hYields_el_isrup->Fill(kSR, Lumiscale*corr_isr_up);
+          myBaseHistgram.hYields_el_isrdown->Fill(kSR, Lumiscale*corr_isr_down);
         }
   	  
         FillDouble(myBaseHistgram.hMET_el, met, Lumiscale*corr_SF);

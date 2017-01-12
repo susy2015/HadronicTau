@@ -10,7 +10,7 @@ void PlotCSDataMC()
   
   TFile *file_Data = new TFile("Data_MET_CS.root");
   TFile *file_MC = new TFile("Mix_CS.root");
-  const unsigned int kNDists = 15;
+  const unsigned int kNDists = 28;
   TH1* hMC_mu[kNDists];
   TH1* hData_mu[kNDists];
   TH1* hMC_ele[kNDists];
@@ -23,21 +23,34 @@ void PlotCSDataMC()
     if(      i == 0 ) name = "MET";
     else if( i == 1 ) name = "NbJets";
     else if( i == 2 ) name = "NTops";
-    else if( i == 3) name = "MT2";
-    else if( i == 4) name = "NJets";
-    else if( i == 5) name = "HT";
-    else if (i == 6) name = "Yields";
-    else if (i == 7) name = "CS_MT2_2D_nb1_nt1";
-    else if (i == 8) name = "CS_met_2D_nb1_nt1";
-    else if (i == 9) name = "CS_MT2_2D_nb2_nt1";
-    else if (i == 10) name = "CS_met_2D_nb2_nt1";
-    else if (i == 11) name = "CS_MT2_2D_nb1_nt2";
-    else if (i == 12) name = "CS_met_2D_nb1_nt2";
-    else if (i == 13) name = "CS_MT2_2D_nb2_nt2";
-    else if (i == 14) name = "CS_met_2D_nb2_nt2";
+    else if( i == 3 ) name = "MT2";
+    else if( i == 4 ) name = "NJets";
+    else if( i == 5 ) name = "HT";
+    else if (i == 6 ) name = "Yields";
+    else if (i == 7 ) name = "CS_MT2_2D_nb1_nt1";
+    else if (i == 8 ) name = "CS_met_2D_nb1_nt1";
+    else if (i == 9 ) name = "CS_nJets_2D_nb1_nt1";
+    else if (i == 10) name = "CS_recoTopPt_2D_nb1_nt1";
+    else if (i == 11) name = "CS_MT2_2D_nb2_nt1";
+    else if (i == 12) name = "CS_met_2D_nb2_nt1";
+    else if (i == 13) name = "CS_nJets_2D_nb2_nt1";
+    else if (i == 14) name = "CS_recoTopPt_2D_nb2_nt1";
+    else if (i == 15) name = "CS_MT2_2D_nb1_nt2";
+    else if (i == 16) name = "CS_met_2D_nb1_nt2";
+    else if (i == 17) name = "CS_nJets_2D_nb1_nt2";
+    else if (i == 18) name = "CS_recoTopPt_2D_nb1_nt2";
+    else if (i == 19) name = "CS_MT2_2D_nb2_nt2";
+    else if (i == 20) name = "CS_met_2D_nb2_nt2";
+    else if (i == 21) name = "CS_nJets_2D_nb2_nt2";
+    else if (i == 22) name = "CS_recoTopPt_2D_nb2_nt2";
+    else if (i == 23) name = "CS_HT_2D_nb3_nt1";
+    else if (i == 24) name = "CS_HT_2D_nb3_nt2";
+    else if (i == 25) name = "CS_HT_2D_nb3_nt3";
+    else if (i == 26) name = "CS_HT_2D_nb1_nt3";
+    else if (i == 27) name = "CS_HT_2D_nb2_nt3";
     
     // Get histograms from file
-    if( i>=7 && i<=14 )
+    if( i>=7 && i<=kNDists-1 )
     {
        hMC_mu[i] = (TH1D*)file_MC->Get("mu"+name);
        hData_mu[i] = (TH1D*)file_Data->Get("mu"+name);

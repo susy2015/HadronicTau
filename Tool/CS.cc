@@ -44,6 +44,8 @@ TH1D * mu_trkptGT10_SF = 0, * mu_trkptLT10_SF = 0;
 TH2D * ele_VetoID_SF = 0, * ele_miniISO_SF = 0;
 TH2D * ele_trkpt_SF = 0;
 
+std::shared_ptr<TopTagger> ttPtr(nullptr);
+
 // === Main Function ===================================================
 int main(int argc, char* argv[]) {
   if (argc < 5)
@@ -77,15 +79,15 @@ int main(int argc, char* argv[]) {
   SearchBins SB("SB_v1_2017");
 
 //  const int nTotBins = SB.nSearchBins();
-  std::vector<int> cachedMT2binIdx_mu_3DVec, cachedHTbinIdx_mu_3DVec;
-  std::vector<TH1D*> cachedMT2hist_mu_3DVec, cachedHThist_mu_3DVec;
-  std::vector<int> cachedMT2binIdx_el_3DVec, cachedHTbinIdx_el_3DVec;
-  std::vector<TH1D*> cachedMT2hist_el_3DVec, cachedHThist_el_3DVec;
+  std::vector<int> cached_MT2_binIdx_mu_3DVec, cached_HT_binIdx_mu_3DVec;
+  std::vector<TH1D*> cached_MT2_hist_mu_3DVec, cached_HT_hist_mu_3DVec;
+  std::vector<int> cached_MT2_binIdx_el_3DVec, cached_HT_binIdx_el_3DVec;
+  std::vector<TH1D*> cached_MT2_hist_el_3DVec, cached_HT_hist_el_3DVec;
 
-  std::vector<int> cachedMT2binIdx_mu_2DVec, cachedHTbinIdx_mu_2DVec;
-  std::vector<TH1D*> cachedMT2hist_mu_2DVec, cachedHThist_mu_2DVec, cachedmethist_mu_2DVec;
-  std::vector<int> cachedMT2binIdx_el_2DVec, cachedHTbinIdx_el_2DVec;
-  std::vector<TH1D*> cachedMT2hist_el_2DVec, cachedHThist_el_2DVec, cachedmethist_el_2DVec;
+  std::vector<int> cached_MT2_binIdx_mu_2DVec, cached_HT_binIdx_mu_2DVec;
+  std::vector<TH1D*> cached_MT2_hist_mu_2DVec, cached_HT_hist_mu_2DVec, cached_met_hist_mu_2DVec, cached_nJets_hist_mu_2DVec, cached_recoTopPt_hist_mu_2DVec;
+  std::vector<int> cached_MT2_binIdx_el_2DVec, cached_HT_binIdx_el_2DVec;
+  std::vector<TH1D*> cached_MT2_hist_el_2DVec, cached_HT_hist_el_2DVec, cached_met_hist_el_2DVec, cached_nJets_hist_el_2DVec, cached_recoTopPt_hist_el_2DVec;
 
   std::string spec = "CS";
 
@@ -97,6 +99,8 @@ int main(int argc, char* argv[]) {
   CSBaseline = new BaselineVessel(*tr, spec);
   CSBaseline->SetupTopTagger(true,"TopTagger.cfg");
   tr->registerFunction((*CSBaseline));
+
+  ttPtr = CSBaseline->GetTopTaggerPtr();
 
   if( !isData ){
     // Lepton SF
@@ -246,6 +250,13 @@ int main(int argc, char* argv[]) {
     }
     const double Mht = MhtLVec.Pt();
 
+    std::vector<TopObject*> topObjVec;
+    if( ttPtr )
+    {
+       const TopTaggerResults& ttr = ttPtr->getResults();
+       topObjVec = ttr.getTops();
+    }
+
     bool passBaselineCS = passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2;
     bool passTrigger = true;        
     if(isData)
@@ -338,14 +349,14 @@ int main(int argc, char* argv[]) {
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, met, HT); // use the lowest MT2 bin in (nb, ntop, met) to collapse the MT2 bins
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
-          auto it = std::find(cachedMT2binIdx_mu_3DVec.begin(), cachedMT2binIdx_mu_3DVec.end(), pseudo_SR);
-          if( it != cachedMT2binIdx_mu_3DVec.end() )
+          auto it = std::find(cached_MT2_binIdx_mu_3DVec.begin(), cached_MT2_binIdx_mu_3DVec.end(), pseudo_SR);
+          if( it != cached_MT2_binIdx_mu_3DVec.end() )
           {
-            auto index = std::distance(cachedMT2binIdx_mu_3DVec.begin(), it);
-            FillDouble(cachedMT2hist_mu_3DVec[index], MT2, Lumiscale*corr_SF);
+            auto index = std::distance(cached_MT2_binIdx_mu_3DVec.begin(), it);
+            FillDouble(cached_MT2_hist_mu_3DVec[index], MT2, Lumiscale*corr_SF);
           }else
           {
-            cachedMT2binIdx_mu_3DVec.push_back(pseudo_SR);
+            cached_MT2_binIdx_mu_3DVec.push_back(pseudo_SR);
             char tmp_str[200];
             if( pseudo_binDef.met_hi_ != -1 )
             {
@@ -355,22 +366,22 @@ int main(int argc, char* argv[]) {
               sprintf(tmp_str, "muCS_MT2_3D_nb%d_nt%d_%3.0fmetInf", nbJets, nTops, pseudo_binDef.met_lo_);
             }
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 28, 200, 900);
-            cachedMT2hist_mu_3DVec.push_back(h1_tmp);
-            FillDouble(cachedMT2hist_mu_3DVec.back(), MT2, Lumiscale*corr_SF);
+            cached_MT2_hist_mu_3DVec.push_back(h1_tmp);
+            FillDouble(cached_MT2_hist_mu_3DVec.back(), MT2, Lumiscale*corr_SF);
           }
         }else
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, MT2, met, 350); // use the lowest HT bin in (nb, ntop, met) to collapse the HT bins
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
           const int nbJetsCopy = nbJets >=3 ? 3 : nbJets; const int nTopsCopy = nTops >=3 ? 3 : nTops;
-          auto it = std::find(cachedHTbinIdx_mu_3DVec.begin(), cachedHTbinIdx_mu_3DVec.end(), pseudo_SR);
-          if( it != cachedHTbinIdx_mu_3DVec.end() )
+          auto it = std::find(cached_HT_binIdx_mu_3DVec.begin(), cached_HT_binIdx_mu_3DVec.end(), pseudo_SR);
+          if( it != cached_HT_binIdx_mu_3DVec.end() )
           {
-            auto index = std::distance(cachedHTbinIdx_mu_3DVec.begin(), it);
-            FillDouble(cachedHThist_mu_3DVec[index], HT, Lumiscale*corr_SF);
+            auto index = std::distance(cached_HT_binIdx_mu_3DVec.begin(), it);
+            FillDouble(cached_HT_hist_mu_3DVec[index], HT, Lumiscale*corr_SF);
           }else
           {
-            cachedHTbinIdx_mu_3DVec.push_back(pseudo_SR);
+            cached_HT_binIdx_mu_3DVec.push_back(pseudo_SR);
             char tmp_str[200];
             if( pseudo_binDef.met_hi_ != -1 )
             {
@@ -380,8 +391,8 @@ int main(int argc, char* argv[]) {
               sprintf(tmp_str, "muCS_HT_3D_nb%d_nt%d_%3.0fmetInf", nbJetsCopy, nTopsCopy, pseudo_binDef.met_lo_);
             }
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 34, 300, 2000);
-            cachedHThist_mu_3DVec.push_back(h1_tmp);
-            FillDouble(cachedHThist_mu_3DVec.back(), HT, Lumiscale*corr_SF);
+            cached_HT_hist_mu_3DVec.push_back(h1_tmp);
+            FillDouble(cached_HT_hist_mu_3DVec.back(), HT, Lumiscale*corr_SF);
           }
         }
   
@@ -390,44 +401,62 @@ int main(int argc, char* argv[]) {
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, 300, HT); // use the lowest (MT2, met) bin in (nb, ntop) to collapse the MT2 and met
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
-          auto it = std::find(cachedMT2binIdx_mu_2DVec.begin(), cachedMT2binIdx_mu_2DVec.end(), pseudo_SR);
-          if( it != cachedMT2binIdx_mu_2DVec.end() )
+          auto it = std::find(cached_MT2_binIdx_mu_2DVec.begin(), cached_MT2_binIdx_mu_2DVec.end(), pseudo_SR);
+          if( it != cached_MT2_binIdx_mu_2DVec.end() )
           {
-            auto index = std::distance(cachedMT2binIdx_mu_2DVec.begin(), it);
-            FillDouble(cachedMT2hist_mu_2DVec[index], MT2, Lumiscale*corr_SF);
-            FillDouble(cachedmethist_mu_2DVec[index], met, Lumiscale*corr_SF);
+            auto index = std::distance(cached_MT2_binIdx_mu_2DVec.begin(), it);
+            FillDouble(cached_MT2_hist_mu_2DVec[index], MT2, Lumiscale*corr_SF);
+            FillDouble(cached_met_hist_mu_2DVec[index], met, Lumiscale*corr_SF);
+            FillDouble(cached_nJets_hist_mu_2DVec[index], nJets, Lumiscale*corr_SF);
+            for(auto top : topObjVec)
+            {
+              FillDouble(cached_recoTopPt_hist_mu_2DVec.back(), top->P().Pt(), Lumiscale*corr_SF);
+            }
           }else
           {
-            cachedMT2binIdx_mu_2DVec.push_back(pseudo_SR);
+            cached_MT2_binIdx_mu_2DVec.push_back(pseudo_SR);
             char tmp_str[200];
             sprintf(tmp_str, "muCS_MT2_2D_nb%d_nt%d", nbJets, nTops);
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 28, 200, 900);
-            cachedMT2hist_mu_2DVec.push_back(h1_tmp);
-            FillDouble(cachedMT2hist_mu_2DVec.back(), MT2, Lumiscale*corr_SF);
+            cached_MT2_hist_mu_2DVec.push_back(h1_tmp);
+            FillDouble(cached_MT2_hist_mu_2DVec.back(), MT2, Lumiscale*corr_SF);
   
             sprintf(tmp_str, "muCS_met_2D_nb%d_nt%d", nbJets, nTops);
             TH1D * h1_tmp2 = new TH1D(tmp_str, tmp_str, 24, 250, 850);
-            cachedmethist_mu_2DVec.push_back(h1_tmp2);
-            FillDouble(cachedmethist_mu_2DVec.back(), met, Lumiscale*corr_SF);
+            cached_met_hist_mu_2DVec.push_back(h1_tmp2);
+            FillDouble(cached_met_hist_mu_2DVec.back(), met, Lumiscale*corr_SF);
+
+            sprintf(tmp_str, "muCS_nJets_2D_nb%d_nt%d", nbJets, nTops);
+            TH1D * h1_tmp3 = new TH1D(tmp_str, tmp_str, 6, 4, 10);
+            cached_nJets_hist_mu_2DVec.push_back(h1_tmp3);
+            FillDouble(cached_nJets_hist_mu_2DVec.back(), nJets, Lumiscale*corr_SF);
+
+            sprintf(tmp_str, "muCS_recoTopPt_2D_nb%d_nt%d", nbJets, nTops);
+            TH1D * h1_tmp4 = new TH1D(tmp_str, tmp_str, 40, 0, 1000);
+            cached_recoTopPt_hist_mu_2DVec.push_back(h1_tmp4);
+            for(auto top : topObjVec)
+            {
+              FillDouble(cached_recoTopPt_hist_mu_2DVec.back(), top->P().Pt(), Lumiscale*corr_SF);
+            }
           }
         }else
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, MT2, 300, 350); // use the lowest (HT, met) bin in (nb, ntop) to collapse the HT and met
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
           const int nbJetsCopy = nbJets >=3 ? 3 : nbJets; const int nTopsCopy = nTops >=3 ? 3 : nTops;
-          auto it = std::find(cachedHTbinIdx_mu_2DVec.begin(), cachedHTbinIdx_mu_2DVec.end(), pseudo_SR);
-          if( it != cachedHTbinIdx_mu_2DVec.end() )
+          auto it = std::find(cached_HT_binIdx_mu_2DVec.begin(), cached_HT_binIdx_mu_2DVec.end(), pseudo_SR);
+          if( it != cached_HT_binIdx_mu_2DVec.end() )
           {
-            auto index = std::distance(cachedHTbinIdx_mu_2DVec.begin(), it);
-            FillDouble(cachedHThist_mu_2DVec[index], HT, Lumiscale*corr_SF);
+            auto index = std::distance(cached_HT_binIdx_mu_2DVec.begin(), it);
+            FillDouble(cached_HT_hist_mu_2DVec[index], HT, Lumiscale*corr_SF);
           }else
           {
-            cachedHTbinIdx_mu_2DVec.push_back(pseudo_SR);
+            cached_HT_binIdx_mu_2DVec.push_back(pseudo_SR);
             char tmp_str[200];
             sprintf(tmp_str, "muCS_HT_2D_nb%d_nt%d", nbJetsCopy, nTopsCopy);
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 34, 300, 2000);
-            cachedHThist_mu_2DVec.push_back(h1_tmp);
-            FillDouble(cachedHThist_mu_2DVec.back(), HT, Lumiscale*corr_SF);
+            cached_HT_hist_mu_2DVec.push_back(h1_tmp);
+            FillDouble(cached_HT_hist_mu_2DVec.back(), HT, Lumiscale*corr_SF);
           }
         }
       }
@@ -506,14 +535,14 @@ int main(int argc, char* argv[]) {
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, met, HT); // use the lowest MT2 bin in (nb, ntop, met) to collapse the MT2 bins
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
-          auto it = std::find(cachedMT2binIdx_el_3DVec.begin(), cachedMT2binIdx_el_3DVec.end(), pseudo_SR);
-          if( it != cachedMT2binIdx_el_3DVec.end() )
+          auto it = std::find(cached_MT2_binIdx_el_3DVec.begin(), cached_MT2_binIdx_el_3DVec.end(), pseudo_SR);
+          if( it != cached_MT2_binIdx_el_3DVec.end() )
           {
-            auto index = std::distance(cachedMT2binIdx_el_3DVec.begin(), it);
-            FillDouble(cachedMT2hist_el_3DVec[index], MT2, Lumiscale*corr_SF);
+            auto index = std::distance(cached_MT2_binIdx_el_3DVec.begin(), it);
+            FillDouble(cached_MT2_hist_el_3DVec[index], MT2, Lumiscale*corr_SF);
           }else
           {
-            cachedMT2binIdx_el_3DVec.push_back(pseudo_SR);
+            cached_MT2_binIdx_el_3DVec.push_back(pseudo_SR);
             char tmp_str[200];
             if( pseudo_binDef.met_hi_ != -1 )
             {
@@ -523,22 +552,22 @@ int main(int argc, char* argv[]) {
               sprintf(tmp_str, "eleCS_MT2_3D_nb%d_nt%d_%3.0fmetInf", nbJets, nTops, pseudo_binDef.met_lo_);
             }
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 28, 200, 900);
-            cachedMT2hist_el_3DVec.push_back(h1_tmp);
-            FillDouble(cachedMT2hist_el_3DVec.back(), MT2, Lumiscale*corr_SF);
+            cached_MT2_hist_el_3DVec.push_back(h1_tmp);
+            FillDouble(cached_MT2_hist_el_3DVec.back(), MT2, Lumiscale*corr_SF);
           }
         }else
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, MT2, met, 350); // use the lowest HT bin in (nb, ntop, met) to collapse the HT bins
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
           const int nbJetsCopy = nbJets >=3 ? 3 : nbJets; const int nTopsCopy = nTops >=3 ? 3 : nTops;
-          auto it = std::find(cachedHTbinIdx_el_3DVec.begin(), cachedHTbinIdx_el_3DVec.end(), pseudo_SR);
-          if( it != cachedHTbinIdx_el_3DVec.end() )
+          auto it = std::find(cached_HT_binIdx_el_3DVec.begin(), cached_HT_binIdx_el_3DVec.end(), pseudo_SR);
+          if( it != cached_HT_binIdx_el_3DVec.end() )
           {
-            auto index = std::distance(cachedHTbinIdx_el_3DVec.begin(), it);
-            FillDouble(cachedHThist_el_3DVec[index], HT, Lumiscale*corr_SF);
+            auto index = std::distance(cached_HT_binIdx_el_3DVec.begin(), it);
+            FillDouble(cached_HT_hist_el_3DVec[index], HT, Lumiscale*corr_SF);
           }else
           {
-            cachedHTbinIdx_el_3DVec.push_back(pseudo_SR);
+            cached_HT_binIdx_el_3DVec.push_back(pseudo_SR);
             char tmp_str[200];
             if( pseudo_binDef.met_hi_ != -1 )
             {
@@ -548,8 +577,8 @@ int main(int argc, char* argv[]) {
               sprintf(tmp_str, "eleCS_HT_3D_nb%d_nt%d_%3.0fmetInf", nbJetsCopy, nTopsCopy, pseudo_binDef.met_lo_);
             }
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 34, 300, 2000);
-            cachedHThist_el_3DVec.push_back(h1_tmp);
-            FillDouble(cachedHThist_el_3DVec.back(), HT, Lumiscale*corr_SF);
+            cached_HT_hist_el_3DVec.push_back(h1_tmp);
+            FillDouble(cached_HT_hist_el_3DVec.back(), HT, Lumiscale*corr_SF);
           }
         }
   
@@ -558,44 +587,62 @@ int main(int argc, char* argv[]) {
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, 300, HT); // use the lowest (MT2, met) bin in (nb, ntop) to collapse the MT2 and met
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
-          auto it = std::find(cachedMT2binIdx_el_2DVec.begin(), cachedMT2binIdx_el_2DVec.end(), pseudo_SR);
-          if( it != cachedMT2binIdx_el_2DVec.end() )
+          auto it = std::find(cached_MT2_binIdx_el_2DVec.begin(), cached_MT2_binIdx_el_2DVec.end(), pseudo_SR);
+          if( it != cached_MT2_binIdx_el_2DVec.end() )
           {
-            auto index = std::distance(cachedMT2binIdx_el_2DVec.begin(), it);
-            FillDouble(cachedMT2hist_el_2DVec[index], MT2, Lumiscale*corr_SF);
-            FillDouble(cachedmethist_el_2DVec[index], met, Lumiscale*corr_SF);
+            auto index = std::distance(cached_MT2_binIdx_el_2DVec.begin(), it);
+            FillDouble(cached_MT2_hist_el_2DVec[index], MT2, Lumiscale*corr_SF);
+            FillDouble(cached_met_hist_el_2DVec[index], met, Lumiscale*corr_SF);
+            FillDouble(cached_nJets_hist_el_2DVec[index], nJets, Lumiscale*corr_SF);
+            for(auto top : topObjVec)
+            {
+              FillDouble(cached_recoTopPt_hist_el_2DVec.back(), top->P().Pt(), Lumiscale*corr_SF);
+            }
           }else
           {
-            cachedMT2binIdx_el_2DVec.push_back(pseudo_SR);
+            cached_MT2_binIdx_el_2DVec.push_back(pseudo_SR);
             char tmp_str[200];
             sprintf(tmp_str, "eleCS_MT2_2D_nb%d_nt%d", nbJets, nTops);
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 28, 200, 900);
-            cachedMT2hist_el_2DVec.push_back(h1_tmp);
-            FillDouble(cachedMT2hist_el_2DVec.back(), MT2, Lumiscale*corr_SF);
+            cached_MT2_hist_el_2DVec.push_back(h1_tmp);
+            FillDouble(cached_MT2_hist_el_2DVec.back(), MT2, Lumiscale*corr_SF);
   
             sprintf(tmp_str, "eleCS_met_2D_nb%d_nt%d", nbJets, nTops);
             TH1D * h1_tmp2 = new TH1D(tmp_str, tmp_str, 24, 250, 850);
-            cachedmethist_el_2DVec.push_back(h1_tmp2);
-            FillDouble(cachedmethist_el_2DVec.back(), met, Lumiscale*corr_SF);
+            cached_met_hist_el_2DVec.push_back(h1_tmp2);
+            FillDouble(cached_met_hist_el_2DVec.back(), met, Lumiscale*corr_SF);
+
+            sprintf(tmp_str, "eleCS_nJets_2D_nb%d_nt%d", nbJets, nTops);
+            TH1D * h1_tmp3 = new TH1D(tmp_str, tmp_str, 6, 4, 10);
+            cached_nJets_hist_el_2DVec.push_back(h1_tmp3);
+            FillDouble(cached_nJets_hist_el_2DVec.back(), nJets, Lumiscale*corr_SF);
+
+            sprintf(tmp_str, "eleCS_recoTopPt_2D_nb%d_nt%d", nbJets, nTops);
+            TH1D * h1_tmp4 = new TH1D(tmp_str, tmp_str, 40, 0, 1000);
+            cached_recoTopPt_hist_el_2DVec.push_back(h1_tmp4);
+            for(auto top : topObjVec)
+            {
+              FillDouble(cached_recoTopPt_hist_el_2DVec.back(), top->P().Pt(), Lumiscale*corr_SF);
+            }
           }
         }else
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, MT2, 300, 350); // use the lowest (HT, met) bin in (nb, ntop) to collapse the HT and met
           SearchBins::searchBinDef pseudo_binDef; SB.find_BinBoundaries(pseudo_SR, pseudo_binDef);
           const int nbJetsCopy = nbJets >=3 ? 3 : nbJets; const int nTopsCopy = nTops >=3 ? 3 : nTops;
-          auto it = std::find(cachedHTbinIdx_el_2DVec.begin(), cachedHTbinIdx_el_2DVec.end(), pseudo_SR);
-          if( it != cachedHTbinIdx_el_2DVec.end() )
+          auto it = std::find(cached_HT_binIdx_el_2DVec.begin(), cached_HT_binIdx_el_2DVec.end(), pseudo_SR);
+          if( it != cached_HT_binIdx_el_2DVec.end() )
           {
-            auto index = std::distance(cachedHTbinIdx_el_2DVec.begin(), it);
-            FillDouble(cachedHThist_el_2DVec[index], HT, Lumiscale*corr_SF);
+            auto index = std::distance(cached_HT_binIdx_el_2DVec.begin(), it);
+            FillDouble(cached_HT_hist_el_2DVec[index], HT, Lumiscale*corr_SF);
           }else
           {
-            cachedHTbinIdx_el_2DVec.push_back(pseudo_SR);
+            cached_HT_binIdx_el_2DVec.push_back(pseudo_SR);
             char tmp_str[200];
             sprintf(tmp_str, "eleCS_HT_2D_nb%d_nt%d", nbJetsCopy, nTopsCopy);
             TH1D * h1_tmp = new TH1D(tmp_str, tmp_str, 34, 300, 2000);
-            cachedHThist_el_2DVec.push_back(h1_tmp);
-            FillDouble(cachedHThist_el_2DVec.back(), HT, Lumiscale*corr_SF);
+            cached_HT_hist_el_2DVec.push_back(h1_tmp);
+            FillDouble(cached_HT_hist_el_2DVec.back(), HT, Lumiscale*corr_SF);
           }
         }
 
@@ -606,17 +653,22 @@ int main(int argc, char* argv[]) {
   (myBaseHistgram.oFile)->cd();
   if( !isData )
   {
-    for(auto hist: cachedMT2hist_mu_3DVec) hist->Write();
-    for(auto hist: cachedHThist_mu_3DVec) hist->Write();
-    for(auto hist: cachedMT2hist_el_3DVec) hist->Write();
-    for(auto hist: cachedHThist_el_3DVec) hist->Write();
+    for(auto hist: cached_MT2_hist_mu_3DVec) hist->Write();
+    for(auto hist: cached_HT_hist_mu_3DVec) hist->Write();
+    for(auto hist: cached_MT2_hist_el_3DVec) hist->Write();
+    for(auto hist: cached_HT_hist_el_3DVec) hist->Write();
 
-    for(auto hist: cachedMT2hist_mu_2DVec) hist->Write();
-    for(auto hist: cachedHThist_mu_2DVec) hist->Write();
-    for(auto hist: cachedmethist_mu_2DVec) hist->Write();
-    for(auto hist: cachedMT2hist_el_2DVec) hist->Write();
-    for(auto hist: cachedHThist_el_2DVec) hist->Write();
-    for(auto hist: cachedmethist_el_2DVec) hist->Write();
+    for(auto hist: cached_MT2_hist_mu_2DVec) hist->Write();
+    for(auto hist: cached_HT_hist_mu_2DVec) hist->Write();
+    for(auto hist: cached_met_hist_mu_2DVec) hist->Write();
+    for(auto hist: cached_nJets_hist_mu_2DVec) hist->Write();
+    for(auto hist: cached_recoTopPt_hist_mu_2DVec) hist->Write();
+
+    for(auto hist: cached_MT2_hist_el_2DVec) hist->Write();
+    for(auto hist: cached_HT_hist_el_2DVec) hist->Write();
+    for(auto hist: cached_met_hist_el_2DVec) hist->Write();
+    for(auto hist: cached_nJets_hist_el_2DVec) hist->Write();
+    for(auto hist: cached_recoTopPt_hist_el_2DVec) hist->Write();
   }
   (myBaseHistgram.oFile)->Write();
   fChain->Reset();  

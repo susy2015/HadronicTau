@@ -576,6 +576,21 @@ int main(int argc, char* argv[]) {
     }//end of electron CS
   }//event loop
   // --- Save the Histograms to File -----------------------------------
+  (myBaseHistgram.oFile)->cd();
+  if( !isData )
+  {
+    for(auto hist: cachedMT2hist_mu_3DVec) hist->Write();
+    for(auto hist: cachedHThist_mu_3DVec) hist->Write();
+    for(auto hist: cachedMT2hist_el_3DVec) hist->Write();
+    for(auto hist: cachedHThist_el_3DVec) hist->Write();
+
+    for(auto hist: cachedMT2hist_mu_2DVec) hist->Write();
+    for(auto hist: cachedHThist_mu_2DVec) hist->Write();
+    for(auto hist: cachedmethist_mu_2DVec) hist->Write();
+    for(auto hist: cachedMT2hist_el_2DVec) hist->Write();
+    for(auto hist: cachedHThist_el_2DVec) hist->Write();
+    for(auto hist: cachedmethist_el_2DVec) hist->Write();
+  }
   (myBaseHistgram.oFile)->Write();
   fChain->Reset();  
   return 0;

@@ -3,8 +3,8 @@ const double data_lumi = 36352.970569733;
 
 const double scale_mc = data_lumi/mc_lumi;
 
-void PlotTransFact(){
-  
+void PlotTransFact()
+{
   TFile *file_CS = new TFile("Mix_CS.root");
   TFile *file_LL = new TFile("Mix_HadTauLL.root");
   const unsigned int kNDists = 7;
@@ -16,7 +16,8 @@ void PlotTransFact(){
   TH1* hRatio_LL_mu[kNDists];
   TH1* hRatio_Hadtau_ele[kNDists];
   TH1* hRatio_LL_ele[kNDists];
-  for(unsigned int i = 0; i < kNDists; ++i) {
+  for(unsigned int i = 0; i < kNDists; ++i)
+  {
     TString name = "";
     if(      i == 0 ) name = "MET";
     else if( i == 1 ) name = "NbJets";
@@ -177,18 +178,18 @@ void PlotTransFact(){
   std::cout<<"Muon CS"<<std::endl;
   std::cout<<"Bin \t\t Hadtau \t\t LL \t\t Muon CS \t\t\t Ratio(Hadtau/CS) \t\t Ratio(LL/CS)"<<std::endl;
   for(unsigned i=1; i<= hRatio_Hadtau_mu[6]->GetNbinsX();i++)
-    {
-      const double pct_Hadtau_to_CS = hRatio_Hadtau_mu[6]->GetBinContent(i) == 0? 0.0 : hRatio_Hadtau_mu[6]->GetBinError(i)/hRatio_Hadtau_mu[6]->GetBinContent(i);
-      const double pct_LL_to_CS = hRatio_LL_mu[6]->GetBinContent(i) == 0? 0.0 : hRatio_LL_mu[6]->GetBinError(i)/hRatio_LL_mu[6]->GetBinContent(i);
-      std::cout<<i<<"\t\t"<<hHadtau[6]->GetBinContent(i)<<" ± "<<hHadtau[6]->GetBinError(i)<<"\t\t"<<hLL[6]->GetBinContent(i)<<" ± "<<hLL[6]->GetBinError(i)<<" \t "<<hCS_mu[6]->GetBinContent(i)<<" ± "<<hCS_mu[6]->GetBinError(i)<<"  \t\t  "<<hRatio_Hadtau_mu[6]->GetBinContent(i)<<" ± "<<hRatio_Hadtau_mu[6]->GetBinError(i)<<" ("<<pct_Hadtau_to_CS*100.0<<"%)"<<"  \t\t  "<<hRatio_LL_mu[6]->GetBinContent(i)<<" ± "<<hRatio_LL_mu[6]->GetBinError(i)<<" ("<<pct_LL_to_CS*100.0<<"%)"<<std::endl;
-    }
+  {
+    const double pct_Hadtau_to_CS = hRatio_Hadtau_mu[6]->GetBinContent(i) == 0? 0.0 : hRatio_Hadtau_mu[6]->GetBinError(i)/hRatio_Hadtau_mu[6]->GetBinContent(i);
+    const double pct_LL_to_CS = hRatio_LL_mu[6]->GetBinContent(i) == 0? 0.0 : hRatio_LL_mu[6]->GetBinError(i)/hRatio_LL_mu[6]->GetBinContent(i);
+    std::cout<<i<<"\t"<<std::setw(7)<<hHadtau[6]->GetBinContent(i)<<" ± "<<std::setw(7)<<hHadtau[6]->GetBinError(i)<<"\t"<<std::setw(7)<<hLL[6]->GetBinContent(i)<<" ± "<<std::setw(7)<<hLL[6]->GetBinError(i)<<"\t"<<std::setw(7)<<hCS_mu[6]->GetBinContent(i)<<" ± "<<std::setw(7)<<hCS_mu[6]->GetBinError(i)<<"\t"<<std::setw(7)<<hRatio_Hadtau_mu[6]->GetBinContent(i)<<" ± "<<std::setw(7)<<hRatio_Hadtau_mu[6]->GetBinError(i)<<" ("<<std::setw(7)<<pct_Hadtau_to_CS*100.0<<"%)"<<"\t"<<std::setw(7)<<hRatio_LL_mu[6]->GetBinContent(i)<<" ± "<<std::setw(7)<<hRatio_LL_mu[6]->GetBinError(i)<<" ("<<std::setw(7)<<pct_LL_to_CS*100.0<<"%)"<<std::endl;
+  }
   std::cout<<std::endl;
- std::cout<<"Electron CS"<<std::endl; 
- std::cout<<"Bin \t\t Hadtau \t\t LL \t\t Electron CS \t\t\t Ratio(Hadtau/CS) \t\t Ratio(LL/CS)"<<std::endl;
- for(unsigned i=1; i<= hRatio_Hadtau_ele[6]->GetNbinsX();i++)
-    {
-      const double pct_Hadtau_to_CS = hRatio_Hadtau_ele[6]->GetBinContent(i) == 0? 0.0 : hRatio_Hadtau_ele[6]->GetBinError(i)/hRatio_Hadtau_ele[6]->GetBinContent(i);
-      const double pct_LL_to_CS = hRatio_LL_ele[6]->GetBinContent(i) == 0? 0.0 : hRatio_LL_ele[6]->GetBinError(i)/hRatio_LL_ele[6]->GetBinContent(i);
-      std::cout<<i<<"\t\t"<<hHadtau[6]->GetBinContent(i)<<" ± "<<hHadtau[6]->GetBinError(i)<<"\t\t"<<hLL[6]->GetBinContent(i)<<" ± "<<hLL[6]->GetBinError(i)<<" \t "<<hCS_ele[6]->GetBinContent(i)<<" ± "<<hCS_ele[6]->GetBinError(i)<<"  \t\t  "<<hRatio_Hadtau_ele[6]->GetBinContent(i)<<" ± "<<hRatio_Hadtau_ele[6]->GetBinError(i)<<" ("<<pct_Hadtau_to_CS*100.0<<"%)"<<"  \t\t  "<<hRatio_LL_ele[6]->GetBinContent(i)<<" ± "<<hRatio_LL_ele[6]->GetBinError(i)<<" ("<<pct_LL_to_CS*100.0<<"%)"<<std::endl;
-    }
+  std::cout<<"Electron CS"<<std::endl; 
+  std::cout<<"Bin \t\t Hadtau \t\t LL \t\t Electron CS \t\t\t Ratio(Hadtau/CS) \t\t Ratio(LL/CS)"<<std::endl;
+  for(unsigned i=1; i<= hRatio_Hadtau_ele[6]->GetNbinsX();i++)
+  {
+    const double pct_Hadtau_to_CS = hRatio_Hadtau_ele[6]->GetBinContent(i) == 0? 0.0 : hRatio_Hadtau_ele[6]->GetBinError(i)/hRatio_Hadtau_ele[6]->GetBinContent(i);
+    const double pct_LL_to_CS = hRatio_LL_ele[6]->GetBinContent(i) == 0? 0.0 : hRatio_LL_ele[6]->GetBinError(i)/hRatio_LL_ele[6]->GetBinContent(i);
+    std::cout<<i<<"\t\t"<<hHadtau[6]->GetBinContent(i)<<" ± "<<hHadtau[6]->GetBinError(i)<<"\t\t"<<hLL[6]->GetBinContent(i)<<" ± "<<hLL[6]->GetBinError(i)<<" \t "<<hCS_ele[6]->GetBinContent(i)<<" ± "<<hCS_ele[6]->GetBinError(i)<<"  \t\t  "<<hRatio_Hadtau_ele[6]->GetBinContent(i)<<" ± "<<hRatio_Hadtau_ele[6]->GetBinError(i)<<" ("<<pct_Hadtau_to_CS*100.0<<"%)"<<"  \t\t  "<<hRatio_LL_ele[6]->GetBinContent(i)<<" ± "<<hRatio_LL_ele[6]->GetBinError(i)<<" ("<<pct_LL_to_CS*100.0<<"%)"<<std::endl;
+  }
 }

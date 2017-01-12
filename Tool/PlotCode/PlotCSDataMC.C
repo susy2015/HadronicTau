@@ -41,8 +41,8 @@ void PlotCSDataMC()
     {
        hMC_mu[i] = (TH1D*)file_MC->Get("mu"+name);
        hData_mu[i] = (TH1D*)file_Data->Get("mu"+name);
-       hMC_ele[i] = (TH1D*)file_MC->Get("mu"+name);
-       hData_ele[i] = (TH1D*)file_Data->Get("mu"+name);
+       hMC_ele[i] = (TH1D*)file_MC->Get("ele"+name);
+       hData_ele[i] = (TH1D*)file_Data->Get("ele"+name);
     }else
     {
        hMC_mu[i] = (TH1D*)file_MC->Get("h"+name+"_mu");
@@ -99,6 +99,7 @@ void PlotCSDataMC()
     hRatio_mu[i]->GetXaxis()->SetTitleSize(0.13);
     hRatio_mu[i]->GetXaxis()->SetTitleOffset(0.7);
     hRatio_mu[i]->GetXaxis()->SetLabelSize(0.1);
+    hRatio_mu[i]->SetLineWidth(2); hRatio_mu[i]->SetMarkerSize(2);
 
     hRatio_ele[i] = static_cast<TH1*>(hData_ele[i]->Clone("Ratio"));
     hRatio_ele[i]->Divide(hMC_ele[i]);
@@ -112,7 +113,7 @@ void PlotCSDataMC()
     hRatio_ele[i]->GetXaxis()->SetTitleSize(0.13);
     hRatio_ele[i]->GetXaxis()->SetTitleOffset(0.7);
     hRatio_ele[i]->GetXaxis()->SetLabelSize(0.1);
-
+    hRatio_ele[i]->SetLineWidth(2); hRatio_ele[i]->SetMarkerSize(2);
 
     // Create legend                                                                                                             
     TLegend* leg_mu = new TLegend(0.6,0.75,0.9,0.89);
@@ -154,6 +155,7 @@ void PlotCSDataMC()
     {
       TF1 * fline = new TF1("line", "pol0", hRatio_mu[i]->GetBinLowEdge(1), hRatio_mu[i]->GetBinLowEdge(hRatio_mu[i]->GetNbinsX()) + hRatio_mu[i]->GetBinWidth(hRatio_mu[i]->GetNbinsX()));
       fline->SetParameter(0, 1);
+      fline->SetLineStyle(2);
       fline->Draw("same");
     }
     can_mu->SaveAs(name+"_muCS.pdf");
@@ -178,6 +180,7 @@ void PlotCSDataMC()
     {
       TF1 * fline = new TF1("line", "pol0", hRatio_ele[i]->GetBinLowEdge(1), hRatio_ele[i]->GetBinLowEdge(hRatio_ele[i]->GetNbinsX()) + hRatio_ele[i]->GetBinWidth(hRatio_ele[i]->GetNbinsX()));
       fline->SetParameter(0, 1);
+      fline->SetLineStyle(2);
       fline->Draw("same");
     }
     can_ele->SaveAs(name+"_eleCS.pdf");

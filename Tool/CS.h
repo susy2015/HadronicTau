@@ -51,18 +51,15 @@ class BaseHistgram
   TH1D *hdPhi1_el;
   TH1D *hdPhi2_el;
 
-
   TH1D *hYields_mu_bSFup;
   TH1D *hYields_mu_bSFdown;
   TH1D *hYields_el_bSFup;
   TH1D *hYields_el_bSFdown;
 
-
   TH1D *hYields_mu_isrup;
   TH1D *hYields_mu_isrdown;
   TH1D *hYields_el_isrup;
   TH1D *hYields_el_isrdown;
-
 
   const TString title = "Muon CS";
   const TString title_el = "Electron CS";
@@ -136,9 +133,6 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hYields_el_isrup->Sumw2();
   hYields_el_isrdown = new TH1D("hYields_el_isrdown", title_el+" isrdown;search bin;Events",nSB,0,nSB);
   hYields_el_isrdown->Sumw2();
-
-
-
 
 }
 

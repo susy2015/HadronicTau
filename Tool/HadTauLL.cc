@@ -151,7 +151,6 @@ int main(int argc, char* argv[])
 
     const double isrWght = doISR? tr->getVar<double>("isr_Unc_Cent") : 1.0;
     const double bSF = dobSF? tr->getVar<double>("bTagSF_EventWeightSimple_Central") : 1.0;
-
     const double bSF_up = dobSF? tr->getVar<double>("bTagSF_EventWeightSimple_Up") : 1.0;
     const double bSF_down = dobSF? tr->getVar<double>("bTagSF_EventWeightSimple_Down") : 1.0;
 
@@ -302,7 +301,6 @@ int main(int argc, char* argv[])
            return 0;
         }
         const double lep_SF = lep_id_SF * lep_iso_SF * lep_trk_SF;
-  
 
         const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
         if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0)
@@ -361,7 +359,6 @@ int main(int argc, char* argv[])
 	//bSF systematics                                                                                                                    
 	myBaseHistgram.hYields_LL_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
 	myBaseHistgram.hYields_LL_bSFdown->Fill(kSR, Lumiscale*corr_bSF_down);
-
 	//ISR
 	myBaseHistgram.hYields_LL_isrup->Fill(kSR, Lumiscale*corr_isr_up);
         myBaseHistgram.hYields_LL_isrdown->Fill(kSR, Lumiscale*corr_isr_down);

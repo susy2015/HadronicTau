@@ -237,6 +237,7 @@ void makePred()
   const double alpha = 1 - 0.6827; // the "68.27%" intervals
 // All errors stored here are relative
   std::vector<double> cached_rateVec, cached_stat_upErrVec, cached_stat_dnErrVec, cached_systErr_TF_statVec;
+  std::vector<double> cached_stat_abs_upErrVec, cached_stat_abs_dnErrVec;
   std::vector<double> dummyVec;
   std::vector<double> cached_systErr_ISR_upErrVec, cached_systErr_ISR_dnErrVec;
   std::vector<double> cached_systErr_bTag_upErrVec, cached_systErr_bTag_dnErrVec;
@@ -317,6 +318,7 @@ void makePred()
     const double pred_tau_avg_rel_syst_bTag_dn_err = pred_tau_avg == 0 ? sqrt(fin_TF_tau_to_mu * systErr_rel_bTag_dn_muVec[i-1]*fin_TF_tau_to_mu * systErr_rel_bTag_dn_muVec[i-1] + fin_TF_tau_to_ele * systErr_rel_bTag_dn_eleVec[i-1]*fin_TF_tau_to_ele * systErr_rel_bTag_dn_eleVec[i-1])/(fin_TF_tau_to_mu + fin_TF_tau_to_ele) : pred_tau_avg_syst_bTag_dn_err/pred_tau_avg;
 
     cached_rateVec.push_back(pred_tau_avg); cached_stat_upErrVec.push_back(pred_tau_avg_rel_stat_up_err); cached_stat_dnErrVec.push_back(pred_tau_avg_rel_stat_dn_err);
+    cached_stat_abs_upErrVec.push_back(pred_tau_avg_stat_up_err); cached_stat_abs_dnErrVec.push_back(pred_tau_avg_stat_dn_err);
     cached_systErr_TF_statVec.push_back(pred_tau_avg_rel_syst);
     cached_systErr_ISR_upErrVec.push_back(pred_tau_avg_rel_syst_ISR_up_err); cached_systErr_ISR_dnErrVec.push_back(pred_tau_avg_rel_syst_ISR_dn_err);
     cached_systErr_bTag_upErrVec.push_back(pred_tau_avg_rel_syst_bTag_up_err); cached_systErr_bTag_dnErrVec.push_back(pred_tau_avg_rel_syst_bTag_dn_err);
@@ -340,6 +342,10 @@ void makePred()
   of_hadtau<<"sample = hadtau\n"<<std::endl;
   of_hadtau<<std::setw(21)<<"channel = "; for(int i=0; i<nTotChn; i++){ sprintf(tmpstr, "bin%d", i+1); of_hadtau<<std::setw(7)<<tmpstr<<" "; } of_hadtau<<"\n"<<std::endl;
   of_hadtau<<std::setw(21)<<"rate    = "; for(auto it : cached_rateVec){ of_hadtau<<std::setw(7)<<it<<" "; } of_hadtau<<"\n"<<std::endl;
+
+  of_hadtau<<std::setw(21)<<"#stat_unc_abs_up = "; for(auto it : cached_stat_abs_upErrVec){ of_hadtau<<std::setw(7)<<it<<" "; } of_hadtau<<std::endl;
+  of_hadtau<<std::setw(21)<<"#stat_unc_abs_dn = "; for(auto it : cached_stat_abs_dnErrVec){ of_hadtau<<std::setw(7)<<it<<" "; } of_hadtau<<std::endl;
+
   of_hadtau<<std::setw(21)<<"stat_unc_up = "; for(auto it : cached_stat_upErrVec){ of_hadtau<<std::setw(7)<<it<<" "; } of_hadtau<<std::endl;
   of_hadtau<<std::setw(21)<<"stat_unc_dn = "; for(auto it : cached_stat_dnErrVec){ of_hadtau<<std::setw(7)<<it<<" "; } of_hadtau<<"\n"<<std::endl;
 // use the closure unc for the syst from TF stat

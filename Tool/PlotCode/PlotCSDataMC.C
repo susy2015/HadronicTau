@@ -68,6 +68,8 @@ void PlotCSDataMC()
     hMC_mu[i]->Scale(scale_mc);
     hMC_ele[i]->Scale(scale_mc);
     if( doshape ){
+       std::cout<<"\n"<<name<<" -->  hMC_mu[i]->Integral : "<<hMC_mu[i]->Integral()<<"  hData_mu[i]->Integral : "<<hData_mu[i]->Integral()<<std::endl;
+       std::cout<<name<<" -->  hMC_ele[i]->Integral : "<<hMC_ele[i]->Integral()<<"  hData_ele[i]->Integral : "<<hData_ele[i]->Integral()<<std::endl;
        hMC_mu[i]->Scale(hData_mu[i]->Integral()/hMC_mu[i]->Integral());
        hMC_ele[i]->Scale(hData_ele[i]->Integral()/hMC_ele[i]->Integral());
     }

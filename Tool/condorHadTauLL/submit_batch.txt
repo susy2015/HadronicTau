@@ -1,4 +1,4 @@
-cd $CMSSW_BASE/src/HadronicTau/Tool/condorHadTauLL/TTbarNoHad; ./condorSubmit.py -d TTbarNoHad -n 25;
+cd $CMSSW_BASE/src/HadronicTau/Tool/condorHadTauLL/TTbarNoHad; ./condorSubmit.py -d TTbarNoHad -n 10;
 cd $CMSSW_BASE/src/HadronicTau/Tool/condorHadTauLL/WJetsToLNu; ./condorSubmit.py -d WJetsToLNu -n 10;
 cd $CMSSW_BASE/src/HadronicTau/Tool/condorHadTauLL/tW; ./condorSubmit.py -d tW -n 10;
 cd $CMSSW_BASE/src/HadronicTau/Tool/condorHadTauLL

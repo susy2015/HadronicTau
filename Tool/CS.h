@@ -61,6 +61,36 @@ class BaseHistgram
   TH1D *hYields_el_isrup;
   TH1D *hYields_el_isrdown;
 
+  TH1D *hYields_mu_SFup;
+  TH1D *hYields_mu_SFdn;
+  TH1D *hYields_mu_scaleUncup;
+  TH1D *hYields_mu_scaleUncdn;
+  TH1D *hYields_mu_pdfUncup;
+  TH1D *hYields_mu_pdfUnccen;
+  TH1D *hYields_mu_pdfUncdn;
+
+  TH1D *hYields_mu_metMagUp;
+  TH1D *hYields_mu_metMagDn;
+  TH1D *hYields_mu_metPhiUp;
+  TH1D *hYields_mu_metPhiDn;
+  TH1D *hYields_mu_jecUp;
+  TH1D *hYields_mu_jecDn;
+
+  TH1D *hYields_el_SFup;
+  TH1D *hYields_el_SFdn;
+  TH1D *hYields_el_scaleUncup;
+  TH1D *hYields_el_scaleUncdn;
+  TH1D *hYields_el_pdfUncup;
+  TH1D *hYields_el_pdfUnccen;
+  TH1D *hYields_el_pdfUncdn;
+
+  TH1D *hYields_el_metMagUp;
+  TH1D *hYields_el_metMagDn;
+  TH1D *hYields_el_metPhiUp;
+  TH1D *hYields_el_metPhiDn;
+  TH1D *hYields_el_jecUp;
+  TH1D *hYields_el_jecDn;
+
   const TString title = "Muon CS";
   const TString title_el = "Electron CS";
 
@@ -133,6 +163,36 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hYields_el_isrup->Sumw2();
   hYields_el_isrdown = new TH1D("hYields_el_isrdown", title_el+" isrdown;search bin;Events",nSB,0,nSB);
   hYields_el_isrdown->Sumw2();
+
+  hYields_mu_SFup = new TH1D("hYields_mu_SFup", title+"  SFup;search bin; Events",nSB,0,nSB); hYields_mu_SFup->Sumw2();
+  hYields_mu_SFdn = new TH1D("hYields_mu_SFdn", title+"  SFdn;search bin; Events",nSB,0,nSB); hYields_mu_SFdn->Sumw2();
+  hYields_mu_scaleUncup = new TH1D("hYields_mu_scaleUncup", title+"  scaleUncup;search bin; Events",nSB,0,nSB); hYields_mu_scaleUncup->Sumw2();
+  hYields_mu_scaleUncdn = new TH1D("hYields_mu_scaleUncdn", title+"  scaleUncdn;search bin; Events",nSB,0,nSB); hYields_mu_scaleUncdn->Sumw2();
+  hYields_mu_pdfUncup = new TH1D("hYields_mu_pdfUncup", title+"  pdfUncup;search bin; Events",nSB,0,nSB); hYields_mu_pdfUncup->Sumw2();
+  hYields_mu_pdfUnccen = new TH1D("hYields_mu_pdfUnccen", title+"  pdfUnccen;search bin; Events",nSB,0,nSB); hYields_mu_pdfUnccen->Sumw2();
+  hYields_mu_pdfUncdn = new TH1D("hYields_mu_pdfUncdn", title+"  pdfUncdn;search bin; Events",nSB,0,nSB); hYields_mu_pdfUncdn->Sumw2();
+
+  hYields_mu_metMagUp = new TH1D("hYields_mu_metMagUp", title+" metMagUp;search bin; Events",nSB,0,nSB); hYields_mu_metMagUp->Sumw2();
+  hYields_mu_metMagDn = new TH1D("hYields_mu_metMagDn", title+" metMagDn;search bin; Events",nSB,0,nSB); hYields_mu_metMagDn->Sumw2();
+  hYields_mu_metPhiUp = new TH1D("hYields_mu_metPhiUp", title+" metPhiUp;search bin; Events",nSB,0,nSB); hYields_mu_metPhiUp->Sumw2();
+  hYields_mu_metPhiDn = new TH1D("hYields_mu_metPhiDn", title+" metPhiDn;search bin; Events",nSB,0,nSB); hYields_mu_metPhiDn->Sumw2();
+  hYields_mu_jecUp = new TH1D("hYields_mu_jecUp", title+" jecUp;search bin; Events",nSB,0,nSB); hYields_mu_jecUp->Sumw2();
+  hYields_mu_jecDn = new TH1D("hYields_mu_jecDn", title+" jecDn;search bin; Events",nSB,0,nSB); hYields_mu_jecDn->Sumw2();
+
+  hYields_el_SFup = new TH1D("hYields_el_SFup", title_el+"  SFup;search bin; Events",nSB,0,nSB); hYields_el_SFup->Sumw2();
+  hYields_el_SFdn = new TH1D("hYields_el_SFdn", title_el+"  SFdn;search bin; Events",nSB,0,nSB); hYields_el_SFdn->Sumw2();
+  hYields_el_scaleUncup = new TH1D("hYields_el_scaleUncup", title_el+"  scaleUncup;search bin; Events",nSB,0,nSB); hYields_el_scaleUncup->Sumw2();
+  hYields_el_scaleUncdn = new TH1D("hYields_el_scaleUncdn", title_el+"  scaleUncdn;search bin; Events",nSB,0,nSB); hYields_el_scaleUncdn->Sumw2();
+  hYields_el_pdfUncup = new TH1D("hYields_el_pdfUncup", title_el+"  pdfUncup;search bin; Events",nSB,0,nSB); hYields_el_pdfUncup->Sumw2();
+  hYields_el_pdfUnccen = new TH1D("hYields_el_pdfUnccen", title_el+"  pdfUnccen;search bin; Events",nSB,0,nSB); hYields_el_pdfUnccen->Sumw2();
+  hYields_el_pdfUncdn = new TH1D("hYields_el_pdfUncdn", title_el+"  pdfUncdn;search bin; Events",nSB,0,nSB); hYields_el_pdfUncdn->Sumw2();
+
+  hYields_el_metMagUp = new TH1D("hYields_el_metMagUp", title_el+" metMagUp;search bin; Events",nSB,0,nSB); hYields_el_metMagUp->Sumw2();
+  hYields_el_metMagDn = new TH1D("hYields_el_metMagDn", title_el+" metMagDn;search bin; Events",nSB,0,nSB); hYields_el_metMagDn->Sumw2();
+  hYields_el_metPhiUp = new TH1D("hYields_el_metPhiUp", title_el+" metPhiUp;search bin; Events",nSB,0,nSB); hYields_el_metPhiUp->Sumw2();
+  hYields_el_metPhiDn = new TH1D("hYields_el_metPhiDn", title_el+" metPhiDn;search bin; Events",nSB,0,nSB); hYields_el_metPhiDn->Sumw2();
+  hYields_el_jecUp = new TH1D("hYields_el_jecUp", title_el+" jecUp;search bin; Events",nSB,0,nSB); hYields_el_jecUp->Sumw2();
+  hYields_el_jecDn = new TH1D("hYields_el_jecDn", title_el+" jecDn;search bin; Events",nSB,0,nSB); hYields_el_jecDn->Sumw2();
 
 }
 

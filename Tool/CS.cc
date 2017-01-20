@@ -30,6 +30,9 @@
 #include "TTree.h"
 #include "TChain.h"
 
+#include "PrepSystematics.h"
+#include "CommonShared.h"
+
 using namespace std;
 
 const bool doISR = true;
@@ -153,6 +156,28 @@ int main(int argc, char* argv[]) {
       return 0; 
     }
     tr->registerFunction((*isrcorr));
+
+    systBaseline::pdfScale = new PDFUncertainty();
+
+    systBaseline::SRblv_jecUp = new BaselineVessel(*tr, systBaseline::spec_jecUp);
+    systBaseline::SRblv_jecDn = new BaselineVessel(*tr, systBaseline::spec_jecDn);
+    systBaseline::SRblv_metMagUp = new BaselineVessel(*tr, systBaseline::spec_metMagUp);
+    systBaseline::SRblv_metMagDn = new BaselineVessel(*tr, systBaseline::spec_metMagDn);
+    systBaseline::SRblv_metPhiUp = new BaselineVessel(*tr, systBaseline::spec_metPhiUp);
+    systBaseline::SRblv_metPhiDn = new BaselineVessel(*tr, systBaseline::spec_metPhiDn);
+
+    tr->registerFunction((*systBaseline::pdfScale));
+ 
+    PrepSystematics sysPrep;
+
+    tr->registerFunction(sysPrep);
+
+    tr->registerFunction((*systBaseline::SRblv_jecUp));
+    tr->registerFunction((*systBaseline::SRblv_jecDn));
+    tr->registerFunction((*systBaseline::SRblv_metMagUp));
+    tr->registerFunction((*systBaseline::SRblv_metMagDn));
+    tr->registerFunction((*systBaseline::SRblv_metPhiUp));
+    tr->registerFunction((*systBaseline::SRblv_metPhiDn));
   }
 
   //Add cleanJets function
@@ -183,6 +208,13 @@ int main(int argc, char* argv[]) {
 
     const double isr_up = (doISR && !isData)? tr->getVar<double>("isr_Unc_Up"): 1.0;
     const double isr_down = (doISR && !isData)? tr->getVar<double>("isr_Unc_Down"):1.0;
+
+    const double NNPDF_From_Median_Central = isData? 1.0 : tr->getVar<double>("NNPDF_From_Median_Central");
+    const double NNPDF_From_Median_Up = isData? 1.0 : tr->getVar<double>("NNPDF_From_Median_Up");
+    const double NNPDF_From_Median_Down = isData? 1.0 : tr->getVar<double>("NNPDF_From_Median_Down");
+
+    const double Scaled_Variations_Up = isData? 1.0 : tr->getVar<double>("Scaled_Variations_Up");
+    const double Scaled_Variations_Down = isData? 1.0 : tr->getVar<double>("Scaled_Variations_Down");
 
     const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
     const vector<double> &muonsRelIso = tr->getVec<double>("muonsRelIso");
@@ -241,6 +273,55 @@ int main(int argc, char* argv[]) {
     double met=tr->getVar<double>("met");
     double metphi=tr->getVar<double>("metphi");
     TLorentzVector metLVec; metLVec.SetPtEtaPhiM(met, 0, metphi, 0);
+
+    const double met_metMagUp = isData? met : tr->getVar<double>("met_metMagUp");
+    const double metphi_metMagUp = isData? metphi : tr->getVar<double>("metphi");
+    const double MT2_metMagUp = isData? MT2 : tr->getVar<double>("best_had_brJet_MT2" + systBaseline::spec_metMagUp);
+    const int nbJets_metMagUp = isData? nbJets : tr->getVar<int>("cntCSVS" + systBaseline::spec_metMagUp);
+    const int nTops_metMagUp = isData? nTops : tr->getVar<int>("nTopCandSortedCnt" + systBaseline::spec_metMagUp);
+    const double HT_metMagUp = isData? HT : tr->getVar<double>("HT" + systBaseline::spec_metMagUp);
+    const bool passBaselineNoLepVeto_metMagUp = isData? tr->getVar<bool>("passBaselineNoLepVeto"+spec) : tr->getVar<bool>("passBaselineNoLepVeto" + systBaseline::spec_metMagUp);
+
+    const double met_metMagDn = isData? met : tr->getVar<double>("met_metMagDn");
+    const double metphi_metMagDn = isData? metphi : tr->getVar<double>("metphi");
+    const double MT2_metMagDn = isData? MT2 : tr->getVar<double>("best_had_brJet_MT2" + systBaseline::spec_metMagDn);
+    const int nbJets_metMagDn = isData? nbJets : tr->getVar<int>("cntCSVS" + systBaseline::spec_metMagDn);
+    const int nTops_metMagDn = isData? nTops : tr->getVar<int>("nTopCandSortedCnt" + systBaseline::spec_metMagDn);
+    const double HT_metMagDn = isData? HT : tr->getVar<double>("HT" + systBaseline::spec_metMagDn);
+    const bool passBaselineNoLepVeto_metMagDn = isData? tr->getVar<bool>("passBaselineNoLepVeto"+spec) : tr->getVar<bool>("passBaselineNoLepVeto" + systBaseline::spec_metMagDn);
+
+    const double met_metPhiUp = isData? met : tr->getVar<double>("met");
+    const double metphi_metPhiUp = isData? metphi : tr->getVar<double>("metphi_metPhiUp");
+    const double MT2_metPhiUp = isData? MT2 : tr->getVar<double>("best_had_brJet_MT2" + systBaseline::spec_metPhiUp);
+    const int nbJets_metPhiUp = isData? nbJets : tr->getVar<int>("cntCSVS" + systBaseline::spec_metPhiUp);
+    const int nTops_metPhiUp = isData? nTops : tr->getVar<int>("nTopCandSortedCnt" + systBaseline::spec_metPhiUp);
+    const double HT_metPhiUp = isData? HT : tr->getVar<double>("HT" + systBaseline::spec_metPhiUp);
+    const bool passBaselineNoLepVeto_metPhiUp = isData? tr->getVar<bool>("passBaselineNoLepVeto"+spec) : tr->getVar<bool>("passBaselineNoLepVeto" + systBaseline::spec_metPhiUp);
+
+    const double met_metPhiDn = isData? met : tr->getVar<double>("met");
+    const double metphi_metPhiDn = isData? metphi : tr->getVar<double>("metphi_metPhiDn");
+    const double MT2_metPhiDn = isData? MT2 : tr->getVar<double>("best_had_brJet_MT2" + systBaseline::spec_metPhiDn);
+    const int nbJets_metPhiDn = isData? nbJets : tr->getVar<int>("cntCSVS" + systBaseline::spec_metPhiDn);
+    const int nTops_metPhiDn = isData? nTops : tr->getVar<int>("nTopCandSortedCnt" + systBaseline::spec_metPhiDn);
+    const double HT_metPhiDn = isData? HT : tr->getVar<double>("HT" + systBaseline::spec_metPhiDn);
+    const bool passBaselineNoLepVeto_metPhiDn = isData? tr->getVar<bool>("passBaselineNoLepVeto"+spec) : tr->getVar<bool>("passBaselineNoLepVeto" + systBaseline::spec_metPhiDn);
+
+    const double met_jecUp = isData? met : tr->getVar<double>("met");
+    const double metphi_jecUp = isData? metphi : tr->getVar<double>("metphi");
+    const double MT2_jecUp = isData? MT2 : tr->getVar<double>("best_had_brJet_MT2" + systBaseline::spec_jecUp);
+    const int nbJets_jecUp = isData? nbJets : tr->getVar<int>("cntCSVS" + systBaseline::spec_jecUp);
+    const int nTops_jecUp = isData? nTops : tr->getVar<int>("nTopCandSortedCnt" + systBaseline::spec_jecUp);
+    const double HT_jecUp = isData? HT : tr->getVar<double>("HT" + systBaseline::spec_jecUp);
+    const bool passBaselineNoLepVeto_jecUp = isData? tr->getVar<bool>("passBaselineNoLepVeto"+spec) : tr->getVar<bool>("passBaselineNoLepVeto" + systBaseline::spec_jecUp);
+
+    const double met_jecDn = isData? met : tr->getVar<double>("met");
+    const double metphi_jecDn = isData? metphi : tr->getVar<double>("metphi");
+    const double MT2_jecDn = isData? MT2 : tr->getVar<double>("best_had_brJet_MT2" + systBaseline::spec_jecDn);
+    const int nbJets_jecDn = isData? nbJets : tr->getVar<int>("cntCSVS" + systBaseline::spec_jecDn);
+    const int nTops_jecDn = isData? nTops : tr->getVar<int>("nTopCandSortedCnt" + systBaseline::spec_jecDn);
+    const double HT_jecDn = isData? HT : tr->getVar<double>("HT" + systBaseline::spec_jecDn);
+    const bool passBaselineNoLepVeto_jecDn = isData? tr->getVar<bool>("passBaselineNoLepVeto"+spec) : tr->getVar<bool>("passBaselineNoLepVeto" + systBaseline::spec_jecDn);
+
     //mht calculation
     TLorentzVector MhtLVec;	      
     for(unsigned int ij=0; ij<jetsLVec.size(); ij++)
@@ -307,21 +388,30 @@ int main(int argc, char* argv[]) {
       const double eta = muLVec.Eta(), pt = muLVec.Pt();
       const double abseta = std::abs(eta);
       double mu_id_SF = 1.0, mu_iso_SF = 1.0, mu_trk_SF = 1.0;
+      double mu_id_SF_err = 0.0, mu_iso_SF_err = 0.0, mu_trk_SF_err = 0.0;
       if( dolepSF && !isData )
       {
         if( mu_mediumID_SF ){ mu_id_SF = mu_mediumID_SF->GetBinContent(mu_mediumID_SF->FindBin(pt, abseta)); if( mu_id_SF == 0 ) mu_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
         if( mu_miniISO_SF ){ mu_iso_SF = mu_miniISO_SF->GetBinContent(mu_miniISO_SF->FindBin(pt, abseta)); if( mu_iso_SF == 0 ) mu_iso_SF = 1.0; }
         if( pt < 10 && mu_trkptLT10_SF ){ mu_trk_SF = mu_trkptLT10_SF->GetBinContent(mu_trkptLT10_SF->FindBin(eta)); if( mu_trk_SF == 0 ) mu_trk_SF = 1.0; }
         if( pt >= 10 && mu_trkptGT10_SF ){ mu_trk_SF = mu_trkptGT10_SF->GetBinContent(mu_trkptGT10_SF->FindBin(eta)); if( mu_trk_SF == 0 ) mu_trk_SF = 1.0; }
+        mu_id_SF_err = mu_id_SF * 0.03;
       }
       const double mu_SF = mu_id_SF * mu_iso_SF * mu_trk_SF;
+      const double rel_mu_SF_err = sqrt(mu_id_SF_err*mu_id_SF_err/mu_id_SF/mu_id_SF + mu_iso_SF_err*mu_iso_SF_err/mu_iso_SF/mu_iso_SF + mu_trk_SF_err*mu_trk_SF_err/mu_trk_SF/mu_trk_SF);
+      const double mu_SF_up = mu_SF*(1 + rel_mu_SF_err);
+      const double mu_SF_dn = mu_SF*(1 - rel_mu_SF_err);
 
       const double corr_SF = bSF * isrWght * mu_SF;
+
       const double corr_bSF_up = bSF_up * isrWght * mu_SF;
       const double corr_bSF_down = bSF_down * isrWght * mu_SF;
   
       const double corr_isr_up = isr_up * bSF  * mu_SF;
       const double corr_isr_down = isr_down * bSF * mu_SF;
+
+      const double corr_SF_up = bSF * isrWght * mu_SF_up;
+      const double corr_SF_dn = bSF * isrWght * mu_SF_dn;
 
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtw)
@@ -336,6 +426,16 @@ int main(int argc, char* argv[]) {
 	  //ISR Systematics
 	  myBaseHistgram.hYields_mu_isrup->Fill(jSR, Lumiscale*corr_isr_up);
           myBaseHistgram.hYields_mu_isrdown->Fill(jSR, Lumiscale*corr_isr_down);
+          //lepton SF systematics
+          myBaseHistgram.hYields_mu_SFup->Fill(jSR, Lumiscale*corr_SF_up);
+          myBaseHistgram.hYields_mu_SFdn->Fill(jSR, Lumiscale*corr_SF_dn);
+          //Scale
+          myBaseHistgram.hYields_mu_scaleUncup->Fill(jSR, Lumiscale*corr_SF*Scaled_Variations_Up);
+          myBaseHistgram.hYields_mu_scaleUncdn->Fill(jSR, Lumiscale*corr_SF*Scaled_Variations_Down);
+          //PDF
+          myBaseHistgram.hYields_mu_pdfUncup->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Up);
+          myBaseHistgram.hYields_mu_pdfUnccen->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Central);
+          myBaseHistgram.hYields_mu_pdfUncdn->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Down);
         }
   	  
         FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*corr_SF);
@@ -464,6 +564,69 @@ int main(int argc, char* argv[]) {
           }
         }
       }
+
+      if( !isData )
+      {
+// metMagUp
+        TLorentzVector metLVec_metMagUp; metLVec_metMagUp.SetPtEtaPhiM(met_metMagUp, 0, metphi_metMagUp, 0);
+        const double mtw_metMagUp = calcMT(muLVec, metLVec_metMagUp);
+        const bool pass_mtw_metMagUp = mtw_metMagUp<100 ? true : false;
+        if( passBaselineNoLepVeto_metMagUp && passNoiseEventFilter && pass_mtw_metMagUp)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp);
+           if( jSR!= -1 ) myBaseHistgram.hYields_mu_metMagUp->Fill(jSR, Lumiscale*corr_SF);
+        }
+      
+// metMagDn
+        TLorentzVector metLVec_metMagDn; metLVec_metMagDn.SetPtEtaPhiM(met_metMagDn, 0, metphi_metMagDn, 0);
+        const double mtw_metMagDn = calcMT(muLVec, metLVec_metMagDn);
+        const bool pass_mtw_metMagDn = mtw_metMagDn<100 ? true : false;
+        if( passBaselineNoLepVeto_metMagDn && passNoiseEventFilter && pass_mtw_metMagDn)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn);
+           if( jSR!= -1 ) myBaseHistgram.hYields_mu_metMagDn->Fill(jSR, Lumiscale*corr_SF);
+        }
+      
+// metPhiUp
+        TLorentzVector metLVec_metPhiUp; metLVec_metPhiUp.SetPtEtaPhiM(met_metPhiUp, 0, metphi_metPhiUp, 0);
+        const double mtw_metPhiUp = calcMT(muLVec, metLVec_metPhiUp);
+        const bool pass_mtw_metPhiUp = mtw_metPhiUp<100 ? true : false;
+        if( passBaselineNoLepVeto_metPhiUp && passNoiseEventFilter && pass_mtw_metPhiUp)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp);
+           if( jSR!= -1 ) myBaseHistgram.hYields_mu_metPhiUp->Fill(jSR, Lumiscale*corr_SF);
+        }
+     
+// metPhiDn
+        TLorentzVector metLVec_metPhiDn; metLVec_metPhiDn.SetPtEtaPhiM(met_metPhiDn, 0, metphi_metPhiDn, 0);
+        const double mtw_metPhiDn = calcMT(muLVec, metLVec_metPhiDn);
+        const bool pass_mtw_metPhiDn = mtw_metPhiDn<100 ? true : false;
+        if( passBaselineNoLepVeto_metPhiDn && passNoiseEventFilter && pass_mtw_metPhiDn)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn);
+           if( jSR!= -1 ) myBaseHistgram.hYields_mu_metPhiDn->Fill(jSR, Lumiscale*corr_SF);
+        }
+    
+// jecUp
+        TLorentzVector metLVec_jecUp; metLVec_jecUp.SetPtEtaPhiM(met_jecUp, 0, metphi_jecUp, 0);
+        const double mtw_jecUp = calcMT(muLVec, metLVec_jecUp);
+        const bool pass_mtw_jecUp = mtw_jecUp<100 ? true : false;
+        if( passBaselineNoLepVeto_jecUp && passNoiseEventFilter && pass_mtw_jecUp)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp);
+           if( jSR!= -1 ) myBaseHistgram.hYields_mu_jecUp->Fill(jSR, Lumiscale*corr_SF);
+        }
+   
+// jecDn
+        TLorentzVector metLVec_jecDn; metLVec_jecDn.SetPtEtaPhiM(met_jecDn, 0, metphi_jecDn, 0);
+        const double mtw_jecDn = calcMT(muLVec, metLVec_jecDn);
+        const bool pass_mtw_jecDn = mtw_jecDn<100 ? true : false;
+        if( passBaselineNoLepVeto_jecDn && passNoiseEventFilter && pass_mtw_jecDn)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn);
+           if( jSR!= -1 ) myBaseHistgram.hYields_mu_jecDn->Fill(jSR, Lumiscale*corr_SF);
+        }
+      }
     }//end of muon CS
 
     // Electron Control sample
@@ -494,20 +657,43 @@ int main(int argc, char* argv[]) {
       const double eta = eleLVec.Eta(), pt = eleLVec.Pt();
       const double abseta = std::abs(eta);
       double ele_id_SF = 1.0, ele_iso_SF = 1.0, ele_trk_SF = 1.0;
+      double ele_id_SF_err = 0.0, ele_iso_SF_err = 0.0, ele_trk_SF_err = 0.0;
       if( dolepSF && !isData )
       {
-        if( ele_VetoID_SF ){ ele_id_SF = ele_VetoID_SF->GetBinContent(ele_VetoID_SF->FindBin(pt, abseta)); if( ele_id_SF == 0 ) ele_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
-        if( ele_miniISO_SF ){ ele_iso_SF = ele_miniISO_SF->GetBinContent(ele_miniISO_SF->FindBin(pt, abseta)); if( ele_iso_SF == 0 ) ele_iso_SF = 1.0; }
-        if( ele_trkpt_SF ){ ele_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt)); if( ele_trk_SF == 0 ) ele_trk_SF = 1.0; }
+        if( ele_VetoID_SF )
+        {
+          ele_id_SF = ele_VetoID_SF->GetBinContent(ele_VetoID_SF->FindBin(pt, abseta));
+          ele_id_SF_err = ele_VetoID_SF->GetBinError(ele_VetoID_SF->FindBin(pt, abseta));
+          if( ele_id_SF == 0 ){ ele_id_SF = 1.0; ele_id_SF_err = 0.0; }
+        } // very simple way dealing with out of range issue of the TH2D
+        if( ele_miniISO_SF )
+        {
+          ele_iso_SF = ele_miniISO_SF->GetBinContent(ele_miniISO_SF->FindBin(pt, abseta));
+          ele_iso_SF_err = ele_miniISO_SF->GetBinError(ele_miniISO_SF->FindBin(pt, abseta));
+          if( ele_iso_SF == 0 ){ ele_iso_SF = 1.0; ele_iso_SF_err = 0.0; }
+        }
+        if( ele_trkpt_SF )
+        {
+          ele_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt));
+          ele_trk_SF_err = pt<20? 0.03: 0.00;
+          if( ele_trk_SF == 0 ){ ele_trk_SF = 1.0; ele_trk_SF_err = 0.0; }
+        }
       }
       const double ele_SF = ele_id_SF * ele_iso_SF * ele_trk_SF;
+      const double rel_ele_SF_err = sqrt(ele_id_SF_err*ele_id_SF_err/ele_id_SF/ele_id_SF + ele_iso_SF_err*ele_iso_SF_err/ele_iso_SF/ele_iso_SF + ele_trk_SF_err*ele_trk_SF_err/ele_trk_SF/ele_trk_SF);
+      const double ele_SF_up = ele_SF*(1 + rel_ele_SF_err);
+      const double ele_SF_dn = ele_SF*(1 - rel_ele_SF_err);
 	
       const double corr_SF = bSF * isrWght * ele_SF;
+
       const double corr_bSF_up = bSF_up * isrWght * ele_SF;
       const double corr_bSF_down = bSF_down * isrWght * ele_SF;
 	
       const double corr_isr_up = bSF * isr_up * ele_SF;
       const double corr_isr_down = bSF * isr_down * ele_SF;
+
+      const double corr_SF_up = bSF * isrWght * ele_SF_up;
+      const double corr_SF_dn = bSF * isrWght * ele_SF_dn;
 	
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtwele)
@@ -522,6 +708,16 @@ int main(int argc, char* argv[]) {
 
 	  myBaseHistgram.hYields_el_isrup->Fill(kSR, Lumiscale*corr_isr_up);
           myBaseHistgram.hYields_el_isrdown->Fill(kSR, Lumiscale*corr_isr_down);
+
+	  myBaseHistgram.hYields_el_SFup->Fill(kSR, Lumiscale*corr_SF_up);
+          myBaseHistgram.hYields_el_SFdn->Fill(kSR, Lumiscale*corr_SF_dn);
+          //Scale
+          myBaseHistgram.hYields_el_scaleUncup->Fill(kSR, Lumiscale*corr_SF*Scaled_Variations_Up);
+          myBaseHistgram.hYields_el_scaleUncdn->Fill(kSR, Lumiscale*corr_SF*Scaled_Variations_Down);
+          //PDF
+          myBaseHistgram.hYields_el_pdfUncup->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Up);
+          myBaseHistgram.hYields_el_pdfUnccen->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Central);
+          myBaseHistgram.hYields_el_pdfUncdn->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Down);
         }
   	  
         FillDouble(myBaseHistgram.hMET_el, met, Lumiscale*corr_SF);
@@ -649,8 +845,71 @@ int main(int argc, char* argv[]) {
             FillDouble(cached_HT_hist_el_2DVec.back(), HT, Lumiscale*corr_SF);
           }
         }
-
       }
+
+      if( !isData )
+      {
+// metMagUp
+        TLorentzVector metLVec_metMagUp; metLVec_metMagUp.SetPtEtaPhiM(met_metMagUp, 0, metphi_metMagUp, 0);
+        const double mtw_metMagUp = calcMT(eleLVec, metLVec_metMagUp);
+        const bool pass_mtw_metMagUp = mtw_metMagUp<100 ? true : false;
+        if( passBaselineNoLepVeto_metMagUp && passNoiseEventFilter && pass_mtw_metMagUp)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp);
+           if( jSR!= -1 ) myBaseHistgram.hYields_el_metMagUp->Fill(jSR, Lumiscale*corr_SF);
+        }
+      
+// metMagDn
+        TLorentzVector metLVec_metMagDn; metLVec_metMagDn.SetPtEtaPhiM(met_metMagDn, 0, metphi_metMagDn, 0);
+        const double mtw_metMagDn = calcMT(eleLVec, metLVec_metMagDn);
+        const bool pass_mtw_metMagDn = mtw_metMagDn<100 ? true : false;
+        if( passBaselineNoLepVeto_metMagDn && passNoiseEventFilter && pass_mtw_metMagDn)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn);
+           if( jSR!= -1 ) myBaseHistgram.hYields_el_metMagDn->Fill(jSR, Lumiscale*corr_SF);
+        }
+     
+// metPhiUp
+        TLorentzVector metLVec_metPhiUp; metLVec_metPhiUp.SetPtEtaPhiM(met_metPhiUp, 0, metphi_metPhiUp, 0);
+        const double mtw_metPhiUp = calcMT(eleLVec, metLVec_metPhiUp);
+        const bool pass_mtw_metPhiUp = mtw_metPhiUp<100 ? true : false;
+        if( passBaselineNoLepVeto_metPhiUp && passNoiseEventFilter && pass_mtw_metPhiUp)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp);
+           if( jSR!= -1 ) myBaseHistgram.hYields_el_metPhiUp->Fill(jSR, Lumiscale*corr_SF);
+        }
+    
+// metPhiDn
+        TLorentzVector metLVec_metPhiDn; metLVec_metPhiDn.SetPtEtaPhiM(met_metPhiDn, 0, metphi_metPhiDn, 0);
+        const double mtw_metPhiDn = calcMT(eleLVec, metLVec_metPhiDn);
+        const bool pass_mtw_metPhiDn = mtw_metPhiDn<100 ? true : false;
+        if( passBaselineNoLepVeto_metPhiDn && passNoiseEventFilter && pass_mtw_metPhiDn)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn);
+           if( jSR!= -1 ) myBaseHistgram.hYields_el_metPhiDn->Fill(jSR, Lumiscale*corr_SF);
+        }
+   
+// jecUp
+        TLorentzVector metLVec_jecUp; metLVec_jecUp.SetPtEtaPhiM(met_jecUp, 0, metphi_jecUp, 0);
+        const double mtw_jecUp = calcMT(eleLVec, metLVec_jecUp);
+        const bool pass_mtw_jecUp = mtw_jecUp<100 ? true : false;
+        if( passBaselineNoLepVeto_jecUp && passNoiseEventFilter && pass_mtw_jecUp)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp);
+           if( jSR!= -1 ) myBaseHistgram.hYields_el_jecUp->Fill(jSR, Lumiscale*corr_SF);
+        }
+  
+// jecDn
+        TLorentzVector metLVec_jecDn; metLVec_jecDn.SetPtEtaPhiM(met_jecDn, 0, metphi_jecDn, 0);
+        const double mtw_jecDn = calcMT(eleLVec, metLVec_jecDn);
+        const bool pass_mtw_jecDn = mtw_jecDn<100 ? true : false;
+        if( passBaselineNoLepVeto_jecDn && passNoiseEventFilter && pass_mtw_jecDn)
+        {
+           int jSR = SB.find_Binning_Index(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn);
+           if( jSR!= -1 ) myBaseHistgram.hYields_el_jecDn->Fill(jSR, Lumiscale*corr_SF);
+        }
+      }
+
     }//end of electron CS
   }//event loop
   // --- Save the Histograms to File -----------------------------------

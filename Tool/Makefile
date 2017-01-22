@@ -33,7 +33,7 @@ LHAPDFLIB  = -L$(LHAPDF_DATA_PATH)/../../lib -lLHAPDF
 
 #OBJS       = $(patsubst %, $(ODIR)/%, $(OBJ))
 
-PROGRAMS = CS HadTauLL makePred
+PROGRAMS = CS HadTauLL makePred plotSystematic
 
 all: mkobj sampPyWrap $(PROGRAMS)
 
@@ -76,6 +76,9 @@ HadTauLL: $(ODIR)/HadTauLL.o $(ODIR)/NTupleReader.o $(ODIR)/SATException.o $(ODI
 	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) $(LHAPDFLIB) -o $@
 
 makePred: $(ODIR)/makePred.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o
+	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) -o $@
+
+plotSystematic: $(ODIR)/plotSystematic.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o
 	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) -o $@
 
 

@@ -1,4 +1,5 @@
 #include "Systematics.h"
+#include "CommonShared.h"
 #include "Math/QuantFuncMathCore.h"
 #include <fstream>
 
@@ -24,8 +25,14 @@ TH1* hYields_Veto_tau_SFup = 0, *hYields_Veto_tau_SFdn =0;
 TH1* hYields_Veto_LL_SFup = 0, *hYields_Veto_LL_SFdn =0;
 
 // key = "hadtau" or "lostle"
-bool relSys_for_ZERO = false;
+bool relSys_for_ZERO = true;
+bool doVector_dataCard = false;
+// Do adJustBins_merge before calculating ANY ratio or summation and others...
+// Only adjustBins_merge for TF factor calcuation and systematics -- do NOT do this on data!
+bool do_mergeBins = true;
 void combCS_pred(const std::string key = "hadtau");
+
+const std::string filename_CS = "Mix_CS.root", filename_HadTauLL = "Mix_HadTauLL.root";
 
 const bool enable_prtTFfactors = false, prtExtraInfo = false;
 
@@ -41,31 +48,32 @@ int main(int argc, char* argv[])
   TFile *file_MC_CS = new TFile("Mix_CS.root");
   TFile *file_HadTauLL = new TFile("Mix_HadTauLL.root");
 
-  hYields_MC_mu = (TH1D*) file_MC_CS->Get("hYields_mu");
-  hYields_MC_ele = (TH1D*) file_MC_CS->Get("hYields_el");
+  hYields_MC_mu = (TH1D*) file_MC_CS->Get("hYields_mu"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_MC_mu);
+  hYields_MC_ele = (TH1D*) file_MC_CS->Get("hYields_el"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_MC_ele);
 
-  hYields_MC_mu_SFup = (TH1D*) file_MC_CS->Get("hYields_mu_SFup");
-  hYields_MC_ele_SFup = (TH1D*) file_MC_CS->Get("hYields_el_SFup");
+  hYields_MC_mu_SFup = (TH1D*) file_MC_CS->Get("hYields_mu_SFup"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_MC_mu_SFup);
+  hYields_MC_ele_SFup = (TH1D*) file_MC_CS->Get("hYields_el_SFup"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_MC_ele_SFup);
 
-  hYields_MC_mu_SFdn = (TH1D*) file_MC_CS->Get("hYields_mu_SFdn");
-  hYields_MC_ele_SFdn = (TH1D*) file_MC_CS->Get("hYields_el_SFdn");
+  hYields_MC_mu_SFdn = (TH1D*) file_MC_CS->Get("hYields_mu_SFdn"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_MC_mu_SFdn);
+  hYields_MC_ele_SFdn = (TH1D*) file_MC_CS->Get("hYields_el_SFdn"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_MC_ele_SFdn);
 
-  hYields_tau = (TH1D*) file_HadTauLL->Get("hYields_tau");
-  hYields_LL = (TH1D*) file_HadTauLL->Get("hYields_LL");
-  hYields_sum = static_cast<TH1*>(hYields_tau->Clone("hYields_sum")); hYields_sum->Add(hYields_LL);
+  hYields_tau = (TH1D*) file_HadTauLL->Get("hYields_tau");  if( do_mergeBins ) predSpec::adjustBins_merge(hYields_tau);
+  hYields_LL = (TH1D*) file_HadTauLL->Get("hYields_LL"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_LL);
+  hYields_sum = static_cast<TH1*>(hYields_tau->Clone("hYields_sum")); hYields_sum->Add(hYields_LL); //if( do_mergeBins ) predSpec::adjustBins_merge(hYields_sum);
 
-  hYields_Veto_tau = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau");
-  hYields_Veto_tau_SF = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau_SF");
-  hYields_Pass_tau = (TH1D*) file_HadTauLL->Get("hYields_Pass_tau");
-  hYields_Veto_tau_SFup = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau_SFup");
-  hYields_Veto_tau_SFdn = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau_SFdn");
+  hYields_Veto_tau = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_tau);
+  hYields_Veto_tau_SF = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau_SF"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_tau_SF);
+  hYields_Pass_tau = (TH1D*) file_HadTauLL->Get("hYields_Pass_tau"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Pass_tau);
+  hYields_Veto_tau_SFup = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau_SFup"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_tau_SFup);
+  hYields_Veto_tau_SFdn = (TH1D*) file_HadTauLL->Get("hYields_Veto_tau_SFdn"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_tau_SFdn);
 
-  hYields_Veto_LL = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL");
-  hYields_Veto_LL_SF = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL_SF");
-  hYields_Pass_LL = (TH1D*) file_HadTauLL->Get("hYields_Pass_LL");
-  hYields_Veto_LL_SFup = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL_SFup");
-  hYields_Veto_LL_SFdn = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL_SFdn");
+  hYields_Veto_LL = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_LL);
+  hYields_Veto_LL_SF = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL_SF"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_LL_SF);
+  hYields_Pass_LL = (TH1D*) file_HadTauLL->Get("hYields_Pass_LL"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Pass_LL);
+  hYields_Veto_LL_SFup = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL_SFup"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_LL_SFup);
+  hYields_Veto_LL_SFdn = (TH1D*) file_HadTauLL->Get("hYields_Veto_LL_SFdn"); if( do_mergeBins ) predSpec::adjustBins_merge(hYields_Veto_LL_SFdn);
 
+// Do NOT adjustBins_merge for data!
   hYields_Data_mu = (TH1D*) file_Data_CS->Get("hYields_mu");
   hYields_Data_ele = (TH1D*) file_Data_CS->Get("hYields_el");
 
@@ -190,8 +198,8 @@ void combCS_pred(const std::string key)
   TH1 * hTF_local_mu = key == "hadtau" ? (TH1*) hTF_tau_mu->Clone() : (TH1*) hTF_LL_mu->Clone();
   TH1 * hTF_local_ele = key == "hadtau" ? (TH1*) hTF_tau_ele->Clone() : (TH1*) hTF_LL_ele->Clone();
   TH1 * hYields_lepSF_ratio_local = key == "hadtau" ? (TH1*) hYields_lepSF_ratio_tau->Clone() : (TH1*) hYields_lepSF_ratio_LL->Clone();
-  Systematics systCalc_mu = key == "hadtau"? Systematics("tau", "mu") : Systematics("LL", "mu");
-  Systematics systCalc_el = key == "hadtau"? Systematics("tau", "el") : Systematics("LL", "el");
+  Systematics systCalc_mu = key == "hadtau"? Systematics("tau", "mu", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : Systematics("LL", "mu", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins);
+  Systematics systCalc_el = key == "hadtau"? Systematics("tau", "el", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : Systematics("LL", "el", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins);
 
   TH1 * hTF_local_mu_SFup = key == "hadtau" ? (TH1*) hTF_tau_mu_SFup->Clone() : (TH1*) hTF_LL_mu_SFup->Clone();
   TH1 * hTF_local_ele_SFup = key == "hadtau" ? (TH1*) hTF_tau_ele_SFup->Clone() : (TH1*) hTF_LL_ele_SFup->Clone();
@@ -246,16 +254,20 @@ void combCS_pred(const std::string key)
   std::vector<double> systErr_rel_pdfUnc_up_muVec, systErr_rel_pdfUnc_dn_muVec, systErr_rel_pdfUnc_up_eleVec, systErr_rel_pdfUnc_dn_eleVec;
   for(unsigned int is=0; is<systCalc_mu.pdfUncsys_up.size(); is++)
   {
-    const double rel_sys_up_mu = systCalc_mu.pdfUncsys_cen[is] == 0 ? 0 : systCalc_mu.pdfUncsys_up[is]/systCalc_mu.pdfUncsys_cen[is];
-    const double rel_sys_dn_mu = systCalc_mu.pdfUncsys_cen[is] == 0 ? 0 : systCalc_mu.pdfUncsys_dn[is]/systCalc_mu.pdfUncsys_cen[is];
-    const double rel_sys_up_el = systCalc_el.pdfUncsys_cen[is] == 0 ? 0 : systCalc_el.pdfUncsys_up[is]/systCalc_el.pdfUncsys_cen[is];
-    const double rel_sys_dn_el = systCalc_el.pdfUncsys_cen[is] == 0 ? 0 : systCalc_el.pdfUncsys_dn[is]/systCalc_el.pdfUncsys_cen[is];
+    double rel_sys_up_mu = systCalc_mu.pdfUncsys_cen[is] == 0 ? 0 : systCalc_mu.pdfUncsys_up[is]/systCalc_mu.pdfUncsys_cen[is];
+    double rel_sys_dn_mu = systCalc_mu.pdfUncsys_cen[is] == 0 ? 0 : systCalc_mu.pdfUncsys_dn[is]/systCalc_mu.pdfUncsys_cen[is];
+    double rel_sys_up_el = systCalc_el.pdfUncsys_cen[is] == 0 ? 0 : systCalc_el.pdfUncsys_up[is]/systCalc_el.pdfUncsys_cen[is];
+    double rel_sys_dn_el = systCalc_el.pdfUncsys_cen[is] == 0 ? 0 : systCalc_el.pdfUncsys_dn[is]/systCalc_el.pdfUncsys_cen[is];
 /*
     const double rel_sys_up_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.pdfUncsys_up[is]/hTF_local_mu->GetBinContent(is+1);
     const double rel_sys_dn_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.pdfUncsys_dn[is]/hTF_local_mu->GetBinContent(is+1);
     const double rel_sys_up_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.pdfUncsys_up[is]/hTF_local_ele->GetBinContent(is+1);
     const double rel_sys_dn_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.pdfUncsys_dn[is]/hTF_local_ele->GetBinContent(is+1);
 */
+    if( rel_sys_up_mu >= 1.0 ) rel_sys_up_mu = 0.0;
+    if( rel_sys_dn_mu >= 1.0 ) rel_sys_dn_mu = 0.0;
+    if( rel_sys_up_el >= 1.0 ) rel_sys_up_el = 0.0;
+    if( rel_sys_dn_el >= 1.0 ) rel_sys_dn_el = 0.0;
     systErr_rel_pdfUnc_up_muVec.push_back(rel_sys_up_mu);
     systErr_rel_pdfUnc_dn_muVec.push_back(rel_sys_dn_mu);
     systErr_rel_pdfUnc_up_eleVec.push_back(rel_sys_up_el);
@@ -265,11 +277,15 @@ void combCS_pred(const std::string key)
   std::vector<double> systErr_rel_metMag_up_muVec, systErr_rel_metMag_dn_muVec, systErr_rel_metMag_up_eleVec, systErr_rel_metMag_dn_eleVec;
   for(unsigned int is=0; is<systCalc_mu.metMagsys_up.size(); is++)
   {
-    const double rel_sys_up_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.metMagsys_up[is]/hTF_local_mu->GetBinContent(is+1);
-    const double rel_sys_dn_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.metMagsys_dn[is]/hTF_local_mu->GetBinContent(is+1);
-    const double rel_sys_up_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.metMagsys_up[is]/hTF_local_ele->GetBinContent(is+1);
-    const double rel_sys_dn_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.metMagsys_dn[is]/hTF_local_ele->GetBinContent(is+1);
+    double rel_sys_up_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.metMagsys_up[is]/hTF_local_mu->GetBinContent(is+1);
+    double rel_sys_dn_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.metMagsys_dn[is]/hTF_local_mu->GetBinContent(is+1);
+    double rel_sys_up_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.metMagsys_up[is]/hTF_local_ele->GetBinContent(is+1);
+    double rel_sys_dn_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.metMagsys_dn[is]/hTF_local_ele->GetBinContent(is+1);
 
+    if( rel_sys_up_mu >= 1.0 ) rel_sys_up_mu = 0.0;
+    if( rel_sys_dn_mu >= 1.0 ) rel_sys_dn_mu = 0.0;
+    if( rel_sys_up_el >= 1.0 ) rel_sys_up_el = 0.0;
+    if( rel_sys_dn_el >= 1.0 ) rel_sys_dn_el = 0.0;
     systErr_rel_metMag_up_muVec.push_back(rel_sys_up_mu);
     systErr_rel_metMag_dn_muVec.push_back(rel_sys_dn_mu);
     systErr_rel_metMag_up_eleVec.push_back(rel_sys_up_el);
@@ -293,11 +309,15 @@ void combCS_pred(const std::string key)
   std::vector<double> systErr_rel_jec_up_muVec, systErr_rel_jec_dn_muVec, systErr_rel_jec_up_eleVec, systErr_rel_jec_dn_eleVec;
   for(unsigned int is=0; is<systCalc_mu.jecsys_up.size(); is++)
   {
-    const double rel_sys_up_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.jecsys_up[is]/hTF_local_mu->GetBinContent(is+1);
-    const double rel_sys_dn_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.jecsys_dn[is]/hTF_local_mu->GetBinContent(is+1);
-    const double rel_sys_up_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.jecsys_up[is]/hTF_local_ele->GetBinContent(is+1);
-    const double rel_sys_dn_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.jecsys_dn[is]/hTF_local_ele->GetBinContent(is+1);
+    double rel_sys_up_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.jecsys_up[is]/hTF_local_mu->GetBinContent(is+1);
+    double rel_sys_dn_mu = hTF_local_mu->GetBinContent(is+1) == 0 ? 0 : systCalc_mu.jecsys_dn[is]/hTF_local_mu->GetBinContent(is+1);
+    double rel_sys_up_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.jecsys_up[is]/hTF_local_ele->GetBinContent(is+1);
+    double rel_sys_dn_el = hTF_local_ele->GetBinContent(is+1) == 0 ? 0 : systCalc_el.jecsys_dn[is]/hTF_local_ele->GetBinContent(is+1);
 
+    if( rel_sys_up_mu >= 1.0 ) rel_sys_up_mu = 0.0;
+    if( rel_sys_dn_mu >= 1.0 ) rel_sys_dn_mu = 0.0;
+    if( rel_sys_up_el >= 1.0 ) rel_sys_up_el = 0.0;
+    if( rel_sys_dn_el >= 1.0 ) rel_sys_dn_el = 0.0;
     systErr_rel_jec_up_muVec.push_back(rel_sys_up_mu);
     systErr_rel_jec_dn_muVec.push_back(rel_sys_dn_mu);
     systErr_rel_jec_up_eleVec.push_back(rel_sys_up_el);
@@ -326,6 +346,9 @@ void combCS_pred(const std::string key)
   std::vector<double> cached_systErr_metPhi_upErrVec, cached_systErr_metPhi_dnErrVec;
   std::vector<double> cached_systErr_jec_upErrVec, cached_systErr_jec_dnErrVec;
   std::vector<double> cached_systErr_SF_upErrVec, cached_systErr_SF_dnErrVec;
+
+  std::vector<double> cached_fin_TF_muVec, cached_fin_TFerr_muVec;
+  std::vector<double> cached_fin_TF_eleVec, cached_fin_TFerr_eleVec;
   for(unsigned int i=1; i<=hTF_local_mu->GetNbinsX(); i++)
   {
     const double lepSF_ratio_local = hYields_lepSF_ratio_local->GetBinContent(i);
@@ -335,6 +358,7 @@ void combCS_pred(const std::string key)
 // mu
     const double cont_TF_local_to_mu = hTF_local_mu->GetBinContent(i), err_TF_local_to_mu = hTF_local_mu->GetBinError(i);
     const double fin_TF_local_to_mu = cont_TF_local_to_mu * lepSF_ratio_local, finErr_TF_local_to_mu = err_TF_local_to_mu * lepSF_ratio_local;
+    cached_fin_TF_muVec.push_back(fin_TF_local_to_mu); cached_fin_TFerr_muVec.push_back(finErr_TF_local_to_mu);
 
     const double cont_TF_local_to_mu_SFup = hTF_local_mu_SFup->GetBinContent(i);
     const double fin_TF_local_to_mu_SFup = cont_TF_local_to_mu_SFup * lepSF_ratio_local_SFup;
@@ -378,6 +402,7 @@ void combCS_pred(const std::string key)
 // el 
     const double cont_TF_local_to_ele = hTF_local_ele->GetBinContent(i), err_TF_local_to_ele = hTF_local_ele->GetBinError(i);
     const double fin_TF_local_to_ele = cont_TF_local_to_ele * lepSF_ratio_local, finErr_TF_local_to_ele = err_TF_local_to_ele * lepSF_ratio_local;
+    cached_fin_TF_eleVec.push_back(fin_TF_local_to_ele); cached_fin_TFerr_eleVec.push_back(finErr_TF_local_to_ele);
 
     const double cont_TF_local_to_ele_SFup = hTF_local_ele_SFup->GetBinContent(i);
     const double fin_TF_local_to_ele_SFup = cont_TF_local_to_ele_SFup * lepSF_ratio_local_SFup;
@@ -535,6 +560,22 @@ void combCS_pred(const std::string key)
              <<std::endl;
   }
 
+  TString vecIdStr, divStr, cloPre, cloAft;
+  int setWnum;
+  if ( doVector_dataCard ){
+     vecIdStr = "vector<double>";
+     divStr = ",";
+     cloPre = "{";
+     cloAft = "};";
+     setWnum = 0;
+  }else{
+     vecIdStr = "";
+     divStr = " ";
+     cloPre = "";
+     cloAft = "";
+     setWnum = 7;
+  }
+
   std::ofstream of_local(key+".txt", std::ofstream::out);
   char tmpstr[200];
   of_local<< std::setprecision(3)<<std::fixed<<std::left;
@@ -543,42 +584,53 @@ void combCS_pred(const std::string key)
   of_local<<"channels = "<<nTotChn<<std::endl;
   of_local<<"sample = "<<key.c_str()<<"\n"<<std::endl;
   of_local<<std::setw(21)<<"channel = "; for(int i=0; i<nTotChn; i++){ sprintf(tmpstr, "bin%d", i+1); of_local<<std::setw(7)<<tmpstr<<" "; } of_local<<"\n"<<std::endl;
-  of_local<<std::setw(21)<<"rate    = "; for(auto it : cached_rateVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" rate    = "; of_local<<cloPre; for(auto it : cached_rateVec){ if(it != cached_rateVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it;} of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"#stat_unc_abs_up = "; for(auto it : cached_stat_abs_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"#stat_unc_abs_dn = "; for(auto it : cached_stat_abs_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
+  of_local<<"#"<<std::setw(21)<<vecIdStr+" stat_unc_abs_up = "; of_local<<cloPre; for(auto it : cached_stat_abs_upErrVec){ if(it != cached_stat_abs_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<"#"<<std::setw(21)<<vecIdStr+" stat_unc_abs_dn = "; of_local<<cloPre; for(auto it : cached_stat_abs_dnErrVec){ if(it != cached_stat_abs_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
 
-  of_local<<std::setw(21)<<"stat_unc_up = "; for(auto it : cached_stat_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"stat_unc_dn = "; for(auto it : cached_stat_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" stat_unc_up = "; of_local<<cloPre; for(auto it : cached_stat_upErrVec){ if(it != cached_stat_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" stat_unc_dn = "; of_local<<cloPre; for(auto it : cached_stat_dnErrVec){ if(it != cached_stat_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_TF_stat_up = "; for(auto it : cached_systErr_TF_statVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;  
-  of_local<<std::setw(21)<<"syst_unc_TF_stat_dn = "; for(auto it : cached_systErr_TF_statVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_TF_stat_up = "; of_local<<cloPre; for(auto it : cached_systErr_TF_statVec){ if(it != cached_systErr_TF_statVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_TF_stat_dn = "; of_local<<cloPre; for(auto it : cached_systErr_TF_statVec){ if(it != cached_systErr_TF_statVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_ISR_up = "; for(auto it: cached_systErr_ISR_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"syst_unc_ISR_dn = "; for(auto it: cached_systErr_ISR_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_ISR_up = "; of_local<<cloPre; for(auto it : cached_systErr_ISR_upErrVec){ if(it != cached_systErr_ISR_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_ISR_dn = "; of_local<<cloPre; for(auto it : cached_systErr_ISR_dnErrVec){ if(it != cached_systErr_ISR_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_bTag_up = "; for(auto it: cached_systErr_bTag_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"syst_unc_bTag_dn = "; for(auto it: cached_systErr_bTag_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_bTag_up = "; of_local<<cloPre; for(auto it : cached_systErr_bTag_upErrVec){ if(it != cached_systErr_bTag_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_bTag_dn = "; of_local<<cloPre; for(auto it : cached_systErr_bTag_dnErrVec){ if(it != cached_systErr_bTag_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
 //  of_local<<std::setw(21)<<"syst_unc_scaleUnc_up = "; for(auto it: cached_systErr_scaleUnc_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
 //  of_local<<std::setw(21)<<"syst_unc_scaleUnc_dn = "; for(auto it: cached_systErr_scaleUnc_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_pdfUnc_up = "; for(auto it: cached_systErr_pdfUnc_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"syst_unc_pdfUnc_dn = "; for(auto it: cached_systErr_pdfUnc_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_pdfUnc_up = "; of_local<<cloPre; for(auto it : cached_systErr_pdfUnc_upErrVec){ if(it != cached_systErr_pdfUnc_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_pdfUnc_dn = "; of_local<<cloPre; for(auto it : cached_systErr_pdfUnc_dnErrVec){ if(it != cached_systErr_pdfUnc_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_metMag_up = "; for(auto it: cached_systErr_metMag_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"syst_unc_metMag_dn = "; for(auto it: cached_systErr_metMag_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_metMag_up = "; of_local<<cloPre; for(auto it : cached_systErr_metMag_upErrVec){ if(it != cached_systErr_metMag_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_metMag_dn = "; of_local<<cloPre; for(auto it : cached_systErr_metMag_dnErrVec){ if(it != cached_systErr_metMag_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_metPhi_up = "; for(auto it: cached_systErr_metPhi_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"syst_unc_metPhi_dn = "; for(auto it: cached_systErr_metPhi_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_metPhi_up = "; of_local<<cloPre; for(auto it : cached_systErr_metPhi_upErrVec){ if(it != cached_systErr_metPhi_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_metPhi_dn = "; of_local<<cloPre; for(auto it : cached_systErr_metPhi_dnErrVec){ if(it != cached_systErr_metPhi_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_jec_up = "; for(auto it: cached_systErr_jec_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"syst_unc_jec_dn = "; for(auto it: cached_systErr_jec_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_jec_up = "; of_local<<cloPre; for(auto it : cached_systErr_jec_upErrVec){ if(it != cached_systErr_jec_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_jec_dn = "; of_local<<cloPre; for(auto it : cached_systErr_jec_dnErrVec){ if(it != cached_systErr_jec_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
-  of_local<<std::setw(21)<<"syst_unc_SF_up = "; for(auto it: cached_systErr_SF_upErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<std::endl;
-  of_local<<std::setw(21)<<"syst_unc_SF_dn = "; for(auto it: cached_systErr_SF_dnErrVec){ of_local<<std::setw(7)<<it<<" "; } of_local<<"\n"<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_SF_up = "; of_local<<cloPre; for(auto it : cached_systErr_SF_upErrVec){ if(it != cached_systErr_SF_upErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<std::setw(21)<<vecIdStr+" syst_unc_SF_dn = "; of_local<<cloPre; for(auto it : cached_systErr_SF_dnErrVec){ if(it != cached_systErr_SF_dnErrVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
+
+  of_local<<"## note : for special usage "<<std::endl;
+  of_local<<"#"<<std::setw(21)<<vecIdStr+" fin_TF_to_mu = "; of_local<<cloPre; for(auto it : cached_fin_TF_muVec){ if(it != cached_fin_TF_muVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<"#"<<std::setw(21)<<vecIdStr+" fin_TFerr_to_mu = "; of_local<<cloPre; for(auto it : cached_fin_TFerr_muVec){ if(it != cached_fin_TFerr_muVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
+
+  of_local<<"#"<<std::setw(21)<<vecIdStr+" fin_TF_to_ele = "; of_local<<cloPre; for(auto it : cached_fin_TF_eleVec){ if(it != cached_fin_TF_eleVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<std::endl;
+  of_local<<"#"<<std::setw(21)<<vecIdStr+" fin_TFerr_to_ele = "; of_local<<cloPre; for(auto it : cached_fin_TFerr_eleVec){ if(it != cached_fin_TFerr_eleVec.back()) of_local<<std::setw(setWnum)<<it<<divStr+" "; else of_local<<std::setw(setWnum)<<it; } of_local<<cloAft; of_local<<"\n"<<std::endl;
 
   of_local.close();
+
+//  for(unsigned int ic=0; ic<cached_systErr_pdfUnc_upErrVec.size(); ic++){
+//     std::cout<<"ic : "<<ic<<"  pdfUnc_up : "<<cached_systErr_pdfUnc_upErrVec[ic]<<"  pdfUnc_dn : "<<cached_systErr_pdfUnc_dnErrVec[ic]<<std::endl;
+//  }
 }
 
 void predLLTry()

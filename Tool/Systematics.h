@@ -5,6 +5,7 @@
 #include <vector>
 #include "TH1.h"
 #include "TFile.h"
+#include "CommonShared.h"
 
 class Systematics
 {
@@ -12,7 +13,7 @@ class Systematics
   //Constructor
   // expStr = "tau", "LL"
   // csStr = "mu", "el"
-    Systematics(const TString expStr="tau", const TString csStr="mu", const TString filename_CS = "Mix_CS.root", const TString filename_HadTauLL = "Mix_HadTauLL.root");
+    Systematics(const TString expStr="tau", const TString csStr="mu", const TString filename_CS = "Mix_CS.root", const TString filename_HadTauLL = "Mix_HadTauLL.root", const bool do_mergeBins = false);
 
   //Member Data
     std::vector<double> ISRsys_up;
@@ -39,23 +40,30 @@ class Systematics
 
     TFile *file_CS;
     TFile *file_HadTauLL;
+
+    const bool do_mergeBins_;
 };
 
-Systematics::Systematics(const TString expStr, const TString csStr, const TString filename_CS, const TString filename_HadTauLL)
+Systematics::Systematics(const TString expStr, const TString csStr, const TString filename_CS, const TString filename_HadTauLL, const bool do_mergeBins) : 
+   do_mergeBins_(do_mergeBins)
 {
-  std::cout<<"expStr : "<<expStr<<"  csStr : "<<csStr<<"  filename_CS : "<<filename_CS<<"  filename_HadTauLL : "<<filename_HadTauLL<<std::endl;
+  std::cout<<"expStr : "<<expStr<<"  csStr : "<<csStr<<"  filename_CS : "<<filename_CS<<"  filename_HadTauLL : "<<filename_HadTauLL<<"  do_mergeBins_ : "<<do_mergeBins_<<std::endl;
+// adjust merge bins before calculating ANY ratio
 
   file_CS = new TFile(filename_CS);
   file_HadTauLL = new TFile(filename_HadTauLL);
 
   TH1D *hCS = (TH1D*)file_CS->Get("hYields_"+csStr);
   TH1D *hExp = (TH1D*)file_HadTauLL->Get("hYields_"+expStr);
-
+  if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS);
+  if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp);
   TH1D *hRatio_Exp_CS = (TH1D*)hExp->Clone("Ratio");
   hRatio_Exp_CS->Divide(hCS);
 
   TH1D *hCS_pdfUncsys_cen = (TH1D*)file_CS->Get("hYields_"+csStr+"_pdfUnccen");
   TH1D *hExp_pdfUncsys_cen = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_pdfUnccen");
+  if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_pdfUncsys_cen);
+  if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_pdfUncsys_cen);
   TH1D *hRatio_Exp_CS_pdfUncsys_cen = (TH1D*)hExp_pdfUncsys_cen->Clone("Ratio");
   hRatio_Exp_CS_pdfUncsys_cen->Divide(hCS_pdfUncsys_cen);
 
@@ -96,6 +104,8 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
     // Get histograms from file                                                                                                                
     hCS_ISR[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_isr"+name);
     hExp_ISR[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_isr"+name);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_ISR[i]);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_ISR[i]);
     //Ratio                                                                                                                                   
     hRatio_Exp_CS_ISR[i] = (TH1D*)hExp_ISR[i]->Clone("Ratio");
     hRatio_Exp_CS_ISR[i]->Divide(hCS_ISR[i]);
@@ -103,6 +113,8 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
 // bSF
     hCS_bSF[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_bSF"+name);
     hExp_bSF[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_bSF"+name);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_bSF[i]);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_bSF[i]);
     //Ratio                                                                                                                                   
     hRatio_Exp_CS_bSF[i] = (TH1D*)hExp_bSF[i]->Clone("Ratio");
     hRatio_Exp_CS_bSF[i]->Divide(hCS_bSF[i]);
@@ -112,11 +124,15 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
 
     hCS_scaleUncsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_scaleUnc"+name);
     hExp_scaleUncsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_scaleUnc"+name);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_scaleUncsys[i]);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_scaleUncsys[i]);
     hRatio_Exp_CS_scaleUncsys[i] = (TH1D*)hExp_scaleUncsys[i]->Clone("Ratio");
     hRatio_Exp_CS_scaleUncsys[i]->Divide(hCS_scaleUncsys[i]);
 
     hCS_pdfUncsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_pdfUnc"+name);
     hExp_pdfUncsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_pdfUnc"+name);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_pdfUncsys[i]);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_pdfUncsys[i]);
     hRatio_Exp_CS_pdfUncsys[i] = (TH1D*)hExp_pdfUncsys[i]->Clone("Ratio");
     hRatio_Exp_CS_pdfUncsys[i]->Divide(hCS_pdfUncsys[i]);
 
@@ -125,16 +141,22 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
 
     hCS_metMagsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_metMag"+name);
     hExp_metMagsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_metMag"+name);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_metMagsys[i]);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_metMagsys[i]);
     hRatio_Exp_CS_metMagsys[i] = (TH1D*)hExp_metMagsys[i]->Clone("Ratio");
     hRatio_Exp_CS_metMagsys[i]->Divide(hCS_metMagsys[i]);
 
     hCS_metPhisys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_metPhi"+name);
     hExp_metPhisys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_metPhi"+name);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_metPhisys[i]);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_metPhisys[i]);
     hRatio_Exp_CS_metPhisys[i] = (TH1D*)hExp_metPhisys[i]->Clone("Ratio");
     hRatio_Exp_CS_metPhisys[i]->Divide(hCS_metPhisys[i]);
 
     hCS_jecsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_jec"+name);
     hExp_jecsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_jec"+name);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_jecsys[i]);
+    if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_jecsys[i]);
     hRatio_Exp_CS_jecsys[i] = (TH1D*)hExp_jecsys[i]->Clone("Ratio");
     hRatio_Exp_CS_jecsys[i]->Divide(hCS_jecsys[i]);
   }

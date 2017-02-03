@@ -92,6 +92,8 @@ int main(int argc, char* argv[]) {
   std::vector<int> cached_MT2_binIdx_el_2DVec, cached_HT_binIdx_el_2DVec;
   std::vector<TH1D*> cached_MT2_hist_el_2DVec, cached_HT_hist_el_2DVec, cached_met_hist_el_2DVec, cached_nJets_hist_el_2DVec, cached_recoTopPt_hist_el_2DVec;
 
+  TH1D * h1_genHT = new TH1D("genHT", "genHT", 60, 0, 3000);
+
   std::string spec = "CS";
 
   AnaFunctions::prepareForNtupleReader();
@@ -216,6 +218,8 @@ int main(int argc, char* argv[]) {
     const double Scaled_Variations_Up = isData? 1.0 : tr->getVar<double>("Scaled_Variations_Up");
     const double Scaled_Variations_Down = isData? 1.0 : tr->getVar<double>("Scaled_Variations_Down");
 
+    const double genHT = tr->hasVar("genHT") ? tr->getVar<double>("genHT") : -999;
+
     const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
     const vector<double> &muonsRelIso = tr->getVec<double>("muonsRelIso");
     const vector<double> &muonsMiniIso = tr->getVec<double>("muonsMiniIso");
@@ -337,6 +341,14 @@ int main(int argc, char* argv[]) {
       const TopTaggerResults& ttr = ttPtr->getResults();
       topObjVec = ttr.getTops();
     }
+
+// Do genHT split ONLY for TTbar
+    if( sampleString.Contains("TTbar") )
+    {
+       if( !( (sampleString.Contains("HT") && genHT >=600) || (sampleString.Contains("Lep") && genHT < 600 ) ) ) continue;
+    }
+
+    h1_genHT->Fill(genHT, Lumiscale);
 
     bool passBaselineCS = passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2;
     bool passTrigger = true;        
@@ -916,6 +928,8 @@ int main(int argc, char* argv[]) {
   (myBaseHistgram.oFile)->cd();
   if( !isData )
   {
+    h1_genHT->Write();
+
     for(auto hist: cached_MT2_hist_mu_3DVec) hist->Write();
     for(auto hist: cached_HT_hist_mu_3DVec) hist->Write();
     for(auto hist: cached_MT2_hist_el_3DVec) hist->Write();

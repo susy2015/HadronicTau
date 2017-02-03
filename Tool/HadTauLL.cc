@@ -189,6 +189,8 @@ int main(int argc, char* argv[])
     const double Scaled_Variations_Up = tr->getVar<double>("Scaled_Variations_Up");
     const double Scaled_Variations_Down = tr->getVar<double>("Scaled_Variations_Down");
 
+    const double genHT = tr->getVar<double>("genHT");
+
     const vector<TLorentzVector> &jetsLVec = tr->getVec<TLorentzVector>("jetsLVec");
     const std::vector<std::string> & TriggerNames = tr->getVec<std::string>("TriggerNames");
     const std::vector<int> & PassTrigger = tr->getVec<int>("PassTrigger");
@@ -306,6 +308,12 @@ int main(int argc, char* argv[])
       Mht_LVec -= jetsLVec[ij];
     }
     const double Mht = Mht_LVec.Pt();
+
+// Do genHT split ONLY for TTbar
+    if( sampleString.Contains("TTbar") )
+    {
+       if( !( (sampleString.Contains("HT") && genHT >=600) || (sampleString.Contains("Lep") && genHT < 600 ) ) ) continue;
+    }
     
     bool passBaselineFull = passMuonVeto && passEleVeto && passIsoTrkVeto && passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2;
     bool passBaselineNoLepVeto = passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2;

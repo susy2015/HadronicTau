@@ -1,4 +1,5 @@
 hadd TTbarNoHad_HadTauLL.root TTbarNoHad/*_HadTauLL*.root
+hadd TTbarHT_HadTauLL.root TTbarHT/*_HadTauLL*.root
 hadd WJetsToLNu_HadTauLL.root WJetsToLNu/*_HadTauLL*.root
 hadd tW_HadTauLL.root tW/*_HadTauLL*.root
-hadd Mix_HadTauLL.root TTbarNoHad/*_HadTauLL*.root WJetsToLNu/*_HadTauLL*.root tW/*_HadTauLL*.root
+hadd Mix_HadTauLL.root TTbarNoHad/*_HadTauLL*.root TTbarHT/*_HadTauLL*.root WJetsToLNu/*_HadTauLL*.root tW/*_HadTauLL*.root

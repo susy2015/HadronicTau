@@ -29,12 +29,12 @@ bool relSys_for_ZERO = true;
 bool doVector_dataCard = false;
 // Do adJustBins_merge before calculating ANY ratio or summation and others...
 // Only adjustBins_merge for TF factor calcuation and systematics -- do NOT do this on data!
-bool do_mergeBins = true;
+bool do_mergeBins = false;
 void combCS_pred(const std::string key = "hadtau");
 
 const std::string filename_CS = "Mix_CS.root", filename_HadTauLL = "Mix_HadTauLL.root";
 
-const bool enable_prtTFfactors = false, prtExtraInfo = false;
+const bool enable_prtTFfactors = true, prtExtraInfo = true;
 
 void prtTFfactors();
 

@@ -32,7 +32,7 @@ tar_file_name = rel_name+'.tar.gz'
 cache_all_dir = rel_base+'/src/SusyAnaTools/Tools/cache_all.sh'
 system('sh '+cache_all_dir)
 
-tar_command = 'tar --exclude-caches-all -czvf '+tar_file_name + ' -C '+rel_base+'/.. ' + rel_name
+tar_command = 'tar --exclude-caches-all -czf '+tar_file_name + ' -C '+rel_base+'/.. ' + rel_name
 system(tar_command)
 system('mv '+rel_name+'.tar.gz '+rel_base+'/src/SusyAnaTools/Tools/condor/')
 

@@ -2,6 +2,6 @@ cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS/TTbarNoHad; ./condorSubmit.py -d TT
 cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS/TTbarHT; ./condorSubmit.py -d TTbarHT -n 2;
 cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS/WJetsToLNu; ./condorSubmit.py -d WJetsToLNu -n 5;
 cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS/tW; ./condorSubmit.py -d tW -n 10;
-#cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS/Data_MET; ./condorSubmit.py -d Data_MET -n 50;
+cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS/Data_MET; ./condorSubmit.py -d Data_MET -n 50;
 #cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS/Data_SingleMuon; ./condorSubmit.py -d Data_SingleMuon -n 50;
 cd $CMSSW_BASE/src/HadronicTau/Tool/condorCS

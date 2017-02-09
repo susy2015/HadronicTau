@@ -101,41 +101,45 @@ int main(int argc, char* argv[])
  
   //Assume ONLY run this on MC samples!
   //BTag SF
-  BTagCorrector btagcorr;
-  if( bTagEffFile ) delete bTagEffFile;
-  if( std::string(subsamplename).find("TTbar") != std::string::npos )
-  {
-    bTagEffFile = new TFile("TTbarNoHad_bTagEff.root");
-  }else if( std::string(subsamplename).find("WJetsToLNu") != std::string::npos )
-  {
-    bTagEffFile = new TFile("WJetsToLNu_HT_bTagEff.root");
-  }else if( std::string(subsamplename).find("tW") != std::string::npos )
-  {
-    bTagEffFile = new TFile("SingleTop_bTagEff.root");
-  }else
-  { 
-    std::cout<<"Error ... not supported subsamplename : "<<subsamplename<<std::endl;
-    return 0;
-  }
-  btagcorr.SetEffs(bTagEffFile);
+  BTagCorrector btagcorr = BTagCorrector("allINone_bTagEff.root");
+  if( sampleString == "TTbarSingleLepT" || sampleString == "TTbarSingleLepT_deepTrimmed" ) btagcorr.resetEffs("TTbarSingleLepT");
+  if( sampleString == "TTbarSingleLepTbar" || sampleString == "TTbarSingleLepTbar_deepTrimmed" ) btagcorr.resetEffs("TTbarSingleLepTbar");
+  if( sampleString == "TTbarDiLep" || sampleString == "TTbarDiLep_deepTrimmed" ) btagcorr.resetEffs("TTbarDiLep");
+  if( sampleString == "TTbar_HT-600to800" || sampleString == "TTbar_HT-600to800_deepTrimmed" ) btagcorr.resetEffs("TTbar_HT-600to800");
+  if( sampleString == "TTbar_HT-800to1200" || sampleString == "TTbar_HT-800to1200_deepTrimmed" ) btagcorr.resetEffs("TTbar_HT-800to1200");
+  if( sampleString == "TTbar_HT-1200to2500" || sampleString == "TTbar_HT-1200to2500_deepTrimmed" ) btagcorr.resetEffs("TTbar_HT-1200to2500");
+  if( sampleString == "TTbar_HT-2500toInf" || sampleString == "TTbar_HT-2500toInf_deepTrimmed" ) btagcorr.resetEffs("TTbar_HT-2500toInf");
+  if( sampleString == "WJetsToLNu_HT_70to100" || sampleString == "WJetsToLNu_HT_70to100_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_70to100");
+  if( sampleString == "WJetsToLNu_HT_100to200" || sampleString == "WJetsToLNu_HT_100to200_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_100to200");
+  if( sampleString == "WJetsToLNu_HT_200to400" || sampleString == "WJetsToLNu_HT_200to400_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_200to400");
+  if( sampleString == "WJetsToLNu_HT_400to600" || sampleString == "WJetsToLNu_HT_400to600_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_400to600");
+  if( sampleString == "WJetsToLNu_HT_600to800" || sampleString == "WJetsToLNu_HT_600to800_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_600to800");
+  if( sampleString == "WJetsToLNu_HT_800to1200" || sampleString == "WJetsToLNu_HT_800to1200_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_800to1200");
+  if( sampleString == "WJetsToLNu_HT_1200to2500" || sampleString == "WJetsToLNu_HT_1200to2500_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_1200to2500");
+  if( sampleString == "WJetsToLNu_HT_2500toInf" || sampleString == "WJetsToLNu_HT_2500toInf_deepTrimmed" ) btagcorr.resetEffs("WJetsToLNu_HT_2500toInf");
+  if( sampleString == "tW_top_incl" || sampleString == "tW_top_incl_deepTrimmed" ) btagcorr.resetEffs("tW_top_incl");
+  if( sampleString == "tW_antitop_incl" || sampleString == "tW_antitop_incl_deepTrimmed" ) btagcorr.resetEffs("tW_antitop_incl");
   tr->registerFunction(btagcorr);
 
   //ISR Correcotr
-  ISRCorrector *isrcorr;
-  if( std::string(subsamplename).find("TTbar") != std::string::npos )
-  {
-    isrcorr = new ISRCorrector("TTbarNoHad_NJetsISR.root", "", "");
-  }else if( std::string(subsamplename).find("WJetsToLNu") != std::string::npos )
-  {
-    isrcorr = new ISRCorrector("WJetsToLNu_HT_NJetsISR.root", "", "");
-  }else if( std::string(subsamplename).find("tW") != std::string::npos )
-  {
-    isrcorr = new ISRCorrector("SingleTop_NJetsISR.root", "", "");
-  }else
-  {
-    std::cout<<"Error ... not supported subsamplename : "<<subsamplename<<std::endl;
-    return 0;
-  }
+  ISRCorrector *isrcorr = new ISRCorrector("allINone_ISRJets.root", "", "");
+  if( sampleString == "TTbarSingleLepT" || sampleString == "TTbarSingleLepT_deepTrimmed" ) isrcorr->resetSample("TTbarSingleLepT");
+  if( sampleString == "TTbarSingleLepTbar" || sampleString == "TTbarSingleLepTbar_deepTrimmed" ) isrcorr->resetSample("TTbarSingleLepTbar");
+  if( sampleString == "TTbarDiLep" || sampleString == "TTbarDiLep_deepTrimmed" ) isrcorr->resetSample("TTbarDiLep");
+  if( sampleString == "TTbar_HT-600to800" || sampleString == "TTbar_HT-600to800_deepTrimmed" ) isrcorr->resetSample("TTbar_HT-600to800");
+  if( sampleString == "TTbar_HT-800to1200" || sampleString == "TTbar_HT-800to1200_deepTrimmed" ) isrcorr->resetSample("TTbar_HT-800to1200");
+  if( sampleString == "TTbar_HT-1200to2500" || sampleString == "TTbar_HT-1200to2500_deepTrimmed" ) isrcorr->resetSample("TTbar_HT-1200to2500");
+  if( sampleString == "TTbar_HT-2500toInf" || sampleString == "TTbar_HT-2500toInf_deepTrimmed" ) isrcorr->resetSample("TTbar_HT-2500toInf");
+  if( sampleString == "WJetsToLNu_HT_70to100" || sampleString == "WJetsToLNu_HT_70to100_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_70to100");
+  if( sampleString == "WJetsToLNu_HT_100to200" || sampleString == "WJetsToLNu_HT_100to200_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_100to200");
+  if( sampleString == "WJetsToLNu_HT_200to400" || sampleString == "WJetsToLNu_HT_200to400_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_200to400");
+  if( sampleString == "WJetsToLNu_HT_400to600" || sampleString == "WJetsToLNu_HT_400to600_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_400to600");
+  if( sampleString == "WJetsToLNu_HT_600to800" || sampleString == "WJetsToLNu_HT_600to800_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_600to800");
+  if( sampleString == "WJetsToLNu_HT_800to1200" || sampleString == "WJetsToLNu_HT_800to1200_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_800to1200");
+  if( sampleString == "WJetsToLNu_HT_1200to2500" || sampleString == "WJetsToLNu_HT_1200to2500_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_1200to2500");
+  if( sampleString == "WJetsToLNu_HT_2500toInf" || sampleString == "WJetsToLNu_HT_2500toInf_deepTrimmed" ) isrcorr->resetSample("WJetsToLNu_HT_2500toInf");
+  if( sampleString == "tW_top_incl" || sampleString == "tW_top_incl_deepTrimmed" ) isrcorr->resetSample("tW_top_incl");
+  if( sampleString == "tW_antitop_incl" || sampleString == "tW_antitop_incl_deepTrimmed" ) isrcorr->resetSample("tW_antitop_incl");
   tr->registerFunction((*isrcorr));
 
   systBaseline::pdfScale = new PDFUncertainty();

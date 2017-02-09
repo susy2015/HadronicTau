@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
   //Searchbin                          
   SearchBins SB("SB_v1_2017");
 
-  TFile * allINone_leptonSF_file = new TFile("allINone_leptonSF.root");
+  TFile * allINone_leptonSF_file = new TFile("allINone_leptonSF_Moriond17.root");
   if( !allINone_leptonSF_file->IsZombie() ){
     mu_mediumID_SF = (TH2D*) allINone_leptonSF_file->Get("pt_abseta_PLOT_pair_probeMultiplicity_bin0");
     mu_miniISO_SF = (TH2D*) allINone_leptonSF_file->Get("pt_abseta_PLOT_pair_probeMultiplicity_bin0_&_Medium2016_pass");

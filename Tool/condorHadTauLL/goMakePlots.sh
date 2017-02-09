@@ -15,6 +15,6 @@ cd ${_CONDOR_SCRATCH_DIR}
 
 xrdcp root://cmseos.fnal.gov/$(echo $5 | sed 's|/eos/uscms||') .
 
-./CS $1 -1 $3 $4 "condor"
+./HadTauLL $1 -1 $3 $4 "condor"
 
 rm $(echo $5 | sed 's|.*/||')

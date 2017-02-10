@@ -39,6 +39,9 @@ const bool doISR = true;
 const bool dobSF = true;
 const bool dolepSF = true;
 
+const bool dospecialFix = false;
+const bool useTTbarHTsamples = true;
+
 TFile * bTagEffFile =0;
 
 TH2D * mu_mediumID_SF = 0, * mu_miniISO_SF = 0;
@@ -347,7 +350,7 @@ int main(int argc, char* argv[]) {
     }
 
 // Do genHT split ONLY for TTbar
-    if( sampleString.Contains("TTbar") )
+    if( sampleString.Contains("TTbar") && useTTbarHTsamples )
     {
        if( !( (sampleString.Contains("HT") && genHT >=600) || (sampleString.Contains("Lep") && genHT < 600 ) ) ) continue;
     }
@@ -376,6 +379,13 @@ int main(int argc, char* argv[]) {
       if( !foundTrigger ) passTrigger = false;
     }
     if(!passTrigger) continue;
+    if(dospecialFix)
+    {
+      const std::vector<int> & specialFixtype = tr->getVec<int>("specialFixtype");
+      const std::vector<TLorentzVector> & specialFixMuonsLVec = tr->getVec<TLorentzVector>("specialFixMuonsLVec");
+      const std::vector<double> & specialFixMuonsCharge = tr->getVec<double>("specialFixMuonsCharge");
+      if( !specialFixtype.empty() ) continue;
+    }
     // Muon Control sample
     // The kinematic properties of the well-reconstructed, isolated muon                                                         
     vector<TLorentzVector> isomuonsLVec;

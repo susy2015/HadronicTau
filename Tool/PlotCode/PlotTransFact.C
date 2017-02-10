@@ -1,5 +1,5 @@
-const double mc_lumi = 8000.0;
-const double data_lumi = 36352.970569733;
+const double mc_lumi = 36813.714859265;
+const double data_lumi = 36813.714859265;
 
 const double scale_mc = data_lumi/mc_lumi;
 

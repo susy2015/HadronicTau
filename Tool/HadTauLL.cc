@@ -39,6 +39,8 @@ using namespace std;
 const bool doISR = true;
 const bool dobSF = true;
 
+const bool useTTbarHTsamples = true;
+
 TFile * bTagEffFile =0;
 
 TH2D * mu_mediumID_SF = 0, * mu_miniISO_SF = 0;
@@ -314,7 +316,7 @@ int main(int argc, char* argv[])
     const double Mht = Mht_LVec.Pt();
 
 // Do genHT split ONLY for TTbar
-    if( sampleString.Contains("TTbar") )
+    if( sampleString.Contains("TTbar") && useTTbarHTsamples )
     {
        if( !( (sampleString.Contains("HT") && genHT >=600) || (sampleString.Contains("Lep") && genHT < 600 ) ) ) continue;
     }

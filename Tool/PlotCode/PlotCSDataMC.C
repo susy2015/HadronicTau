@@ -1,5 +1,5 @@
-const double mc_lumi = 8000.0;
-const double data_lumi = 36352.970569733;
+const double mc_lumi = 36813.714859265;
+const double data_lumi = 36813.714859265;
 
 const double scale_mc = data_lumi/mc_lumi;
 
@@ -10,7 +10,8 @@ void PlotCSDataMC()
   
   TFile *file_Data = new TFile("Data_MET_CS.root");
   TFile *file_MC = new TFile("Mix_CS.root");
-  const unsigned int kNDists = 28;
+//  const unsigned int kNDists = 28;
+  const unsigned int kNDists = 7;
   TH1* hMC_mu[kNDists];
   TH1* hData_mu[kNDists];
   TH1* hMC_ele[kNDists];

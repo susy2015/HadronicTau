@@ -439,6 +439,24 @@ int main(int argc, char* argv[]) {
       const double corr_SF_up = bSF * isrWght * mu_SF_up;
       const double corr_SF_dn = bSF * isrWght * mu_SF_dn;
 
+      FillDouble(myBaseHistgram.hMET_mu_noCuts, met, Lumiscale*corr_SF);
+      if( passnJets )
+         FillDouble(myBaseHistgram.hMET_mu_passnJets, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis )
+         FillDouble(myBaseHistgram.hMET_mu_passdPhis, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET )
+         FillDouble(myBaseHistgram.hMET_mu_passMET, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets )
+         FillDouble(myBaseHistgram.hMET_mu_passBJets, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger )
+         FillDouble(myBaseHistgram.hMET_mu_passTagger, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT )
+         FillDouble(myBaseHistgram.hMET_mu_passHT, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 )
+         FillDouble(myBaseHistgram.hMET_mu_passMT2, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 && pass_mtw )
+         FillDouble(myBaseHistgram.hMET_mu_pass_mtw, met, Lumiscale*corr_SF);
+
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtw)
       {
@@ -459,9 +477,9 @@ int main(int argc, char* argv[]) {
           myBaseHistgram.hYields_mu_scaleUncup->Fill(jSR, Lumiscale*corr_SF*Scaled_Variations_Up);
           myBaseHistgram.hYields_mu_scaleUncdn->Fill(jSR, Lumiscale*corr_SF*Scaled_Variations_Down);
           //PDF
-          myBaseHistgram.hYields_mu_pdfUncup->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Up);
+          myBaseHistgram.hYields_mu_pdfUncup->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Up*NNPDF_From_Median_Central);
           myBaseHistgram.hYields_mu_pdfUnccen->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Central);
-          myBaseHistgram.hYields_mu_pdfUncdn->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Down);
+          myBaseHistgram.hYields_mu_pdfUncdn->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Down*NNPDF_From_Median_Central);
         }
   	  
         FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*corr_SF);
@@ -721,6 +739,24 @@ int main(int argc, char* argv[]) {
       const double corr_SF_up = bSF * isrWght * ele_SF_up;
       const double corr_SF_dn = bSF * isrWght * ele_SF_dn;
 	
+      FillDouble(myBaseHistgram.hMET_el_noCuts, met, Lumiscale*corr_SF);
+      if( passnJets )
+         FillDouble(myBaseHistgram.hMET_el_passnJets, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis )
+         FillDouble(myBaseHistgram.hMET_el_passdPhis, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET )
+         FillDouble(myBaseHistgram.hMET_el_passMET, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets )
+         FillDouble(myBaseHistgram.hMET_el_passBJets, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger )
+         FillDouble(myBaseHistgram.hMET_el_passTagger, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT )
+         FillDouble(myBaseHistgram.hMET_el_passHT, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 )
+         FillDouble(myBaseHistgram.hMET_el_passMT2, met, Lumiscale*corr_SF);
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 && pass_mtwele )
+         FillDouble(myBaseHistgram.hMET_el_pass_mtw, met, Lumiscale*corr_SF);
+
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtwele)
       {

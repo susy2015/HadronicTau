@@ -40,6 +40,16 @@ class BaseHistgram
   TH1D *hdPhi1_mu;
   TH1D *hdPhi2_mu;
 
+  TH1D *hMET_mu_noCuts;
+  TH1D *hMET_mu_passnJets;
+  TH1D *hMET_mu_passdPhis;
+  TH1D *hMET_mu_passMET;
+  TH1D *hMET_mu_passBJets;
+  TH1D *hMET_mu_passTagger;
+  TH1D *hMET_mu_passHT;
+  TH1D *hMET_mu_passMT2;
+  TH1D *hMET_mu_pass_mtw;
+
   TH1D *hMET_el;
   TH1D *hNbJets_el;
   TH1D *hNTops_el;
@@ -50,6 +60,16 @@ class BaseHistgram
   TH1D *hdPhi0_el;
   TH1D *hdPhi1_el;
   TH1D *hdPhi2_el;
+
+  TH1D *hMET_el_noCuts;
+  TH1D *hMET_el_passnJets;
+  TH1D *hMET_el_passdPhis;
+  TH1D *hMET_el_passMET;
+  TH1D *hMET_el_passBJets;
+  TH1D *hMET_el_passTagger;
+  TH1D *hMET_el_passHT;
+  TH1D *hMET_el_passMT2;
+  TH1D *hMET_el_pass_mtw;
 
   TH1D *hYields_mu_bSFup;
   TH1D *hYields_mu_bSFdown;
@@ -123,6 +143,16 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi1_mu->Sumw2();
   hdPhi2_mu = new TH1D("hdPhi2_mu", title+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_mu->Sumw2();
+
+  hMET_mu_noCuts = new TH1D("hMET_mu_noCuts",title+";met [GeV];Events",24,250.,850.); hMET_mu_noCuts->Sumw2();
+  hMET_mu_passnJets = new TH1D("hMET_mu_passnJets",title+";met [GeV];Events",24,250.,850.); hMET_mu_passnJets->Sumw2();
+  hMET_mu_passdPhis = new TH1D("hMET_mu_passdPhis",title+";met [GeV];Events",24,250.,850.); hMET_mu_passdPhis->Sumw2();
+  hMET_mu_passMET = new TH1D("hMET_mu_passMET",title+";met [GeV];Events",24,250.,850.); hMET_mu_passMET->Sumw2();
+  hMET_mu_passBJets = new TH1D("hMET_mu_passBJets",title+";met [GeV];Events",24,250.,850.); hMET_mu_passBJets->Sumw2();
+  hMET_mu_passTagger = new TH1D("hMET_mu_passTagger",title+";met [GeV];Events",24,250.,850.); hMET_mu_passTagger->Sumw2();
+  hMET_mu_passHT = new TH1D("hMET_mu_passHT",title+";met [GeV];Events",24,250.,850.); hMET_mu_passHT->Sumw2();
+  hMET_mu_passMT2 = new TH1D("hMET_mu_passMT2",title+";met [GeV];Events",24,250.,850.); hMET_mu_passMT2->Sumw2();
+  hMET_mu_pass_mtw = new TH1D("hMET_mu_pass_mtw",title+";met [GeV];Events",24,250.,850.); hMET_mu_pass_mtw->Sumw2();
   
   hMET_el = new TH1D("hMET_el",title_el+";met [GeV];Events",24,250.,850.);
   hMET_el->Sumw2();
@@ -144,6 +174,16 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi1_el->Sumw2();
   hdPhi2_el = new TH1D("hdPhi2_el", title_el+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_el->Sumw2();
+  
+  hMET_el_noCuts = new TH1D("hMET_el_noCuts",title+";met [GeV];Events",24,250.,850.); hMET_el_noCuts->Sumw2();
+  hMET_el_passnJets = new TH1D("hMET_el_passnJets",title+";met [GeV];Events",24,250.,850.); hMET_el_passnJets->Sumw2();
+  hMET_el_passdPhis = new TH1D("hMET_el_passdPhis",title+";met [GeV];Events",24,250.,850.); hMET_el_passdPhis->Sumw2();
+  hMET_el_passMET = new TH1D("hMET_el_passMET",title+";met [GeV];Events",24,250.,850.); hMET_el_passMET->Sumw2();
+  hMET_el_passBJets = new TH1D("hMET_el_passBJets",title+";met [GeV];Events",24,250.,850.); hMET_el_passBJets->Sumw2();
+  hMET_el_passTagger = new TH1D("hMET_el_passTagger",title+";met [GeV];Events",24,250.,850.); hMET_el_passTagger->Sumw2();
+  hMET_el_passHT = new TH1D("hMET_el_passHT",title+";met [GeV];Events",24,250.,850.); hMET_el_passHT->Sumw2();
+  hMET_el_passMT2 = new TH1D("hMET_el_passMT2",title+";met [GeV];Events",24,250.,850.); hMET_el_passMT2->Sumw2();
+  hMET_el_pass_mtw = new TH1D("hMET_el_pass_mtw",title+";met [GeV];Events",24,250.,850.); hMET_el_pass_mtw->Sumw2();
   
   hYields_mu_bSFup = new TH1D("hYields_mu_bSFup", title+";search bin;Events",nSB,0,nSB);
   hYields_mu_bSFup->Sumw2();

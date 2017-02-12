@@ -515,9 +515,9 @@ int main(int argc, char* argv[])
           myBaseHistgram.hYields_LL_scaleUncup->Fill(kSR, Lumiscale*corr_SF*Scaled_Variations_Up);
           myBaseHistgram.hYields_LL_scaleUncdn->Fill(kSR, Lumiscale*corr_SF*Scaled_Variations_Down);
           //PDF
-          myBaseHistgram.hYields_LL_pdfUncup->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Up);
+          myBaseHistgram.hYields_LL_pdfUncup->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Up*NNPDF_From_Median_Central);
           myBaseHistgram.hYields_LL_pdfUnccen->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Central);
-          myBaseHistgram.hYields_LL_pdfUncdn->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Down);
+          myBaseHistgram.hYields_LL_pdfUncdn->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Down*NNPDF_From_Median_Central);
         }
         
         FillDouble(myBaseHistgram.hMET_LL, met, Lumiscale*corr_SF);

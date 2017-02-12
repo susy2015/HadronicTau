@@ -11,7 +11,7 @@ void PlotCSDataMC()
   TFile *file_Data = new TFile("Data_MET_CS.root");
   TFile *file_MC = new TFile("Mix_CS.root");
 //  const unsigned int kNDists = 28;
-  const unsigned int kNDists = 7;
+  const unsigned int kNDists = 16;
   TH1* hMC_mu[kNDists];
   TH1* hData_mu[kNDists];
   TH1* hMC_ele[kNDists];
@@ -20,7 +20,7 @@ void PlotCSDataMC()
   TH1* hRatio_ele[kNDists];
   for(unsigned int i = 0; i < kNDists; ++i) 
   {
-    TString name = "";
+    TString name = "", suffix = "";
     if(      i == 0 ) name = "MET";
     else if( i == 1 ) name = "NbJets";
     else if( i == 2 ) name = "NTops";
@@ -28,35 +28,24 @@ void PlotCSDataMC()
     else if( i == 4 ) name = "NJets";
     else if( i == 5 ) name = "HT";
     else if (i == 6 ) name = "Yields";
-    else if (i == 7 ) name = "CS_MT2_2D_nb1_nt1";
-    else if (i == 8 ) name = "CS_met_2D_nb1_nt1";
-    else if (i == 9 ) name = "CS_nJets_2D_nb1_nt1";
-    else if (i == 10) name = "CS_recoTopPt_2D_nb1_nt1";
-    else if (i == 11) name = "CS_MT2_2D_nb2_nt1";
-    else if (i == 12) name = "CS_met_2D_nb2_nt1";
-    else if (i == 13) name = "CS_nJets_2D_nb2_nt1";
-    else if (i == 14) name = "CS_recoTopPt_2D_nb2_nt1";
-    else if (i == 15) name = "CS_MT2_2D_nb1_nt2";
-    else if (i == 16) name = "CS_met_2D_nb1_nt2";
-    else if (i == 17) name = "CS_nJets_2D_nb1_nt2";
-    else if (i == 18) name = "CS_recoTopPt_2D_nb1_nt2";
-    else if (i == 19) name = "CS_MT2_2D_nb2_nt2";
-    else if (i == 20) name = "CS_met_2D_nb2_nt2";
-    else if (i == 21) name = "CS_nJets_2D_nb2_nt2";
-    else if (i == 22) name = "CS_recoTopPt_2D_nb2_nt2";
-    else if (i == 23) name = "CS_HT_2D_nb3_nt1";
-    else if (i == 24) name = "CS_HT_2D_nb3_nt2";
-    else if (i == 25) name = "CS_HT_2D_nb3_nt3";
-    else if (i == 26) name = "CS_HT_2D_nb1_nt3";
-    else if (i == 27) name = "CS_HT_2D_nb2_nt3";
+    else if (i == 7 ) suffix = "noCuts";
+    else if (i == 8 ) suffix = "passnJets";
+    else if (i == 9 ) suffix = "passdPhis";
+    else if (i == 10 ) suffix = "passMET";
+    else if (i == 11 ) suffix = "passBJets";
+    else if (i == 12 ) suffix = "passTagger";
+    else if (i == 13 ) suffix = "passHT";
+    else if (i == 14 ) suffix = "passMT2";
+    else if (i == 15 ) suffix = "pass_mtw";
     
     // Get histograms from file
     if( i>=7 && i<=kNDists-1 )
     {
-       hMC_mu[i] = (TH1D*)file_MC->Get("mu"+name);
-       hData_mu[i] = (TH1D*)file_Data->Get("mu"+name);
-       hMC_ele[i] = (TH1D*)file_MC->Get("ele"+name);
-       hData_ele[i] = (TH1D*)file_Data->Get("ele"+name);
+       name = "MET";
+       hMC_mu[i] = (TH1D*)file_MC->Get("hMET_mu_"+suffix);
+       hData_mu[i] = (TH1D*)file_Data->Get("hMET_mu_"+suffix);
+       hMC_ele[i] = (TH1D*)file_MC->Get("hMET_el_"+suffix);
+       hData_ele[i] = (TH1D*)file_Data->Get("hMET_el_"+suffix);
     }else
     {
        hMC_mu[i] = (TH1D*)file_MC->Get("h"+name+"_mu");
@@ -151,7 +140,7 @@ void PlotCSDataMC()
     leg_ele->AddEntry(hMC_ele[i],"MC","P");
 
     //Draw
-    TCanvas* can_mu = new TCanvas(name+"_mu",name,800,600);
+    TCanvas* can_mu = new TCanvas(name+"_mu"+suffix,name,800,600);
     TPad *pad1_mu = new TPad("pad1_mu", "pad1_mu", 0, 0.3, 1, 1.0);
     pad1_mu->SetBottomMargin(0); // Upper and lower plot are joined                                                                      
     pad1_mu->Draw();             // Draw the upper pad: pad1                                                                    
@@ -174,9 +163,9 @@ void PlotCSDataMC()
       fline->SetLineStyle(2);
       fline->Draw("same");
     }
-    can_mu->SaveAs(name+"_muCS.pdf");
+    can_mu->SaveAs(name+"_muCS"+suffix+".pdf");
 
-    TCanvas* can_ele = new TCanvas(name+"_ele",name,800,600);
+    TCanvas* can_ele = new TCanvas(name+"_ele"+suffix,name,800,600);
     TPad *pad1_ele = new TPad("pad1_ele", "pad1_ele", 0, 0.3, 1, 1.0);
     pad1_ele->SetBottomMargin(0); // Upper and lower plot are joined                                                                      
     pad1_ele->Draw();             // Draw the upper pad: pad1                                                                    
@@ -199,7 +188,7 @@ void PlotCSDataMC()
       fline->SetLineStyle(2);
       fline->Draw("same");
     }
-    can_ele->SaveAs(name+"_eleCS.pdf");
+    can_ele->SaveAs(name+"_eleCS"+suffix+".pdf");
     
   }
   if( !doshape )

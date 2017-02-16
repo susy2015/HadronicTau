@@ -7,52 +7,43 @@ const bool doshape = true;
 
 void PlotCSDataMC()
 {
+
+  std::vector<std::string> toPlot_names   = { "MET", "NbJets", "NTops", "MT2", "NJets", "HT", "MHT", "Yields", 
+                                              "MET",    "MET",       "MET",       "MET",     "MET",       "MET",        "MET",    "MET",     "MET",
+                                              "MHT"
+                                            };
+  std::vector<std::string> toPlot_suffixs = { "",    "",       "",      "",    "",      "",    "",    "", 
+                                              "noCuts", "passnJets", "passdPhis", "passMET", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw",
+                                              "noCuts"
+                                            };
   
   TFile *file_Data = new TFile("Data_MET_CS.root");
   TFile *file_MC = new TFile("Mix_CS.root");
-//  const unsigned int kNDists = 28;
-  const unsigned int kNDists = 16;
+  const unsigned int kNDists = toPlot_names.size();
   TH1* hMC_mu[kNDists];
   TH1* hData_mu[kNDists];
   TH1* hMC_ele[kNDists];
   TH1* hData_ele[kNDists];
   TH1* hRatio_mu[kNDists];
   TH1* hRatio_ele[kNDists];
-  for(unsigned int i = 0; i < kNDists; ++i) 
+  for(unsigned int i = 0; i < kNDists; ++i)
   {
-    TString name = "", suffix = "";
-    if(      i == 0 ) name = "MET";
-    else if( i == 1 ) name = "NbJets";
-    else if( i == 2 ) name = "NTops";
-    else if( i == 3 ) name = "MT2";
-    else if( i == 4 ) name = "NJets";
-    else if( i == 5 ) name = "HT";
-    else if (i == 6 ) name = "Yields";
-    else if (i == 7 ) suffix = "noCuts";
-    else if (i == 8 ) suffix = "passnJets";
-    else if (i == 9 ) suffix = "passdPhis";
-    else if (i == 10 ) suffix = "passMET";
-    else if (i == 11 ) suffix = "passBJets";
-    else if (i == 12 ) suffix = "passTagger";
-    else if (i == 13 ) suffix = "passHT";
-    else if (i == 14 ) suffix = "passMT2";
-    else if (i == 15 ) suffix = "pass_mtw";
-    
-    // Get histograms from file
-    if( i>=7 && i<=kNDists-1 )
-    {
-       name = "MET";
-       hMC_mu[i] = (TH1D*)file_MC->Get("hMET_mu_"+suffix);
-       hData_mu[i] = (TH1D*)file_Data->Get("hMET_mu_"+suffix);
-       hMC_ele[i] = (TH1D*)file_MC->Get("hMET_el_"+suffix);
-       hData_ele[i] = (TH1D*)file_Data->Get("hMET_el_"+suffix);
-    }else
+    TString name = toPlot_names[i], suffix = toPlot_suffixs[i];
+   
+    if( suffix.IsNull() )
     {
        hMC_mu[i] = (TH1D*)file_MC->Get("h"+name+"_mu");
        hData_mu[i] = (TH1D*)file_Data->Get("h"+name+"_mu");
        hMC_ele[i] = (TH1D*)file_MC->Get("h"+name+"_el");
        hData_ele[i] = (TH1D*)file_Data->Get("h"+name+"_el");
+    }else
+    {
+       hMC_mu[i] = (TH1D*)file_MC->Get("h"+name+"_mu_"+suffix);
+       hData_mu[i] = (TH1D*)file_Data->Get("h"+name+"_mu_"+suffix);
+       hMC_ele[i] = (TH1D*)file_MC->Get("h"+name+"_el_"+suffix);
+       hData_ele[i] = (TH1D*)file_Data->Get("h"+name+"_el_"+suffix);
     }
+
 //    hMC_mu[i]->Draw();
     //scaling
     hMC_mu[i]->Scale(scale_mc);

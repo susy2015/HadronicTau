@@ -440,6 +440,7 @@ int main(int argc, char* argv[]) {
       const double corr_SF_dn = bSF * isrWght * mu_SF_dn;
 
       FillDouble(myBaseHistgram.hMET_mu_noCuts, met, Lumiscale*corr_SF);
+      FillDouble(myBaseHistgram.hMHT_mu_noCuts, Mht, Lumiscale*corr_SF);
       if( passnJets )
          FillDouble(myBaseHistgram.hMET_mu_passnJets, met, Lumiscale*corr_SF);
       if( passnJets && passdPhis )
@@ -463,6 +464,14 @@ int main(int argc, char* argv[]) {
         int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
         if( jSR!= -1 )
         {
+          myBaseHistgram.hYields_mu_no_corr_SF->Fill(jSR, Lumiscale);
+          myBaseHistgram.hYields_mu_bSF->Fill(jSR, Lumiscale*bSF);
+          myBaseHistgram.hYields_mu_isrWght->Fill(jSR, Lumiscale*isrWght);
+          myBaseHistgram.hYields_mu_mu_SF->Fill(jSR, Lumiscale*mu_SF);
+          myBaseHistgram.hYields_mu_bSF_isrWght->Fill(jSR, Lumiscale*bSF*isrWght);
+          myBaseHistgram.hYields_mu_bSF_mu_SF->Fill(jSR, Lumiscale*bSF*mu_SF);
+          myBaseHistgram.hYields_mu_isrWght_mu_SF->Fill(jSR, Lumiscale*isrWght*mu_SF);
+
           myBaseHistgram.hYields_mu->Fill(jSR, Lumiscale*corr_SF);
 	  //bSF systematics
           myBaseHistgram.hYields_mu_bSFup->Fill(jSR, Lumiscale*corr_bSF_up);
@@ -483,6 +492,7 @@ int main(int argc, char* argv[]) {
         }
   	  
         FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*corr_SF);
+        FillDouble(myBaseHistgram.hMHT_mu, Mht, Lumiscale*corr_SF);
         FillDouble(myBaseHistgram.hMT2_mu, MT2, Lumiscale*corr_SF);
         FillInt(myBaseHistgram.hNbJets_mu, nbJets, Lumiscale*corr_SF);
         FillInt(myBaseHistgram.hNTops_mu, nTops, Lumiscale*corr_SF);	
@@ -740,6 +750,7 @@ int main(int argc, char* argv[]) {
       const double corr_SF_dn = bSF * isrWght * ele_SF_dn;
 	
       FillDouble(myBaseHistgram.hMET_el_noCuts, met, Lumiscale*corr_SF);
+      FillDouble(myBaseHistgram.hMHT_el_noCuts, Mht, Lumiscale*corr_SF);
       if( passnJets )
          FillDouble(myBaseHistgram.hMET_el_passnJets, met, Lumiscale*corr_SF);
       if( passnJets && passdPhis )
@@ -763,6 +774,14 @@ int main(int argc, char* argv[]) {
         int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
         if( kSR!= -1 )
         {
+          myBaseHistgram.hYields_el_no_corr_SF->Fill(kSR, Lumiscale);
+          myBaseHistgram.hYields_el_bSF->Fill(kSR, Lumiscale*bSF);
+          myBaseHistgram.hYields_el_isrWght->Fill(kSR, Lumiscale*isrWght);
+          myBaseHistgram.hYields_el_ele_SF->Fill(kSR, Lumiscale*ele_SF);
+          myBaseHistgram.hYields_el_bSF_isrWght->Fill(kSR, Lumiscale*bSF*isrWght);
+          myBaseHistgram.hYields_el_bSF_ele_SF->Fill(kSR, Lumiscale*bSF*ele_SF);
+          myBaseHistgram.hYields_el_isrWght_ele_SF->Fill(kSR, Lumiscale*isrWght*ele_SF);
+
           myBaseHistgram.hYields_el->Fill(kSR, Lumiscale*corr_SF);
 	  //bSF systematics
           myBaseHistgram.hYields_el_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
@@ -783,6 +802,7 @@ int main(int argc, char* argv[]) {
         }
   	  
         FillDouble(myBaseHistgram.hMET_el, met, Lumiscale*corr_SF);
+        FillDouble(myBaseHistgram.hMHT_el, Mht, Lumiscale*corr_SF);
         FillDouble(myBaseHistgram.hMT2_el, MT2, Lumiscale*corr_SF);
         FillInt(myBaseHistgram.hNbJets_el, nbJets, Lumiscale*corr_SF);
         FillInt(myBaseHistgram.hNTops_el, nTops, Lumiscale*corr_SF);	

@@ -30,6 +30,7 @@ class BaseHistgram
   void BookHistgram(const char *, const int&);
   TFile *oFile;
   TH1D *hMET_mu;
+  TH1D *hMHT_mu;
   TH1D *hNbJets_mu;
   TH1D *hNTops_mu;
   TH1D *hMT2_mu;
@@ -40,6 +41,14 @@ class BaseHistgram
   TH1D *hdPhi1_mu;
   TH1D *hdPhi2_mu;
 
+  TH1D *hYields_mu_no_corr_SF;
+  TH1D *hYields_mu_bSF;
+  TH1D *hYields_mu_isrWght;
+  TH1D *hYields_mu_mu_SF;
+  TH1D *hYields_mu_bSF_isrWght;
+  TH1D *hYields_mu_bSF_mu_SF;
+  TH1D *hYields_mu_isrWght_mu_SF;
+
   TH1D *hMET_mu_noCuts;
   TH1D *hMET_mu_passnJets;
   TH1D *hMET_mu_passdPhis;
@@ -49,8 +58,10 @@ class BaseHistgram
   TH1D *hMET_mu_passHT;
   TH1D *hMET_mu_passMT2;
   TH1D *hMET_mu_pass_mtw;
+  TH1D *hMHT_mu_noCuts;
 
   TH1D *hMET_el;
+  TH1D *hMHT_el;
   TH1D *hNbJets_el;
   TH1D *hNTops_el;
   TH1D *hMT2_el;
@@ -61,6 +72,14 @@ class BaseHistgram
   TH1D *hdPhi1_el;
   TH1D *hdPhi2_el;
 
+  TH1D *hYields_el_no_corr_SF;
+  TH1D *hYields_el_bSF;
+  TH1D *hYields_el_isrWght;
+  TH1D *hYields_el_ele_SF;
+  TH1D *hYields_el_bSF_isrWght;
+  TH1D *hYields_el_bSF_ele_SF;
+  TH1D *hYields_el_isrWght_ele_SF;
+
   TH1D *hMET_el_noCuts;
   TH1D *hMET_el_passnJets;
   TH1D *hMET_el_passdPhis;
@@ -70,6 +89,7 @@ class BaseHistgram
   TH1D *hMET_el_passHT;
   TH1D *hMET_el_passMT2;
   TH1D *hMET_el_pass_mtw;
+  TH1D *hMHT_el_noCuts;
 
   TH1D *hYields_mu_bSFup;
   TH1D *hYields_mu_bSFdown;
@@ -125,6 +145,7 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
  
   hMET_mu = new TH1D("hMET_mu",title+";met [GeV];Events",24,250.,850.);
   hMET_mu->Sumw2();
+  hMHT_mu = new TH1D("hMHT_mu",title+";met [GeV];Events",24,250.,850.); hMHT_mu->Sumw2();
   hNbJets_mu = new TH1D("hNbJets_mu",title+";N_{bjets};Events",4, 1, 5);
   hNbJets_mu->Sumw2();
   hNTops_mu = new TH1D("hNTops_mu",title+";N_{tops};Events",4, 1, 5);
@@ -144,6 +165,14 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi2_mu = new TH1D("hdPhi2_mu", title+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_mu->Sumw2();
 
+  hYields_mu_no_corr_SF = new TH1D("hYields_mu_no_corr_SF", title+";search bin;Events",nSB,0,nSB); hYields_mu_no_corr_SF->Sumw2();
+  hYields_mu_bSF = new TH1D("hYields_mu_bSF", title+";search bin;Events",nSB,0,nSB); hYields_mu_bSF->Sumw2();
+  hYields_mu_isrWght = new TH1D("hYields_mu_isrWght", title+";search bin;Events",nSB,0,nSB); hYields_mu_isrWght->Sumw2();
+  hYields_mu_mu_SF = new TH1D("hYields_mu_mu_SF", title+";search bin;Events",nSB,0,nSB); hYields_mu_mu_SF->Sumw2();
+  hYields_mu_bSF_isrWght = new TH1D("hYields_mu_bSF_isrWght", title+";search bin;Events",nSB,0,nSB); hYields_mu_bSF_isrWght->Sumw2();
+  hYields_mu_bSF_mu_SF = new TH1D("hYields_mu_bSF_mu_SF", title+";search bin;Events",nSB,0,nSB); hYields_mu_bSF_mu_SF->Sumw2();
+  hYields_mu_isrWght_mu_SF = new TH1D("hYields_mu_isrWght_mu_SF", title+";search bin;Events",nSB,0,nSB); hYields_mu_isrWght_mu_SF->Sumw2();
+
   hMET_mu_noCuts = new TH1D("hMET_mu_noCuts",title+";met [GeV];Events",24,250.,850.); hMET_mu_noCuts->Sumw2();
   hMET_mu_passnJets = new TH1D("hMET_mu_passnJets",title+";met [GeV];Events",24,250.,850.); hMET_mu_passnJets->Sumw2();
   hMET_mu_passdPhis = new TH1D("hMET_mu_passdPhis",title+";met [GeV];Events",24,250.,850.); hMET_mu_passdPhis->Sumw2();
@@ -153,9 +182,11 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hMET_mu_passHT = new TH1D("hMET_mu_passHT",title+";met [GeV];Events",24,250.,850.); hMET_mu_passHT->Sumw2();
   hMET_mu_passMT2 = new TH1D("hMET_mu_passMT2",title+";met [GeV];Events",24,250.,850.); hMET_mu_passMT2->Sumw2();
   hMET_mu_pass_mtw = new TH1D("hMET_mu_pass_mtw",title+";met [GeV];Events",24,250.,850.); hMET_mu_pass_mtw->Sumw2();
+  hMHT_mu_noCuts = new TH1D("hMHT_mu_noCuts",title+";met [GeV];Events",24,250.,850.); hMHT_mu_noCuts->Sumw2();
   
   hMET_el = new TH1D("hMET_el",title_el+";met [GeV];Events",24,250.,850.);
   hMET_el->Sumw2();
+  hMHT_el = new TH1D("hMHT_el",title_el+";met [GeV];Events",24,250.,850.); hMHT_el->Sumw2();
   hNbJets_el = new TH1D("hNbJets_el",title_el+";N_{bjets};Events",4, 1, 5);
   hNbJets_el->Sumw2();
   hNTops_el = new TH1D("hNTops_el",title_el+";N_{tops};Events",4, 1, 5);
@@ -175,6 +206,14 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi2_el = new TH1D("hdPhi2_el", title_el+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_el->Sumw2();
   
+  hYields_el_no_corr_SF = new TH1D("hYields_el_no_corr_SF", title+";search bin;Events",nSB,0,nSB); hYields_el_no_corr_SF->Sumw2();
+  hYields_el_bSF = new TH1D("hYields_el_bSF", title+";search bin;Events",nSB,0,nSB); hYields_el_bSF->Sumw2();
+  hYields_el_isrWght = new TH1D("hYields_el_isrWght", title+";search bin;Events",nSB,0,nSB); hYields_el_isrWght->Sumw2();
+  hYields_el_ele_SF = new TH1D("hYields_el_ele_SF", title+";search bin;Events",nSB,0,nSB); hYields_el_ele_SF->Sumw2();
+  hYields_el_bSF_isrWght = new TH1D("hYields_el_bSF_isrWght", title+";search bin;Events",nSB,0,nSB); hYields_el_bSF_isrWght->Sumw2();
+  hYields_el_bSF_ele_SF = new TH1D("hYields_el_bSF_ele_SF", title+";search bin;Events",nSB,0,nSB); hYields_el_bSF_ele_SF->Sumw2();
+  hYields_el_isrWght_ele_SF = new TH1D("hYields_el_isrWght_ele_SF", title+";search bin;Events",nSB,0,nSB); hYields_el_isrWght_ele_SF->Sumw2();
+
   hMET_el_noCuts = new TH1D("hMET_el_noCuts",title+";met [GeV];Events",24,250.,850.); hMET_el_noCuts->Sumw2();
   hMET_el_passnJets = new TH1D("hMET_el_passnJets",title+";met [GeV];Events",24,250.,850.); hMET_el_passnJets->Sumw2();
   hMET_el_passdPhis = new TH1D("hMET_el_passdPhis",title+";met [GeV];Events",24,250.,850.); hMET_el_passdPhis->Sumw2();
@@ -184,6 +223,7 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hMET_el_passHT = new TH1D("hMET_el_passHT",title+";met [GeV];Events",24,250.,850.); hMET_el_passHT->Sumw2();
   hMET_el_passMT2 = new TH1D("hMET_el_passMT2",title+";met [GeV];Events",24,250.,850.); hMET_el_passMT2->Sumw2();
   hMET_el_pass_mtw = new TH1D("hMET_el_pass_mtw",title+";met [GeV];Events",24,250.,850.); hMET_el_pass_mtw->Sumw2();
+  hMHT_el_noCuts = new TH1D("hMHT_el_noCuts",title+";met [GeV];Events",24,250.,850.); hMHT_el_noCuts->Sumw2();
   
   hYields_mu_bSFup = new TH1D("hYields_mu_bSFup", title+";search bin;Events",nSB,0,nSB);
   hYields_mu_bSFup->Sumw2();

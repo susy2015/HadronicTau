@@ -504,6 +504,10 @@ int main(int argc, char* argv[])
   
         if( kSR!= -1 )
         {
+  	  myBaseHistgram.hYields_LL_no_corr_SF->Fill(kSR, Lumiscale);
+  	  myBaseHistgram.hYields_LL_bSF->Fill(kSR, Lumiscale*bSF);
+  	  myBaseHistgram.hYields_LL_isrWght->Fill(kSR, Lumiscale*isrWght);
+
   	  myBaseHistgram.hYields_LL->Fill(kSR, Lumiscale*corr_SF);
   	  //bSF systematics                                                                                                                    
   	  myBaseHistgram.hYields_LL_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
@@ -571,6 +575,10 @@ int main(int argc, char* argv[])
 
         if( kSR!= -1 )
         {
+  	  myBaseHistgram.hYields_tau_no_corr_SF->Fill(kSR, Lumiscale);
+  	  myBaseHistgram.hYields_tau_bSF->Fill(kSR, Lumiscale*bSF);
+  	  myBaseHistgram.hYields_tau_isrWght->Fill(kSR, Lumiscale*isrWght);
+
   	  myBaseHistgram.hYields_tau->Fill(kSR, Lumiscale*corr_SF);
   	  //bSF systematics                                                                                                                    
   	  myBaseHistgram.hYields_tau_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);

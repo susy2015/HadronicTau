@@ -37,6 +37,10 @@ class BaseHistgram
   TH1D *hdPhi1_tau;
   TH1D *hdPhi2_tau;
 
+  TH1D *hYields_tau_no_corr_SF;
+  TH1D *hYields_tau_bSF;
+  TH1D *hYields_tau_isrWght;
+
   TH1D *hYields_Veto_tau;
   TH1D *hYields_Veto_tau_SF;
   TH1D *hYields_Pass_tau;
@@ -51,6 +55,10 @@ class BaseHistgram
   TH1D *hdPhi0_LL;
   TH1D *hdPhi1_LL;
   TH1D *hdPhi2_LL;
+
+  TH1D *hYields_LL_no_corr_SF;
+  TH1D *hYields_LL_bSF;
+  TH1D *hYields_LL_isrWght;
 
   TH1D *hYields_Veto_LL;
   TH1D *hYields_Veto_LL_SF;
@@ -129,6 +137,10 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi2_tau = new TH1D("hdPhi2_tau", title+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_tau->Sumw2();
 
+  hYields_tau_no_corr_SF = new TH1D("hYields_tau_no_corr_SF", title+";search bin;Events",nSB,0,nSB); hYields_tau_no_corr_SF->Sumw2();
+  hYields_tau_bSF = new TH1D("hYields_tau_bSF", title+";search bin;Events",nSB,0,nSB); hYields_tau_bSF->Sumw2();
+  hYields_tau_isrWght = new TH1D("hYields_tau_isrWght", title+";search bin;Events",nSB,0,nSB); hYields_tau_isrWght->Sumw2();
+
   hYields_Veto_tau = new TH1D("hYields_Veto_tau", title+";search bin;Events",nSB,0,nSB);
   hYields_Veto_tau->Sumw2();
   hYields_Veto_tau_SF = new TH1D("hYields_Veto_tau_SF", title+";search bin;Events",nSB,0,nSB);
@@ -157,6 +169,10 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi2_LL = new TH1D("hdPhi2_LL", title_LL+";dPhi2;Events", 16, 0, 3.2);
   hdPhi2_LL->Sumw2();
    
+  hYields_LL_no_corr_SF = new TH1D("hYields_LL_no_corr_SF", title+";search bin;Events",nSB,0,nSB); hYields_LL_no_corr_SF->Sumw2();
+  hYields_LL_bSF = new TH1D("hYields_LL_bSF", title+";search bin;Events",nSB,0,nSB); hYields_LL_bSF->Sumw2();
+  hYields_LL_isrWght = new TH1D("hYields_LL_isrWght", title+";search bin;Events",nSB,0,nSB); hYields_LL_isrWght->Sumw2();
+
   hYields_Veto_LL = new TH1D("hYields_Veto_LL", title+";search bin;Events",nSB,0,nSB);
   hYields_Veto_LL->Sumw2();
   hYields_Veto_LL_SF = new TH1D("hYields_Veto_LL_SF", title+";search bin;Events",nSB,0,nSB);

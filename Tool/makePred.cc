@@ -30,7 +30,7 @@ bool doVector_dataCard = false;
 // Do adJustBins_merge before calculating ANY ratio or summation and others...
 // Only adjustBins_merge for TF factor calcuation and systematics -- do NOT do this on data!
 bool do_mergeBins = false;
-void combCS_pred(const std::string key = "hadtau");
+void combCS_pred(const std::string key = "hadtau", const std::string sel_CS_str = "comb");
 
 const std::string filename_CS = "Mix_CS.root", filename_HadTauLL = "Mix_HadTauLL.root";
 
@@ -44,6 +44,15 @@ void predLLTry();
 
 int main(int argc, char* argv[])
 {
+  if (argc < 2)
+  {
+    std::cerr <<"Please give 1 arguments "<<" comb card or not"<<std::endl;
+    std::cerr <<" ./makePred comb[mu, ele]" << std::endl;
+    return -1;
+  }
+
+  const char *card_type_str= argv[1];
+
   TFile *file_Data_CS = new TFile("Data_MET_CS.root");
   TFile *file_MC_CS = new TFile("Mix_CS.root");
   TFile *file_HadTauLL = new TFile("Mix_HadTauLL.root");
@@ -187,13 +196,14 @@ int main(int argc, char* argv[])
   if( enable_prtTFfactors ) prtTFfactors();
   if( prtExtraInfo ){ predFromCSonHadtauLL(); predLLTry(); }
 
-  combCS_pred("hadtau");
-  combCS_pred("lostle");
+  combCS_pred("hadtau", card_type_str);
+  combCS_pred("lostle", card_type_str);
 
   return 1;
 }
 
-void combCS_pred(const std::string key)
+// sel_CS_str : "comb" -- combined   "mu" for muon only   "ele" for electron only
+void combCS_pred(const std::string key, const std::string sel_CS_str)
 {
   TH1 * hTF_local_mu = key == "hadtau" ? (TH1*) hTF_tau_mu->Clone() : (TH1*) hTF_LL_mu->Clone();
   TH1 * hTF_local_ele = key == "hadtau" ? (TH1*) hTF_tau_ele->Clone() : (TH1*) hTF_LL_ele->Clone();
@@ -349,6 +359,7 @@ void combCS_pred(const std::string key)
 
   std::vector<double> cached_fin_TF_muVec, cached_fin_TFerr_muVec;
   std::vector<double> cached_fin_TF_eleVec, cached_fin_TFerr_eleVec;
+  double sum_pred_local_avg = 0, sum_pred_local_from_mu = 0, sum_pred_local_from_ele = 0;
   for(unsigned int i=1; i<=hTF_local_mu->GetNbinsX(); i++)
   {
     const double lepSF_ratio_local = hYields_lepSF_ratio_local->GetBinContent(i);
@@ -444,61 +455,100 @@ void combCS_pred(const std::string key)
     const double pred_local_from_ele_syst_SF_dn_err = data_ele * std::abs(fin_TF_local_to_ele_SFdn - fin_TF_local_to_ele);
 
 // avg
-    const double pred_local_avg = 0.5*pred_local_from_mu + 0.5*pred_local_from_ele;
-    const double pred_local_avg_syst = 0.5*sqrt(pred_local_from_mu_syst*pred_local_from_mu_syst + pred_local_from_ele_syst*pred_local_from_ele_syst);
-    const double pred_local_avg_stat_up_err = 0.5*sqrt(pred_local_from_mu_stat_up_err*pred_local_from_mu_stat_up_err + pred_local_from_ele_stat_up_err*pred_local_from_ele_stat_up_err);
-    const double pred_local_avg_stat_dn_err = 0.5*sqrt(pred_local_from_mu_stat_dn_err*pred_local_from_mu_stat_dn_err + pred_local_from_ele_stat_dn_err*pred_local_from_ele_stat_dn_err);
-    const double pred_local_avg_syst_ISR_up_err = 0.5*sqrt(pred_local_from_mu_syst_ISR_up_err*pred_local_from_mu_syst_ISR_up_err + pred_local_from_ele_syst_ISR_up_err*pred_local_from_ele_syst_ISR_up_err);
-    const double pred_local_avg_syst_ISR_dn_err = 0.5*sqrt(pred_local_from_mu_syst_ISR_dn_err*pred_local_from_mu_syst_ISR_dn_err + pred_local_from_ele_syst_ISR_dn_err*pred_local_from_ele_syst_ISR_dn_err);
-    const double pred_local_avg_syst_bTag_up_err = 0.5*sqrt(pred_local_from_mu_syst_bTag_up_err*pred_local_from_mu_syst_bTag_up_err + pred_local_from_ele_syst_bTag_up_err*pred_local_from_ele_syst_bTag_up_err);
-    const double pred_local_avg_syst_bTag_dn_err = 0.5*sqrt(pred_local_from_mu_syst_bTag_dn_err*pred_local_from_mu_syst_bTag_dn_err + pred_local_from_ele_syst_bTag_dn_err*pred_local_from_ele_syst_bTag_dn_err);
+    const double pred_local_avg = sel_CS_str == "comb" ? 0.5*pred_local_from_mu + 0.5*pred_local_from_ele : sel_CS_str == "mu" ? pred_local_from_mu : sel_CS_str == "ele" ? pred_local_from_ele : 0;
+    const double pred_local_avg_syst = sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst*pred_local_from_mu_syst + pred_local_from_ele_syst*pred_local_from_ele_syst)
+                                     : sel_CS_str == "mu" ? pred_local_from_mu_syst : sel_CS_str == "ele" ? pred_local_from_ele_syst : 0;
+    const double pred_local_avg_stat_up_err = sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_stat_up_err*pred_local_from_mu_stat_up_err + pred_local_from_ele_stat_up_err*pred_local_from_ele_stat_up_err)
+                                            : sel_CS_str == "mu" ? pred_local_from_mu_stat_up_err : sel_CS_str == "ele" ? pred_local_from_ele_stat_up_err : 0;
+    const double pred_local_avg_stat_dn_err = sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_stat_dn_err*pred_local_from_mu_stat_dn_err + pred_local_from_ele_stat_dn_err*pred_local_from_ele_stat_dn_err)
+                                            : sel_CS_str == "mu" ? pred_local_from_mu_stat_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_stat_dn_err : 0;
+    const double pred_local_avg_syst_ISR_up_err = 
+                              sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_ISR_up_err*pred_local_from_mu_syst_ISR_up_err + pred_local_from_ele_syst_ISR_up_err*pred_local_from_ele_syst_ISR_up_err)
+                              : sel_CS_str == "mu" ? pred_local_from_mu_syst_ISR_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_ISR_up_err : 0;
+    const double pred_local_avg_syst_ISR_dn_err = 
+                              sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_ISR_dn_err*pred_local_from_mu_syst_ISR_dn_err + pred_local_from_ele_syst_ISR_dn_err*pred_local_from_ele_syst_ISR_dn_err)
+                              : sel_CS_str == "mu" ? pred_local_from_mu_syst_ISR_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_ISR_dn_err : 0;
 
-    const double pred_local_avg_syst_scaleUnc_up_err = 0.5*sqrt(pred_local_from_mu_syst_scaleUnc_up_err*pred_local_from_mu_syst_scaleUnc_up_err + pred_local_from_ele_syst_scaleUnc_up_err*pred_local_from_ele_syst_scaleUnc_up_err);
-    const double pred_local_avg_syst_scaleUnc_dn_err = 0.5*sqrt(pred_local_from_mu_syst_scaleUnc_dn_err*pred_local_from_mu_syst_scaleUnc_dn_err + pred_local_from_ele_syst_scaleUnc_dn_err*pred_local_from_ele_syst_scaleUnc_dn_err);
+    const double pred_local_avg_syst_bTag_up_err = 
+                              sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_bTag_up_err*pred_local_from_mu_syst_bTag_up_err + pred_local_from_ele_syst_bTag_up_err*pred_local_from_ele_syst_bTag_up_err)
+                              : sel_CS_str == "mu" ? pred_local_from_mu_syst_bTag_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_bTag_up_err : 0;
+    const double pred_local_avg_syst_bTag_dn_err = 
+                              sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_bTag_dn_err*pred_local_from_mu_syst_bTag_dn_err + pred_local_from_ele_syst_bTag_dn_err*pred_local_from_ele_syst_bTag_dn_err)
+                              : sel_CS_str == "mu" ? pred_local_from_mu_stat_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_stat_dn_err : 0;
 
-    const double pred_local_avg_syst_pdfUnc_up_err = 0.5*sqrt(pred_local_from_mu_syst_pdfUnc_up_err*pred_local_from_mu_syst_pdfUnc_up_err + pred_local_from_ele_syst_pdfUnc_up_err*pred_local_from_ele_syst_pdfUnc_up_err);
-    const double pred_local_avg_syst_pdfUnc_dn_err = 0.5*sqrt(pred_local_from_mu_syst_pdfUnc_dn_err*pred_local_from_mu_syst_pdfUnc_dn_err + pred_local_from_ele_syst_pdfUnc_dn_err*pred_local_from_ele_syst_pdfUnc_dn_err);
+    const double pred_local_avg_syst_scaleUnc_up_err = 
+              sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_scaleUnc_up_err*pred_local_from_mu_syst_scaleUnc_up_err + pred_local_from_ele_syst_scaleUnc_up_err*pred_local_from_ele_syst_scaleUnc_up_err)
+              : sel_CS_str == "mu" ? pred_local_from_mu_syst_scaleUnc_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_scaleUnc_up_err : 0;
+    const double pred_local_avg_syst_scaleUnc_dn_err = 
+              sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_scaleUnc_dn_err*pred_local_from_mu_syst_scaleUnc_dn_err + pred_local_from_ele_syst_scaleUnc_dn_err*pred_local_from_ele_syst_scaleUnc_dn_err)
+              : sel_CS_str == "mu" ? pred_local_from_mu_syst_scaleUnc_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_scaleUnc_dn_err : 0;
 
-    const double pred_local_avg_syst_metMag_up_err = 0.5*sqrt(pred_local_from_mu_syst_metMag_up_err*pred_local_from_mu_syst_metMag_up_err + pred_local_from_ele_syst_metMag_up_err*pred_local_from_ele_syst_metMag_up_err);
-    const double pred_local_avg_syst_metMag_dn_err = 0.5*sqrt(pred_local_from_mu_syst_metMag_dn_err*pred_local_from_mu_syst_metMag_dn_err + pred_local_from_ele_syst_metMag_dn_err*pred_local_from_ele_syst_metMag_dn_err);
+    const double pred_local_avg_syst_pdfUnc_up_err = 
+                      sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_pdfUnc_up_err*pred_local_from_mu_syst_pdfUnc_up_err + pred_local_from_ele_syst_pdfUnc_up_err*pred_local_from_ele_syst_pdfUnc_up_err)
+                      : sel_CS_str == "mu" ? pred_local_from_mu_syst_pdfUnc_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_pdfUnc_up_err : 0;
+    const double pred_local_avg_syst_pdfUnc_dn_err = 
+                      sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_pdfUnc_dn_err*pred_local_from_mu_syst_pdfUnc_dn_err + pred_local_from_ele_syst_pdfUnc_dn_err*pred_local_from_ele_syst_pdfUnc_dn_err)
+                      : sel_CS_str == "mu" ? pred_local_from_mu_syst_pdfUnc_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_pdfUnc_dn_err : 0;
 
-    const double pred_local_avg_syst_metPhi_up_err = 0.5*sqrt(pred_local_from_mu_syst_metPhi_up_err*pred_local_from_mu_syst_metPhi_up_err + pred_local_from_ele_syst_metPhi_up_err*pred_local_from_ele_syst_metPhi_up_err);
-    const double pred_local_avg_syst_metPhi_dn_err = 0.5*sqrt(pred_local_from_mu_syst_metPhi_dn_err*pred_local_from_mu_syst_metPhi_dn_err + pred_local_from_ele_syst_metPhi_dn_err*pred_local_from_ele_syst_metPhi_dn_err);
+    const double pred_local_avg_syst_metMag_up_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_metMag_up_err*pred_local_from_mu_syst_metMag_up_err + pred_local_from_ele_syst_metMag_up_err*pred_local_from_ele_syst_metMag_up_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_metMag_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_metMag_up_err : 0;
+    const double pred_local_avg_syst_metMag_dn_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_metMag_dn_err*pred_local_from_mu_syst_metMag_dn_err + pred_local_from_ele_syst_metMag_dn_err*pred_local_from_ele_syst_metMag_dn_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_metMag_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_metMag_dn_err : 0;
 
-    const double pred_local_avg_syst_jec_up_err = 0.5*sqrt(pred_local_from_mu_syst_jec_up_err*pred_local_from_mu_syst_jec_up_err + pred_local_from_ele_syst_jec_up_err*pred_local_from_ele_syst_jec_up_err);
-    const double pred_local_avg_syst_jec_dn_err = 0.5*sqrt(pred_local_from_mu_syst_jec_dn_err*pred_local_from_mu_syst_jec_dn_err + pred_local_from_ele_syst_jec_dn_err*pred_local_from_ele_syst_jec_dn_err);
+    const double pred_local_avg_syst_metPhi_up_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_metPhi_up_err*pred_local_from_mu_syst_metPhi_up_err + pred_local_from_ele_syst_metPhi_up_err*pred_local_from_ele_syst_metPhi_up_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_metPhi_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_metPhi_up_err : 0;
+    const double pred_local_avg_syst_metPhi_dn_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_metPhi_dn_err*pred_local_from_mu_syst_metPhi_dn_err + pred_local_from_ele_syst_metPhi_dn_err*pred_local_from_ele_syst_metPhi_dn_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_metPhi_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_metPhi_dn_err : 0;
 
-    const double pred_local_avg_syst_SF_up_err = 0.5*sqrt(pred_local_from_mu_syst_SF_up_err*pred_local_from_mu_syst_SF_up_err + pred_local_from_ele_syst_SF_up_err*pred_local_from_ele_syst_SF_up_err);
-    const double pred_local_avg_syst_SF_dn_err = 0.5*sqrt(pred_local_from_mu_syst_SF_dn_err*pred_local_from_mu_syst_SF_dn_err + pred_local_from_ele_syst_SF_dn_err*pred_local_from_ele_syst_SF_dn_err);
+    const double pred_local_avg_syst_jec_up_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_jec_up_err*pred_local_from_mu_syst_jec_up_err + pred_local_from_ele_syst_jec_up_err*pred_local_from_ele_syst_jec_up_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_jec_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_jec_up_err : 0;
+    const double pred_local_avg_syst_jec_dn_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_jec_dn_err*pred_local_from_mu_syst_jec_dn_err + pred_local_from_ele_syst_jec_dn_err*pred_local_from_ele_syst_jec_dn_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_jec_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_jec_dn_err : 0;
+
+    const double pred_local_avg_syst_SF_up_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_SF_up_err*pred_local_from_mu_syst_SF_up_err + pred_local_from_ele_syst_SF_up_err*pred_local_from_ele_syst_SF_up_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_SF_up_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_SF_up_err : 0;
+    const double pred_local_avg_syst_SF_dn_err = 
+                     sel_CS_str == "comb" ? 0.5*sqrt(pred_local_from_mu_syst_SF_dn_err*pred_local_from_mu_syst_SF_dn_err + pred_local_from_ele_syst_SF_dn_err*pred_local_from_ele_syst_SF_dn_err)
+                     : sel_CS_str == "mu" ? pred_local_from_mu_syst_SF_dn_err : sel_CS_str == "ele" ? pred_local_from_ele_syst_SF_dn_err : 0;
 
     const double pred_local_avg_rel_stat_up_err = pred_local_avg == 0 ? 0 : pred_local_avg_stat_up_err/pred_local_avg;
     const double pred_local_avg_rel_stat_dn_err = pred_local_avg == 0 ? 0 : pred_local_avg_stat_dn_err/pred_local_avg;
 // if pred_local_avg = 0 then force data_mu =1 and data_ele =1 to calculate the relative syst unc.
     if( relSys_for_ZERO )
     {
-      const double pred_local_avg_rel_syst = pred_local_avg == 0 ? sqrt(finErr_TF_local_to_mu*finErr_TF_local_to_mu + finErr_TF_local_to_ele*finErr_TF_local_to_ele)/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst/pred_local_avg;
-      const double pred_local_avg_rel_syst_ISR_up_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_ISR_up_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_ISR_up_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_ISR_up_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_ISR_up_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_ISR_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_ISR_dn_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_ISR_dn_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_ISR_dn_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_ISR_dn_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_ISR_dn_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_ISR_dn_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_bTag_up_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_bTag_up_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_bTag_up_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_bTag_up_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_bTag_up_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_bTag_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_bTag_dn_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_bTag_dn_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_bTag_dn_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_bTag_dn_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_bTag_dn_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_bTag_dn_err/pred_local_avg;
+      const double enable_mu = (sel_CS_str == "mu" || sel_CS_str == "comb") ? 1.0 : 0.0;
+      const double enable_ele = (sel_CS_str == "ele" || sel_CS_str == "comb") ? 1.0 : 0.0;
+      if( enable_mu == 0 && enable_ele ==0 ){ std::cout<<"both enable_mu and enable_ele is ZERO?"<<std::endl; return; }
+      const double pred_local_avg_rel_syst = pred_local_avg == 0 ? sqrt(enable_mu*finErr_TF_local_to_mu*enable_mu*finErr_TF_local_to_mu + enable_ele*finErr_TF_local_to_ele*enable_ele*finErr_TF_local_to_ele)/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst/pred_local_avg;
+      const double pred_local_avg_rel_syst_ISR_up_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_ISR_up_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_ISR_up_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_ISR_up_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_ISR_up_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_ISR_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_ISR_dn_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_ISR_dn_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_ISR_dn_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_ISR_dn_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_ISR_dn_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_ISR_dn_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_bTag_up_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_bTag_up_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_bTag_up_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_bTag_up_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_bTag_up_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_bTag_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_bTag_dn_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_bTag_dn_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_bTag_dn_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_bTag_dn_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_bTag_dn_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_bTag_dn_err/pred_local_avg;
   
-      const double pred_local_avg_rel_syst_scaleUnc_up_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_scaleUnc_up_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_scaleUnc_up_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_scaleUnc_up_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_scaleUnc_up_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_scaleUnc_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_scaleUnc_dn_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_scaleUnc_dn_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_scaleUnc_dn_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_scaleUnc_dn_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_scaleUnc_dn_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_scaleUnc_dn_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_scaleUnc_up_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_scaleUnc_up_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_scaleUnc_up_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_scaleUnc_up_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_scaleUnc_up_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_scaleUnc_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_scaleUnc_dn_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_scaleUnc_dn_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_scaleUnc_dn_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_scaleUnc_dn_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_scaleUnc_dn_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_scaleUnc_dn_err/pred_local_avg;
   
-      const double pred_local_avg_rel_syst_pdfUnc_up_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_pdfUnc_up_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_pdfUnc_up_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_pdfUnc_up_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_pdfUnc_up_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_pdfUnc_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_pdfUnc_dn_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_pdfUnc_dn_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_pdfUnc_dn_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_pdfUnc_dn_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_pdfUnc_dn_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_pdfUnc_dn_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_pdfUnc_up_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_pdfUnc_up_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_pdfUnc_up_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_pdfUnc_up_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_pdfUnc_up_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_pdfUnc_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_pdfUnc_dn_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_pdfUnc_dn_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_pdfUnc_dn_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_pdfUnc_dn_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_pdfUnc_dn_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_pdfUnc_dn_err/pred_local_avg;
   
-      const double pred_local_avg_rel_syst_metMag_up_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_metMag_up_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_metMag_up_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_metMag_up_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_metMag_up_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_metMag_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_metMag_dn_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_metMag_dn_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_metMag_dn_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_metMag_dn_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_metMag_dn_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_metMag_dn_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_metMag_up_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_metMag_up_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_metMag_up_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_metMag_up_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_metMag_up_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_metMag_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_metMag_dn_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_metMag_dn_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_metMag_dn_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_metMag_dn_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_metMag_dn_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_metMag_dn_err/pred_local_avg;
   
-      const double pred_local_avg_rel_syst_metPhi_up_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_metPhi_up_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_metPhi_up_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_metPhi_up_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_metPhi_up_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_metPhi_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_metPhi_dn_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_metPhi_dn_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_metPhi_dn_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_metPhi_dn_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_metPhi_dn_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_metPhi_dn_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_metPhi_up_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_metPhi_up_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_metPhi_up_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_metPhi_up_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_metPhi_up_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_metPhi_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_metPhi_dn_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_metPhi_dn_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_metPhi_dn_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_metPhi_dn_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_metPhi_dn_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_metPhi_dn_err/pred_local_avg;
   
-      const double pred_local_avg_rel_syst_jec_up_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_jec_up_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_jec_up_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_jec_up_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_jec_up_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_jec_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_jec_dn_err = pred_local_avg == 0 ? sqrt(fin_TF_local_to_mu * systErr_rel_jec_dn_muVec[i-1]*fin_TF_local_to_mu * systErr_rel_jec_dn_muVec[i-1] + fin_TF_local_to_ele * systErr_rel_jec_dn_eleVec[i-1]*fin_TF_local_to_ele * systErr_rel_jec_dn_eleVec[i-1])/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_jec_dn_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_jec_up_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_jec_up_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_jec_up_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_jec_up_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_jec_up_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_jec_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_jec_dn_err = pred_local_avg == 0 ? sqrt(enable_mu*fin_TF_local_to_mu * systErr_rel_jec_dn_muVec[i-1]*enable_mu*fin_TF_local_to_mu * systErr_rel_jec_dn_muVec[i-1] + enable_ele*fin_TF_local_to_ele * systErr_rel_jec_dn_eleVec[i-1]*enable_ele*fin_TF_local_to_ele * systErr_rel_jec_dn_eleVec[i-1])/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_jec_dn_err/pred_local_avg;
   
-      const double pred_local_avg_rel_syst_SF_up_err = pred_local_avg == 0 ? sqrt( std::abs(fin_TF_local_to_mu_SFup - fin_TF_local_to_mu)*std::abs(fin_TF_local_to_mu_SFup - fin_TF_local_to_mu) + std::abs(fin_TF_local_to_ele_SFup - fin_TF_local_to_ele) * std::abs(fin_TF_local_to_ele_SFup - fin_TF_local_to_ele) )/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_SF_up_err/pred_local_avg;
-      const double pred_local_avg_rel_syst_SF_dn_err = pred_local_avg == 0 ? sqrt( std::abs(fin_TF_local_to_mu_SFdn - fin_TF_local_to_mu)*std::abs(fin_TF_local_to_mu_SFdn - fin_TF_local_to_mu) + std::abs(fin_TF_local_to_ele_SFdn - fin_TF_local_to_ele) * std::abs(fin_TF_local_to_ele_SFdn - fin_TF_local_to_ele) )/(fin_TF_local_to_mu + fin_TF_local_to_ele) : pred_local_avg_syst_SF_dn_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_SF_up_err = pred_local_avg == 0 ? sqrt( std::abs(enable_mu*fin_TF_local_to_mu_SFup - enable_mu*fin_TF_local_to_mu)*std::abs(enable_mu*fin_TF_local_to_mu_SFup - enable_mu*fin_TF_local_to_mu) + std::abs(enable_ele*fin_TF_local_to_ele_SFup - enable_ele*fin_TF_local_to_ele) * std::abs(enable_ele*fin_TF_local_to_ele_SFup - enable_ele*fin_TF_local_to_ele) )/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_SF_up_err/pred_local_avg;
+      const double pred_local_avg_rel_syst_SF_dn_err = pred_local_avg == 0 ? sqrt( std::abs(enable_mu*fin_TF_local_to_mu_SFdn - enable_mu*fin_TF_local_to_mu)*std::abs(enable_mu*fin_TF_local_to_mu_SFdn - enable_mu*fin_TF_local_to_mu) + std::abs(enable_ele*fin_TF_local_to_ele_SFdn - enable_ele*fin_TF_local_to_ele) * std::abs(enable_ele*fin_TF_local_to_ele_SFdn - enable_ele*fin_TF_local_to_ele) )/(enable_mu*fin_TF_local_to_mu + enable_ele*fin_TF_local_to_ele) : pred_local_avg_syst_SF_dn_err/pred_local_avg;
 
       cached_rateVec.push_back(pred_local_avg); cached_stat_upErrVec.push_back(pred_local_avg_rel_stat_up_err); cached_stat_dnErrVec.push_back(pred_local_avg_rel_stat_dn_err);
       cached_stat_abs_upErrVec.push_back(pred_local_avg_stat_up_err); cached_stat_abs_dnErrVec.push_back(pred_local_avg_stat_dn_err);
@@ -558,7 +608,12 @@ void combCS_pred(const std::string key)
              <<"\t"<<std::setw(6)<<pred_local_from_ele<<" + "<<std::setw(6)<<pred_local_from_ele_stat_up_err<<" - "<<std::setw(6)<<pred_local_from_ele_stat_dn_err<<" +- "<<std::setw(6)<<pred_local_from_ele_syst
              <<"\t"<<std::setw(6)<<pred_local_avg<<" + "<<std::setw(6)<<pred_local_avg_stat_up_err<<" - "<<std::setw(6)<<pred_local_avg_stat_dn_err<<" +- "<<std::setw(6)<<pred_local_avg_syst
              <<std::endl;
+    sum_pred_local_avg += pred_local_avg;
+    sum_pred_local_from_mu += pred_local_from_mu;
+    sum_pred_local_from_ele += pred_local_from_ele;
   }
+
+  std::cout<<"\nsum_pred_local_from_mu : "<<sum_pred_local_from_mu<<"  sum_pred_local_from_ele : "<<sum_pred_local_from_ele<<"  sum_pred_local_avg : "<<sum_pred_local_avg<<std::endl<<std::endl;
 
   TString vecIdStr, divStr, cloPre, cloAft;
   int setWnum;
@@ -576,7 +631,7 @@ void combCS_pred(const std::string key)
      setWnum = 7;
   }
 
-  std::ofstream of_local(key+".txt", std::ofstream::out);
+  std::ofstream of_local(key+"_"+sel_CS_str+".txt", std::ofstream::out);
   char tmpstr[200];
   of_local<< std::setprecision(3)<<std::fixed<<std::left;
   const int nTotChn = hTF_local_mu->GetNbinsX();

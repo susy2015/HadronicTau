@@ -42,7 +42,10 @@ int main(int argc, char* argv[])
    }
 
    const std::string dataCardFile = argv[1];
-   std::cout<<"\nReading in "<<dataCardFile.c_str()<<" ..."<<std::endl;
+   // assumming it's always with ".txt"
+   const TString keyStr = dataCardFile.substr(0, dataCardFile.size()-4);
+   if( argc >=3 ) doZoom = std::atoi(argv[2]) ==0 ? false : true;
+   std::cout<<"\nReading in "<<dataCardFile.c_str()<<"  doZoom : "<<doZoom<<"  keyStr : "<<keyStr<<"  ..."<<std::endl;
 
    sb = new SearchBins();
 
@@ -247,7 +250,7 @@ int main(int argc, char* argv[])
    const double width = 400 * nType, height = 400;
    TCanvas * cd = new TCanvas("cd", "cd", width, height);
    cd->Divide(nType, 1);
-   cd->Print("systUnc.pdf[");
+   cd->Print("systUnc_"+keyStr+".pdf[");
    for(auto miter : systAccHistSqrtMap)
    {
       for(int it=0; it<nType; it++)
@@ -257,9 +260,9 @@ int main(int argc, char* argv[])
          miter.second[it]->SetTitle(miter.first.c_str());
          miter.second[it]->Draw("hist");
       }
-      cd->Print("systUnc.pdf");
+      cd->Print("systUnc_"+keyStr+".pdf");
    }
-   cd->Print("systUnc.pdf]");
+   cd->Print("systUnc_"+keyStr+".pdf]");
 
 // 
    TCanvas * c1 = new TCanvas("c1", "c1", 800, 800);
@@ -290,7 +293,7 @@ int main(int argc, char* argv[])
         leg->AddEntry(rit->second[it], keyDisptMap[rit->first].c_str(), "F");
      }
      leg->Draw();
-     c1->Print(TString("stack_syst" + std::to_string(it) + ".pdf"));
+     c1->Print(TString("stack_syst" + std::to_string(it) + "_" + keyStr + ".pdf"));
    }
 
 //
@@ -304,14 +307,14 @@ int main(int argc, char* argv[])
    h1_TF_to_ele->SetLineColor(kRed);
    h1_TF_to_ele->SetMarkerColor(kRed);
    h1_TF_to_ele->Draw();
-   c1->Print("ele_TF.pdf");
+   c1->Print("ele_TF_" + keyStr + ".pdf");
 
    c1->cd();
    h1_TF_to_mu->GetYaxis()->SetRangeUser(0, h1_TF_to_mu->GetMaximum()*1.2);
    h1_TF_to_mu->SetLineColor(kBlue);
    h1_TF_to_mu->SetMarkerColor(kBlue);
    h1_TF_to_mu->Draw();
-   c1->Print("mu_TF.pdf");
+   c1->Print("mu_TF_" + keyStr + ".pdf");
 
    leg_TF->Clear();
    h1_TF_to_mu->GetYaxis()->SetRangeUser(0, h1_TF_to_mu->GetMaximum()*1.5);
@@ -321,7 +324,7 @@ int main(int argc, char* argv[])
    leg_TF->AddEntry(h1_TF_to_mu, "TF for #mu CS", "L"); 
    leg_TF->AddEntry(h1_TF_to_ele, "TF for e CS", "L");
    leg_TF->Draw();
-   c1->Print("comp_TF.pdf");
+   c1->Print("comp_TF_" + keyStr + ".pdf");
 
 /*
    leg->Clear();
@@ -366,7 +369,8 @@ int main(int argc, char* argv[])
    leg2->SetFillColor(0);
    leg2->SetTextFont(42);
    leg2->SetTextSize(0.035);
-   leg2->SetHeader("Hadronic #tau Background");
+   if( keyStr.Contains("hadtau") ) leg2->SetHeader("Hadronic #tau Background");
+   else if (keyStr.Contains("lostle") ) leg2->SetHeader("Lost Lepton Background");
    leg2->AddEntry(h1_rate,"Data Prediction.","p");
 
    double legendX1 = .58;
@@ -395,8 +399,9 @@ int main(int argc, char* argv[])
    catLeg_unc->SetFillColor(kWhite);
    catLeg_unc->SetBorderSize(0);
    catLeg_unc->Draw();
-    
-   c1->Print("pred.pdf");
+   
+   if( !doZoom ) c1->Print("pred_full_" + keyStr + ".pdf");
+   else c1->Print("pred_zoomin_" + keyStr + ".pdf");
 
    return 1;
 }

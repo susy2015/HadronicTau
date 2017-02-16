@@ -133,8 +133,8 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
     hExp_pdfUncsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_pdfUnc"+name);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_pdfUncsys[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_pdfUncsys[i]);
-    hRatio_Exp_CS_pdfUncsys[i] = (TH1D*)hExp_pdfUncsys[i]->Clone("Ratio");
-    hRatio_Exp_CS_pdfUncsys[i]->Divide(hCS_pdfUncsys[i]);
+//    hRatio_Exp_CS_pdfUncsys[i] = (TH1D*)hExp_pdfUncsys[i]->Clone("Ratio");
+//    hRatio_Exp_CS_pdfUncsys[i]->Divide(hCS_pdfUncsys[i]);
 
     if(      i == 0 ) name = "Up";
     else if( i == 1 ) name = "Dn";
@@ -160,12 +160,30 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
     hRatio_Exp_CS_jecsys[i] = (TH1D*)hExp_jecsys[i]->Clone("Ratio");
     hRatio_Exp_CS_jecsys[i]->Divide(hCS_jecsys[i]);
   }
-  double sum_pdfUncsys_up = 0, sum_pdfUncsys_cen = 0, sum_pdfUncsys_dn = 0;
-  for(unsigned int i=1; i<hRatio_Exp_CS_pdfUncsys_cen->GetNbinsX(); i++)
+  double sum_CS_pdfUncsys_up = 0, sum_CS_pdfUncsys_cen = 0, sum_CS_pdfUncsys_dn = 0;
+  for(unsigned int i=1; i<hCS_pdfUncsys_cen->GetNbinsX(); i++)
   {
-     sum_pdfUncsys_cen += hRatio_Exp_CS_pdfUncsys_cen->GetBinContent(i);
-     sum_pdfUncsys_up += hRatio_Exp_CS_pdfUncsys[0]->GetBinContent(i);
-     sum_pdfUncsys_dn += hRatio_Exp_CS_pdfUncsys[1]->GetBinContent(i);
+     sum_CS_pdfUncsys_cen += hCS_pdfUncsys_cen->GetBinContent(i);
+     sum_CS_pdfUncsys_up += hCS_pdfUncsys[0]->GetBinContent(i);
+     sum_CS_pdfUncsys_dn += hCS_pdfUncsys[1]->GetBinContent(i);
+  }
+  double sum_Exp_pdfUncsys_up = 0, sum_Exp_pdfUncsys_cen = 0, sum_Exp_pdfUncsys_dn = 0;
+  for(unsigned int i=1; i<hExp_pdfUncsys_cen->GetNbinsX(); i++)
+  {
+     sum_Exp_pdfUncsys_cen += hExp_pdfUncsys_cen->GetBinContent(i);
+     sum_Exp_pdfUncsys_up += hExp_pdfUncsys[0]->GetBinContent(i);
+     sum_Exp_pdfUncsys_dn += hExp_pdfUncsys[1]->GetBinContent(i);
+  }
+  hCS_pdfUncsys[0]->Scale(sum_CS_pdfUncsys_cen/sum_CS_pdfUncsys_up);
+  hCS_pdfUncsys[1]->Scale(sum_CS_pdfUncsys_cen/sum_CS_pdfUncsys_dn);
+
+  hExp_pdfUncsys[0]->Scale(sum_Exp_pdfUncsys_cen/sum_Exp_pdfUncsys_up);
+  hExp_pdfUncsys[1]->Scale(sum_Exp_pdfUncsys_cen/sum_Exp_pdfUncsys_dn);
+
+  for(unsigned int i = 0; i < kNDists; ++i)
+  {
+     hRatio_Exp_CS_pdfUncsys[i] = (TH1D*)hExp_pdfUncsys[i]->Clone("Ratio");
+     hRatio_Exp_CS_pdfUncsys[i]->Divide(hCS_pdfUncsys[i]);
   }
 /*
   hRatio_Exp_CS_pdfUncsys_cen->Scale(1./sum_pdfUncsys_cen);

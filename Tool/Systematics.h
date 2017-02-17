@@ -54,14 +54,17 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
   file_HadTauLL = new TFile(filename_HadTauLL);
 
   TH1D *hCS = (TH1D*)file_CS->Get("hYields_"+csStr);
-  TH1D *hExp = (TH1D*)file_HadTauLL->Get("hYields_"+expStr);
+  TH1D *hExp = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau") : nullptr;
+  if( hExp == nullptr ){ std::cout<<"illigal expStr : "<<expStr<<std::endl; return; }
+  if( expStr == "comb" ) hExp->Add((TH1D*)file_HadTauLL->Get("hYields_LL"));
   if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS);
   if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp);
   TH1D *hRatio_Exp_CS = (TH1D*)hExp->Clone("Ratio");
   hRatio_Exp_CS->Divide(hCS);
 
   TH1D *hCS_pdfUncsys_cen = (TH1D*)file_CS->Get("hYields_"+csStr+"_pdfUnccen");
-  TH1D *hExp_pdfUncsys_cen = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_pdfUnccen");
+  TH1D *hExp_pdfUncsys_cen = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_pdfUnccen") : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_pdfUnccen") : nullptr;
+  if( expStr == "comb" ) hExp_pdfUncsys_cen->Add((TH1D*)file_HadTauLL->Get("hYields_LL_pdfUnccen"));
   if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_pdfUncsys_cen);
   if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_pdfUncsys_cen);
   TH1D *hRatio_Exp_CS_pdfUncsys_cen = (TH1D*)hExp_pdfUncsys_cen->Clone("Ratio");
@@ -103,7 +106,8 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
     else if( i == 1 ) name = "down";
     // Get histograms from file                                                                                                                
     hCS_ISR[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_isr"+name);
-    hExp_ISR[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_isr"+name);
+    hExp_ISR[i] = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_isr"+name) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_isr"+name) : nullptr;
+    if( expStr == "comb" ) hExp_ISR[i]->Add((TH1D*)file_HadTauLL->Get("hYields_LL_isr"+name));
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_ISR[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_ISR[i]);
     //Ratio                                                                                                                                   
@@ -112,7 +116,8 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
 
 // bSF
     hCS_bSF[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_bSF"+name);
-    hExp_bSF[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_bSF"+name);
+    hExp_bSF[i] = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_bSF"+name) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_bSF"+name) : nullptr;
+    if( expStr == "comb" ) hExp_bSF[i]->Add((TH1D*)file_HadTauLL->Get("hYields_LL_bSF"+name));
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_bSF[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_bSF[i]);
     //Ratio                                                                                                                                   
@@ -123,14 +128,16 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
     else if( i == 1 ) name = "dn";
 
     hCS_scaleUncsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_scaleUnc"+name);
-    hExp_scaleUncsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_scaleUnc"+name);
+    hExp_scaleUncsys[i] = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_scaleUnc"+name) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_scaleUnc"+name) : nullptr;
+    if( expStr == "comb" ) hExp_scaleUncsys[i]->Add((TH1D*)file_HadTauLL->Get("hYields_LL_scaleUnc"+name));
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_scaleUncsys[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_scaleUncsys[i]);
     hRatio_Exp_CS_scaleUncsys[i] = (TH1D*)hExp_scaleUncsys[i]->Clone("Ratio");
     hRatio_Exp_CS_scaleUncsys[i]->Divide(hCS_scaleUncsys[i]);
 
     hCS_pdfUncsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_pdfUnc"+name);
-    hExp_pdfUncsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_pdfUnc"+name);
+    hExp_pdfUncsys[i] = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_pdfUnc"+name) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_pdfUnc"+name) : nullptr;
+    if( expStr == "comb" ) hExp_pdfUncsys[i]->Add((TH1D*)file_HadTauLL->Get("hYields_LL_pdfUnc"+name));
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_pdfUncsys[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_pdfUncsys[i]);
 //    hRatio_Exp_CS_pdfUncsys[i] = (TH1D*)hExp_pdfUncsys[i]->Clone("Ratio");
@@ -140,21 +147,24 @@ Systematics::Systematics(const TString expStr, const TString csStr, const TStrin
     else if( i == 1 ) name = "Dn";
 
     hCS_metMagsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_metMag"+name);
-    hExp_metMagsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_metMag"+name);
+    hExp_metMagsys[i] = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_metMag"+name) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_metMag"+name) : nullptr;
+    if( expStr == "comb" ) hExp_metMagsys[i]->Add((TH1D*)file_HadTauLL->Get("hYields_LL_metMag"+name));
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_metMagsys[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_metMagsys[i]);
     hRatio_Exp_CS_metMagsys[i] = (TH1D*)hExp_metMagsys[i]->Clone("Ratio");
     hRatio_Exp_CS_metMagsys[i]->Divide(hCS_metMagsys[i]);
 
     hCS_metPhisys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_metPhi"+name);
-    hExp_metPhisys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_metPhi"+name);
+    hExp_metPhisys[i] = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_metPhi"+name) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_metPhi"+name) : nullptr;
+    if( expStr == "comb" ) hExp_metPhisys[i]->Add((TH1D*)file_HadTauLL->Get("hYields_LL_metPhi"+name));
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_metPhisys[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_metPhisys[i]);
     hRatio_Exp_CS_metPhisys[i] = (TH1D*)hExp_metPhisys[i]->Clone("Ratio");
     hRatio_Exp_CS_metPhisys[i]->Divide(hCS_metPhisys[i]);
 
     hCS_jecsys[i] = (TH1D*)file_CS->Get("hYields_"+csStr+"_jec"+name);
-    hExp_jecsys[i] = (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_jec"+name);
+    hExp_jecsys[i] = (expStr=="tau" || expStr=="LL") ? (TH1D*)file_HadTauLL->Get("hYields_"+expStr+"_jec"+name) : expStr=="comb"? (TH1D*)file_HadTauLL->Get("hYields_tau_jec"+name) : nullptr;
+    if( expStr == "comb" ) hExp_jecsys[i]->Add((TH1D*)file_HadTauLL->Get("hYields_LL_jec"+name));
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hCS_jecsys[i]);
     if( do_mergeBins_ ) predSpec::adjustBins_merge(hExp_jecsys[i]);
     hRatio_Exp_CS_jecsys[i] = (TH1D*)hExp_jecsys[i]->Clone("Ratio");

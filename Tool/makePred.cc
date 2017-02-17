@@ -196,28 +196,30 @@ int main(int argc, char* argv[])
   if( enable_prtTFfactors ) prtTFfactors();
   if( prtExtraInfo ){ predFromCSonHadtauLL(); predLLTry(); }
 
+  combCS_pred("comb", card_type_str);
   combCS_pred("hadtau", card_type_str);
   combCS_pred("lostle", card_type_str);
 
   return 1;
 }
 
+// key : "hadtau" for hadtau only  "lostle" for lostle only  "comb" for combination (note that always default to "comb"...)
 // sel_CS_str : "comb" -- combined   "mu" for muon only   "ele" for electron only
 void combCS_pred(const std::string key, const std::string sel_CS_str)
 {
-  TH1 * hTF_local_mu = key == "hadtau" ? (TH1*) hTF_tau_mu->Clone() : (TH1*) hTF_LL_mu->Clone();
-  TH1 * hTF_local_ele = key == "hadtau" ? (TH1*) hTF_tau_ele->Clone() : (TH1*) hTF_LL_ele->Clone();
-  TH1 * hYields_lepSF_ratio_local = key == "hadtau" ? (TH1*) hYields_lepSF_ratio_tau->Clone() : (TH1*) hYields_lepSF_ratio_LL->Clone();
-  Systematics systCalc_mu = key == "hadtau"? Systematics("tau", "mu", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : Systematics("LL", "mu", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins);
-  Systematics systCalc_el = key == "hadtau"? Systematics("tau", "el", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : Systematics("LL", "el", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins);
+  TH1 * hTF_local_mu = key == "hadtau" ? (TH1*) hTF_tau_mu->Clone() : key == "lostle"? (TH1*) hTF_LL_mu->Clone() : (TH1*) hTF_sum_mu->Clone();
+  TH1 * hTF_local_ele = key == "hadtau" ? (TH1*) hTF_tau_ele->Clone() : key == "lostle"? (TH1*) hTF_LL_ele->Clone() : (TH1*) hTF_sum_ele->Clone();
+  TH1 * hYields_lepSF_ratio_local = key == "hadtau" ? (TH1*) hYields_lepSF_ratio_tau->Clone() : key == "lostle"? (TH1*) hYields_lepSF_ratio_LL->Clone() : (TH1*)hYields_lepSF_ratio_sum->Clone();
+  Systematics systCalc_mu = key == "hadtau"? Systematics("tau", "mu", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : key == "lostle"? Systematics("LL", "mu", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : Systematics("comb", "mu", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins);
+  Systematics systCalc_el = key == "hadtau"? Systematics("tau", "el", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : key == "lostle"? Systematics("LL", "el", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins) : Systematics("comb", "el", filename_CS.c_str(), filename_HadTauLL.c_str(), do_mergeBins);
 
-  TH1 * hTF_local_mu_SFup = key == "hadtau" ? (TH1*) hTF_tau_mu_SFup->Clone() : (TH1*) hTF_LL_mu_SFup->Clone();
-  TH1 * hTF_local_ele_SFup = key == "hadtau" ? (TH1*) hTF_tau_ele_SFup->Clone() : (TH1*) hTF_LL_ele_SFup->Clone();
-  TH1 * hYields_lepSF_ratio_local_SFup = key == "hadtau" ? (TH1*) hYields_lepSF_ratio_tau_SFup->Clone() : (TH1*) hYields_lepSF_ratio_LL_SFup->Clone();
+  TH1 * hTF_local_mu_SFup = key == "hadtau" ? (TH1*) hTF_tau_mu_SFup->Clone() : key == "lostle" ? (TH1*) hTF_LL_mu_SFup->Clone() : (TH1*) hTF_sum_mu_SFup->Clone();
+  TH1 * hTF_local_ele_SFup = key == "hadtau" ? (TH1*) hTF_tau_ele_SFup->Clone() : key == "lostle" ? (TH1*) hTF_LL_ele_SFup->Clone() : (TH1*) hTF_sum_ele_SFup->Clone();
+  TH1 * hYields_lepSF_ratio_local_SFup = key == "hadtau" ? (TH1*) hYields_lepSF_ratio_tau_SFup->Clone() : key == "lostle" ? (TH1*) hYields_lepSF_ratio_LL_SFup->Clone() : (TH1*) hYields_lepSF_ratio_sum_SFup->Clone();
 
-  TH1 * hTF_local_mu_SFdn = key == "hadtau" ? (TH1*) hTF_tau_mu_SFdn->Clone() : (TH1*) hTF_LL_mu_SFdn->Clone();
-  TH1 * hTF_local_ele_SFdn = key == "hadtau" ? (TH1*) hTF_tau_ele_SFdn->Clone() : (TH1*) hTF_LL_ele_SFdn->Clone();
-  TH1 * hYields_lepSF_ratio_local_SFdn = key == "hadtau" ? (TH1*) hYields_lepSF_ratio_tau_SFdn->Clone() : (TH1*) hYields_lepSF_ratio_LL_SFdn->Clone();
+  TH1 * hTF_local_mu_SFdn = key == "hadtau" ? (TH1*) hTF_tau_mu_SFdn->Clone() : key == "lostle" ? (TH1*) hTF_LL_mu_SFdn->Clone() : (TH1*) hTF_sum_mu_SFdn->Clone();
+  TH1 * hTF_local_ele_SFdn = key == "hadtau" ? (TH1*) hTF_tau_ele_SFdn->Clone() : key == "lostle" ? (TH1*) hTF_LL_ele_SFdn->Clone() : (TH1*) hTF_sum_ele_SFdn->Clone();
+  TH1 * hYields_lepSF_ratio_local_SFdn = key == "hadtau" ? (TH1*) hYields_lepSF_ratio_tau_SFdn->Clone() : key == "lostle" ? (TH1*) hYields_lepSF_ratio_LL_SFdn->Clone() : (TH1*) hYields_lepSF_ratio_sum_SFdn->Clone();
 
   std::vector<double> systErr_rel_ISR_up_muVec, systErr_rel_ISR_dn_muVec, systErr_rel_ISR_up_eleVec, systErr_rel_ISR_dn_eleVec;
   for(unsigned int is=0; is<systCalc_mu.ISRsys_up.size(); is++)

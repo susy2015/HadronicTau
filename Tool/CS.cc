@@ -375,6 +375,13 @@ int main(int argc, char* argv[]) {
             if( PassTrigger[it] ) foundTrigger = true;
 	  }
         }
+        if( sampleString.Contains("SingleMuon") )
+        {
+          if( TriggerNames[it].find("HLT_Mu45_eta2p1_v") != string::npos || TriggerNames[it].find("HLT_Mu50_eta2p1_v") != string::npos || TriggerNames[it].find("HLT_Mu50_v") != string::npos || TriggerNames[it].find("HLT_Mu55_v") != string::npos )
+          {
+            if( PassTrigger[it] ) foundTrigger = true;
+          }
+        }
       }
       if( !foundTrigger ) passTrigger = false;
     }

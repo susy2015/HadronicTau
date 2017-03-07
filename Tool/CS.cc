@@ -510,6 +510,18 @@ int main(int argc, char* argv[]) {
         FillDouble(myBaseHistgram.hdPhi1_mu, dPhiVec[1], Lumiscale*corr_SF);
         FillDouble(myBaseHistgram.hdPhi2_mu, dPhiVec[2], Lumiscale*corr_SF);
   
+        FillDouble(myBaseHistgram.hMET_mu_no_corr_SF, met, Lumiscale);
+        FillDouble(myBaseHistgram.hMHT_mu_no_corr_SF, Mht, Lumiscale);
+        FillDouble(myBaseHistgram.hMT2_mu_no_corr_SF, MT2, Lumiscale);
+        FillInt(myBaseHistgram.hNbJets_mu_no_corr_SF, nbJets, Lumiscale);
+        FillInt(myBaseHistgram.hNTops_mu_no_corr_SF, nTops, Lumiscale);	
+  	  
+        FillInt(myBaseHistgram.hNJets_mu_no_corr_SF, nJets, Lumiscale);
+        FillDouble(myBaseHistgram.hHT_mu_no_corr_SF, HT, Lumiscale);
+        FillDouble(myBaseHistgram.hdPhi0_mu_no_corr_SF, dPhiVec[0], Lumiscale);
+        FillDouble(myBaseHistgram.hdPhi1_mu_no_corr_SF, dPhiVec[1], Lumiscale);
+        FillDouble(myBaseHistgram.hdPhi2_mu_no_corr_SF, dPhiVec[2], Lumiscale);
+  
         if( nbJets <=2 && nTops<=2 )
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, met, HT); // use the lowest MT2 bin in (nb, ntop, met) to collapse the MT2 bins
@@ -820,6 +832,18 @@ int main(int argc, char* argv[]) {
         FillDouble(myBaseHistgram.hdPhi1_el, dPhiVec[1], Lumiscale*corr_SF);
         FillDouble(myBaseHistgram.hdPhi2_el, dPhiVec[2], Lumiscale*corr_SF);
 
+        FillDouble(myBaseHistgram.hMET_el_no_corr_SF, met, Lumiscale);
+        FillDouble(myBaseHistgram.hMHT_el_no_corr_SF, Mht, Lumiscale);
+        FillDouble(myBaseHistgram.hMT2_el_no_corr_SF, MT2, Lumiscale);
+        FillInt(myBaseHistgram.hNbJets_el_no_corr_SF, nbJets, Lumiscale);
+        FillInt(myBaseHistgram.hNTops_el_no_corr_SF, nTops, Lumiscale);	
+  	  
+        FillInt(myBaseHistgram.hNJets_el_no_corr_SF, nJets, Lumiscale);
+        FillDouble(myBaseHistgram.hHT_el_no_corr_SF, HT, Lumiscale);
+        FillDouble(myBaseHistgram.hdPhi0_el_no_corr_SF, dPhiVec[0], Lumiscale);
+        FillDouble(myBaseHistgram.hdPhi1_el_no_corr_SF, dPhiVec[1], Lumiscale);
+        FillDouble(myBaseHistgram.hdPhi2_el_no_corr_SF, dPhiVec[2], Lumiscale);
+  
         if( nbJets <=2 && nTops<=2 )
         {
           int pseudo_SR = SB.find_Binning_Index(nbJets, nTops, 250, met, HT); // use the lowest MT2 bin in (nb, ntop, met) to collapse the MT2 bins

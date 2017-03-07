@@ -9,10 +9,12 @@ void PlotCSDataMC()
 {
 
   std::vector<std::string> toPlot_names   = { "MET", "NbJets", "NTops", "MT2", "NJets", "HT", "MHT", "Yields", 
+                                              "MET", "NbJets", "NTops", "MT2", "NJets", "HT", "MHT", "Yields", 
                                               "MET",    "MET",       "MET",       "MET",     "MET",       "MET",        "MET",    "MET",     "MET",
                                               "MHT"
                                             };
   std::vector<std::string> toPlot_suffixs = { "",    "",       "",      "",    "",      "",    "",    "", 
+                                              "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF",
                                               "noCuts", "passnJets", "passdPhis", "passMET", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw",
                                               "noCuts"
                                             };

@@ -3,8 +3,8 @@
 #include "Math/QuantFuncMathCore.h"
 #include <fstream>
 
-const double mc_lumi = 36813.714859265;
-const double data_lumi = 36813.714859265;
+const double mc_lumi = 35866.210733056;
+const double data_lumi = 35866.210733056;
 
 const double scale_mc = data_lumi/mc_lumi;
 

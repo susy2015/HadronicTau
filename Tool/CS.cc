@@ -29,15 +29,19 @@
 #include "TLorentzVector.h"
 #include "TTree.h"
 #include "TChain.h"
+#include "TGraphAsymmErrors.h"
 
 #include "PrepSystematics.h"
 #include "CommonShared.h"
+
+#include "SusyAnaTools/Tools/PileupWeights.h"
 
 using namespace std;
 
 const bool doISR = true;
 const bool dobSF = true;
 const bool dolepSF = true;
+const bool doPU = false;
 
 const bool dospecialFix = false;
 const bool useTTbarHTsamples = true;
@@ -45,7 +49,7 @@ const bool useTTbarHTsamples = true;
 TFile * bTagEffFile =0;
 
 TH2D * mu_mediumID_SF = 0, * mu_miniISO_SF = 0;
-TH1D * mu_trkptGT10_SF = 0, * mu_trkptLT10_SF = 0;
+TGraphAsymmErrors * mu_trkptGT10_SF = 0, * mu_trkptLT10_SF = 0;
 
 TH2D * ele_VetoID_SF = 0, * ele_miniISO_SF = 0;
 TH2D * ele_trkpt_SF = 0;
@@ -116,8 +120,9 @@ int main(int argc, char* argv[]) {
     if( !allINone_leptonSF_file->IsZombie() ){
       mu_mediumID_SF = (TH2D*) allINone_leptonSF_file->Get("pt_abseta_PLOT_pair_probeMultiplicity_bin0");
       mu_miniISO_SF = (TH2D*) allINone_leptonSF_file->Get("pt_abseta_PLOT_pair_probeMultiplicity_bin0_&_Medium2016_pass");
-      mu_trkptGT10_SF = (TH1D*) allINone_leptonSF_file->Get("mutrksfptg10");
-      mu_trkptLT10_SF = (TH1D*) allINone_leptonSF_file->Get("mutrksfptl10");
+// SF for muon tracks
+      mu_trkptGT10_SF = (TGraphAsymmErrors*) allINone_leptonSF_file->Get("ratio_eff_eta3_dr030e030_corr");
+      mu_trkptLT10_SF = (TGraphAsymmErrors*) allINone_leptonSF_file->Get("ratio_eff_eta3_tk0_dr030e030_corr");
   
       ele_VetoID_SF = (TH2D*) allINone_leptonSF_file->Get("GsfElectronToVeto");
       ele_miniISO_SF = (TH2D*) allINone_leptonSF_file->Get("MVAVLooseElectronToMini");
@@ -187,6 +192,9 @@ int main(int argc, char* argv[]) {
     tr->registerFunction((*systBaseline::SRblv_metMagDn));
     tr->registerFunction((*systBaseline::SRblv_metPhiUp));
     tr->registerFunction((*systBaseline::SRblv_metPhiDn));
+
+    Pileup_Sys pileup("PileupHistograms_0121_69p2mb_pm4p6.root");
+    tr->registerFunction(pileup);
   }
 
   //Add cleanJets function
@@ -225,6 +233,10 @@ int main(int argc, char* argv[]) {
     const double Scaled_Variations_Up = isData? 1.0 : tr->getVar<double>("Scaled_Variations_Up");
     const double Scaled_Variations_Down = isData? 1.0 : tr->getVar<double>("Scaled_Variations_Down");
 
+    const double puWght = (doPU && !isData)? tr->getVar<double>("_PUweightFactor") : 1.0;
+    const double puSys_up = (doPU && !isData)? tr->getVar<double>("_PUSysUp") : 1.0;
+    const double puSys_down = (doPU && !isData)? tr->getVar<double>("_PUSysDown") : 1.0;
+
     const double genHT = tr->hasVar("genHT") ? tr->getVar<double>("genHT") : -999;
 
     const vector<TLorentzVector> &muonsLVec = tr->getVec<TLorentzVector>("muonsLVec");
@@ -254,6 +266,8 @@ int main(int argc, char* argv[]) {
     int run = tr->getVar<int>("run");
     int lumi = tr->getVar<int>("lumi");
     int event = tr->getVar<int>("event");
+    int vtxSize = tr->getVar<int>("vtxSize");
+
     bool passNoiseEventFilter = tr->getVar<bool>("passNoiseEventFilter"+spec);
     const double EvtWt = tr->getVar<double>("evtWeight");
     //change event weight for MC sample
@@ -426,8 +440,8 @@ int main(int argc, char* argv[]) {
       {
         if( mu_mediumID_SF ){ mu_id_SF = mu_mediumID_SF->GetBinContent(mu_mediumID_SF->FindBin(pt, abseta)); if( mu_id_SF == 0 ) mu_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
         if( mu_miniISO_SF ){ mu_iso_SF = mu_miniISO_SF->GetBinContent(mu_miniISO_SF->FindBin(pt, abseta)); if( mu_iso_SF == 0 ) mu_iso_SF = 1.0; }
-        if( pt < 10 && mu_trkptLT10_SF ){ mu_trk_SF = mu_trkptLT10_SF->GetBinContent(mu_trkptLT10_SF->FindBin(eta)); if( mu_trk_SF == 0 ) mu_trk_SF = 1.0; }
-        if( pt >= 10 && mu_trkptGT10_SF ){ mu_trk_SF = mu_trkptGT10_SF->GetBinContent(mu_trkptGT10_SF->FindBin(eta)); if( mu_trk_SF == 0 ) mu_trk_SF = 1.0; }
+        if( pt < 10 && mu_trkptLT10_SF ){ mu_trk_SF = mu_trkptLT10_SF->Eval(eta); if( mu_trk_SF == 0 ) mu_trk_SF = 1.0; }
+        if( pt >= 10 && mu_trkptGT10_SF ){ mu_trk_SF = mu_trkptGT10_SF->Eval(eta); if( mu_trk_SF == 0 ) mu_trk_SF = 1.0; }
         mu_id_SF_err = mu_id_SF * 0.03;
       }
       const double mu_SF = mu_id_SF * mu_iso_SF * mu_trk_SF;
@@ -446,24 +460,127 @@ int main(int argc, char* argv[]) {
       const double corr_SF_up = bSF * isrWght * mu_SF_up;
       const double corr_SF_dn = bSF * isrWght * mu_SF_dn;
 
-      FillDouble(myBaseHistgram.hMET_mu_noCuts, met, Lumiscale*corr_SF);
-      FillDouble(myBaseHistgram.hMHT_mu_noCuts, Mht, Lumiscale*corr_SF);
-      if( passnJets )
-         FillDouble(myBaseHistgram.hMET_mu_passnJets, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis )
-         FillDouble(myBaseHistgram.hMET_mu_passdPhis, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET )
-         FillDouble(myBaseHistgram.hMET_mu_passMET, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets )
-         FillDouble(myBaseHistgram.hMET_mu_passBJets, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger )
-         FillDouble(myBaseHistgram.hMET_mu_passTagger, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT )
-         FillDouble(myBaseHistgram.hMET_mu_passHT, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 )
-         FillDouble(myBaseHistgram.hMET_mu_passMT2, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 && pass_mtw )
-         FillDouble(myBaseHistgram.hMET_mu_pass_mtw, met, Lumiscale*corr_SF);
+      FillDouble(myBaseHistgram.hvtxSize_mu_noCuts, vtxSize, Lumiscale);
+      FillDouble(myBaseHistgram.hvtxSize_mu_noCuts_aft_puWght, vtxSize, Lumiscale*puWght);
+
+      FillDouble(myBaseHistgram.hMET_mu_noCuts, met, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hMET_mu_noCuts_no_corr_SF, met, Lumiscale*puWght);
+      FillDouble(myBaseHistgram.hMHT_mu_noCuts, Mht, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hMHT_mu_noCuts_no_corr_SF, Mht, Lumiscale*puWght);
+
+      FillDouble(myBaseHistgram.hNbJets_mu_noCuts, nbJets, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hNbJets_mu_noCuts_no_corr_SF, nbJets, Lumiscale*puWght);
+
+      FillDouble(myBaseHistgram.hNJets_mu_noCuts, nJets, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hNJets_mu_noCuts_no_corr_SF, nJets, Lumiscale*puWght);
+
+      FillDouble(myBaseHistgram.hNTops_mu_noCuts, nTops, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hNTops_mu_noCuts_no_corr_SF, nTops, Lumiscale*puWght);
+
+      if( passMET ){
+         FillDouble(myBaseHistgram.hMET_mu_passMET, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_passMET_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_passMET, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_passMET_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_passMET, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_passMET_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_passMET, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_passMET_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passMET ){
+         FillDouble(myBaseHistgram.hMET_mu_passnJets, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_passnJets_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_passnJets, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_passnJets_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_passnJets, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_passnJets_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_passnJets, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_passnJets_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET ){
+         FillDouble(myBaseHistgram.hMET_mu_passdPhis, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_passdPhis_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_passdPhis, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_passdPhis_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_passdPhis, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_passdPhis_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_passdPhis, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_passdPhis_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets ){
+         FillDouble(myBaseHistgram.hMET_mu_passBJets, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_passBJets_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_passBJets, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_passBJets_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_passBJets, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_passBJets_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_passBJets, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_passBJets_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger ){
+         FillDouble(myBaseHistgram.hMET_mu_passTagger, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_passTagger_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_passTagger, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_passTagger_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_passTagger, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_passTagger_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_passTagger, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_passTagger_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT ){
+         FillDouble(myBaseHistgram.hMET_mu_passHT, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_passHT_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_passHT, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_passHT_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_passHT, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_passHT_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_passHT, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_passHT_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 ){
+         FillDouble(myBaseHistgram.hMET_mu_passMT2, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_passMT2_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_passMT2, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_passMT2_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_passMT2, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_passMT2_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_passMT2, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_passMT2_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 && pass_mtw ){
+         FillDouble(myBaseHistgram.hMET_mu_pass_mtw, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_mu_pass_mtw_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_mu_pass_mtw, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_mu_pass_mtw_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_mu_pass_mtw, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_mu_pass_mtw_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_mu_pass_mtw, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_mu_pass_mtw_no_corr_SF, nTops, Lumiscale*puWght);
+      }
 
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtw)
@@ -471,6 +588,11 @@ int main(int argc, char* argv[]) {
         int jSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
         if( jSR!= -1 )
         {
+          FillDouble(myBaseHistgram.hvtxSize_mu, vtxSize, Lumiscale);
+          FillDouble(myBaseHistgram.hvtxSize_mu_aft_puWght, vtxSize, Lumiscale*puWght);
+
+// Do NOT apply puWght on yields since for some bins with small MC stat, the PU weights can cause 
+// large un-expected flucturation of the yields.
           myBaseHistgram.hYields_mu_no_corr_SF->Fill(jSR, Lumiscale);
           myBaseHistgram.hYields_mu_bSF->Fill(jSR, Lumiscale*bSF);
           myBaseHistgram.hYields_mu_isrWght->Fill(jSR, Lumiscale*isrWght);
@@ -480,6 +602,9 @@ int main(int argc, char* argv[]) {
           myBaseHistgram.hYields_mu_isrWght_mu_SF->Fill(jSR, Lumiscale*isrWght*mu_SF);
 
           myBaseHistgram.hYields_mu->Fill(jSR, Lumiscale*corr_SF);
+          myBaseHistgram.hYields_mu_aft_puWght->Fill(jSR, Lumiscale*puWght*corr_SF);
+          myBaseHistgram.hYields_mu_aft_puSysup->Fill(jSR, Lumiscale*puSys_up*corr_SF);
+          myBaseHistgram.hYields_mu_aft_puSysdown->Fill(jSR, Lumiscale*puSys_down*corr_SF);
 	  //bSF systematics
           myBaseHistgram.hYields_mu_bSFup->Fill(jSR, Lumiscale*corr_bSF_up);
 	  myBaseHistgram.hYields_mu_bSFdown->Fill(jSR, Lumiscale*corr_bSF_down);
@@ -498,29 +623,29 @@ int main(int argc, char* argv[]) {
           myBaseHistgram.hYields_mu_pdfUncdn->Fill(jSR, Lumiscale*corr_SF*NNPDF_From_Median_Down*NNPDF_From_Median_Central);
         }
   	  
-        FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hMHT_mu, Mht, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hMT2_mu, MT2, Lumiscale*corr_SF);
-        FillInt(myBaseHistgram.hNbJets_mu, nbJets, Lumiscale*corr_SF);
-        FillInt(myBaseHistgram.hNTops_mu, nTops, Lumiscale*corr_SF);	
+        FillDouble(myBaseHistgram.hMET_mu, met, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hMHT_mu, Mht, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hMT2_mu, MT2, Lumiscale*puWght*corr_SF);
+        FillInt(myBaseHistgram.hNbJets_mu, nbJets, Lumiscale*puWght*corr_SF);
+        FillInt(myBaseHistgram.hNTops_mu, nTops, Lumiscale*puWght*corr_SF);	
   	  
-        FillInt(myBaseHistgram.hNJets_mu, nJets, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hHT_mu, HT, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hdPhi0_mu, dPhiVec[0], Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hdPhi1_mu, dPhiVec[1], Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hdPhi2_mu, dPhiVec[2], Lumiscale*corr_SF);
+        FillInt(myBaseHistgram.hNJets_mu, nJets, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hHT_mu, HT, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hdPhi0_mu, dPhiVec[0], Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hdPhi1_mu, dPhiVec[1], Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hdPhi2_mu, dPhiVec[2], Lumiscale*puWght*corr_SF);
   
-        FillDouble(myBaseHistgram.hMET_mu_no_corr_SF, met, Lumiscale);
-        FillDouble(myBaseHistgram.hMHT_mu_no_corr_SF, Mht, Lumiscale);
-        FillDouble(myBaseHistgram.hMT2_mu_no_corr_SF, MT2, Lumiscale);
-        FillInt(myBaseHistgram.hNbJets_mu_no_corr_SF, nbJets, Lumiscale);
-        FillInt(myBaseHistgram.hNTops_mu_no_corr_SF, nTops, Lumiscale);	
+        FillDouble(myBaseHistgram.hMET_mu_no_corr_SF, met, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hMHT_mu_no_corr_SF, Mht, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hMT2_mu_no_corr_SF, MT2, Lumiscale*puWght);
+        FillInt(myBaseHistgram.hNbJets_mu_no_corr_SF, nbJets, Lumiscale*puWght);
+        FillInt(myBaseHistgram.hNTops_mu_no_corr_SF, nTops, Lumiscale*puWght);	
   	  
-        FillInt(myBaseHistgram.hNJets_mu_no_corr_SF, nJets, Lumiscale);
-        FillDouble(myBaseHistgram.hHT_mu_no_corr_SF, HT, Lumiscale);
-        FillDouble(myBaseHistgram.hdPhi0_mu_no_corr_SF, dPhiVec[0], Lumiscale);
-        FillDouble(myBaseHistgram.hdPhi1_mu_no_corr_SF, dPhiVec[1], Lumiscale);
-        FillDouble(myBaseHistgram.hdPhi2_mu_no_corr_SF, dPhiVec[2], Lumiscale);
+        FillInt(myBaseHistgram.hNJets_mu_no_corr_SF, nJets, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hHT_mu_no_corr_SF, HT, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hdPhi0_mu_no_corr_SF, dPhiVec[0], Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hdPhi1_mu_no_corr_SF, dPhiVec[1], Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hdPhi2_mu_no_corr_SF, dPhiVec[2], Lumiscale*puWght);
   
         if( nbJets <=2 && nTops<=2 )
         {
@@ -748,7 +873,7 @@ int main(int argc, char* argv[]) {
         if( ele_trkpt_SF )
         {
           ele_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt));
-          ele_trk_SF_err = pt<20? 0.03: 0.00;
+          ele_trk_SF_err = pt<20 || pt>80? 0.01: 0.00;
           if( ele_trk_SF == 0 ){ ele_trk_SF = 1.0; ele_trk_SF_err = 0.0; }
         }
       }
@@ -767,25 +892,128 @@ int main(int argc, char* argv[]) {
 
       const double corr_SF_up = bSF * isrWght * ele_SF_up;
       const double corr_SF_dn = bSF * isrWght * ele_SF_dn;
+
+      FillDouble(myBaseHistgram.hvtxSize_el_noCuts, vtxSize, Lumiscale);
+      FillDouble(myBaseHistgram.hvtxSize_el_noCuts_aft_puWght, vtxSize, Lumiscale*puWght);
 	
-      FillDouble(myBaseHistgram.hMET_el_noCuts, met, Lumiscale*corr_SF);
-      FillDouble(myBaseHistgram.hMHT_el_noCuts, Mht, Lumiscale*corr_SF);
-      if( passnJets )
-         FillDouble(myBaseHistgram.hMET_el_passnJets, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis )
-         FillDouble(myBaseHistgram.hMET_el_passdPhis, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET )
-         FillDouble(myBaseHistgram.hMET_el_passMET, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets )
-         FillDouble(myBaseHistgram.hMET_el_passBJets, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger )
-         FillDouble(myBaseHistgram.hMET_el_passTagger, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT )
-         FillDouble(myBaseHistgram.hMET_el_passHT, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 )
-         FillDouble(myBaseHistgram.hMET_el_passMT2, met, Lumiscale*corr_SF);
-      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 && pass_mtwele )
-         FillDouble(myBaseHistgram.hMET_el_pass_mtw, met, Lumiscale*corr_SF);
+      FillDouble(myBaseHistgram.hMET_el_noCuts, met, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hMET_el_noCuts_no_corr_SF, met, Lumiscale*puWght);
+      FillDouble(myBaseHistgram.hMHT_el_noCuts, Mht, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hMHT_el_noCuts_no_corr_SF, Mht, Lumiscale*puWght);
+
+      FillDouble(myBaseHistgram.hNbJets_el_noCuts, nbJets, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hNbJets_el_noCuts_no_corr_SF, nbJets, Lumiscale*puWght);
+
+      FillDouble(myBaseHistgram.hNJets_el_noCuts, nJets, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hNJets_el_noCuts_no_corr_SF, nJets, Lumiscale*puWght);
+
+      FillDouble(myBaseHistgram.hNTops_el_noCuts, nTops, Lumiscale*puWght*corr_SF);
+      FillDouble(myBaseHistgram.hNTops_el_noCuts_no_corr_SF, nTops, Lumiscale*puWght);
+
+      if( passMET ){
+         FillDouble(myBaseHistgram.hMET_el_passMET, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_passMET_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_passMET, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_passMET_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_passMET, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_passMET_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_passMET, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_passMET_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passMET ){
+         FillDouble(myBaseHistgram.hMET_el_passnJets, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_passnJets_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_passnJets, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_passnJets_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_passnJets, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_passnJets_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_passnJets, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_passnJets_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET ){
+         FillDouble(myBaseHistgram.hMET_el_passdPhis, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_passdPhis_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_passdPhis, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_passdPhis_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_passdPhis, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_passdPhis_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_passdPhis, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_passdPhis_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets ){
+         FillDouble(myBaseHistgram.hMET_el_passBJets, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_passBJets_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_passBJets, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_passBJets_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_passBJets, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_passBJets_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_passBJets, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_passBJets_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger ){
+         FillDouble(myBaseHistgram.hMET_el_passTagger, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_passTagger_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_passTagger, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_passTagger_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_passTagger, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_passTagger_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_passTagger, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_passTagger_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT ){
+         FillDouble(myBaseHistgram.hMET_el_passHT, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_passHT_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_passHT, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_passHT_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_passHT, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_passHT_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_passHT, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_passHT_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 ){
+         FillDouble(myBaseHistgram.hMET_el_passMT2, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_passMT2_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_passMT2, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_passMT2_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_passMT2, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_passMT2_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_passMT2, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_passMT2_no_corr_SF, nTops, Lumiscale*puWght);
+      }
+      if( passnJets && passdPhis && passMET && passBJets && passTagger && passHT && passMT2 && pass_mtwele ){
+         FillDouble(myBaseHistgram.hMET_el_pass_mtw, met, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hMET_el_pass_mtw_no_corr_SF, met, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNbJets_el_pass_mtw, nbJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNbJets_el_pass_mtw_no_corr_SF, nbJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNJets_el_pass_mtw, nJets, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNJets_el_pass_mtw_no_corr_SF, nJets, Lumiscale*puWght);
+
+         FillDouble(myBaseHistgram.hNTops_el_pass_mtw, nTops, Lumiscale*puWght*corr_SF);
+         FillDouble(myBaseHistgram.hNTops_el_pass_mtw_no_corr_SF, nTops, Lumiscale*puWght);
+      }
 
       //Dist.
       if(passBaselineCS && passNoiseEventFilter && pass_mtwele)
@@ -793,6 +1021,11 @@ int main(int argc, char* argv[]) {
         int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, HT);
         if( kSR!= -1 )
         {
+          FillDouble(myBaseHistgram.hvtxSize_el, vtxSize, Lumiscale);
+          FillDouble(myBaseHistgram.hvtxSize_el_aft_puWght, vtxSize, Lumiscale*puWght);
+
+// Do NOT apply puWght on yields since for some bins with small MC stat, the PU weights can cause 
+// large un-expected flucturation of the yields.
           myBaseHistgram.hYields_el_no_corr_SF->Fill(kSR, Lumiscale);
           myBaseHistgram.hYields_el_bSF->Fill(kSR, Lumiscale*bSF);
           myBaseHistgram.hYields_el_isrWght->Fill(kSR, Lumiscale*isrWght);
@@ -802,6 +1035,9 @@ int main(int argc, char* argv[]) {
           myBaseHistgram.hYields_el_isrWght_ele_SF->Fill(kSR, Lumiscale*isrWght*ele_SF);
 
           myBaseHistgram.hYields_el->Fill(kSR, Lumiscale*corr_SF);
+          myBaseHistgram.hYields_el_aft_puWght->Fill(kSR, Lumiscale*puWght*corr_SF);
+          myBaseHistgram.hYields_el_aft_puSysup->Fill(kSR, Lumiscale*puSys_up*corr_SF);
+          myBaseHistgram.hYields_el_aft_puSysdown->Fill(kSR, Lumiscale*puSys_down*corr_SF);
 	  //bSF systematics
           myBaseHistgram.hYields_el_bSFup->Fill(kSR, Lumiscale*corr_bSF_up);
 	  myBaseHistgram.hYields_el_bSFdown->Fill(kSR, Lumiscale*corr_bSF_down);
@@ -820,29 +1056,29 @@ int main(int argc, char* argv[]) {
           myBaseHistgram.hYields_el_pdfUncdn->Fill(kSR, Lumiscale*corr_SF*NNPDF_From_Median_Down);
         }
   	  
-        FillDouble(myBaseHistgram.hMET_el, met, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hMHT_el, Mht, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hMT2_el, MT2, Lumiscale*corr_SF);
-        FillInt(myBaseHistgram.hNbJets_el, nbJets, Lumiscale*corr_SF);
-        FillInt(myBaseHistgram.hNTops_el, nTops, Lumiscale*corr_SF);	
+        FillDouble(myBaseHistgram.hMET_el, met, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hMHT_el, Mht, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hMT2_el, MT2, Lumiscale*puWght*corr_SF);
+        FillInt(myBaseHistgram.hNbJets_el, nbJets, Lumiscale*puWght*corr_SF);
+        FillInt(myBaseHistgram.hNTops_el, nTops, Lumiscale*puWght*corr_SF);	
   	  
-        FillInt(myBaseHistgram.hNJets_el, nJets, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hHT_el, HT, Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hdPhi0_el, dPhiVec[0], Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hdPhi1_el, dPhiVec[1], Lumiscale*corr_SF);
-        FillDouble(myBaseHistgram.hdPhi2_el, dPhiVec[2], Lumiscale*corr_SF);
+        FillInt(myBaseHistgram.hNJets_el, nJets, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hHT_el, HT, Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hdPhi0_el, dPhiVec[0], Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hdPhi1_el, dPhiVec[1], Lumiscale*puWght*corr_SF);
+        FillDouble(myBaseHistgram.hdPhi2_el, dPhiVec[2], Lumiscale*puWght*corr_SF);
 
-        FillDouble(myBaseHistgram.hMET_el_no_corr_SF, met, Lumiscale);
-        FillDouble(myBaseHistgram.hMHT_el_no_corr_SF, Mht, Lumiscale);
-        FillDouble(myBaseHistgram.hMT2_el_no_corr_SF, MT2, Lumiscale);
-        FillInt(myBaseHistgram.hNbJets_el_no_corr_SF, nbJets, Lumiscale);
-        FillInt(myBaseHistgram.hNTops_el_no_corr_SF, nTops, Lumiscale);	
+        FillDouble(myBaseHistgram.hMET_el_no_corr_SF, met, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hMHT_el_no_corr_SF, Mht, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hMT2_el_no_corr_SF, MT2, Lumiscale*puWght);
+        FillInt(myBaseHistgram.hNbJets_el_no_corr_SF, nbJets, Lumiscale*puWght);
+        FillInt(myBaseHistgram.hNTops_el_no_corr_SF, nTops, Lumiscale*puWght);	
   	  
-        FillInt(myBaseHistgram.hNJets_el_no_corr_SF, nJets, Lumiscale);
-        FillDouble(myBaseHistgram.hHT_el_no_corr_SF, HT, Lumiscale);
-        FillDouble(myBaseHistgram.hdPhi0_el_no_corr_SF, dPhiVec[0], Lumiscale);
-        FillDouble(myBaseHistgram.hdPhi1_el_no_corr_SF, dPhiVec[1], Lumiscale);
-        FillDouble(myBaseHistgram.hdPhi2_el_no_corr_SF, dPhiVec[2], Lumiscale);
+        FillInt(myBaseHistgram.hNJets_el_no_corr_SF, nJets, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hHT_el_no_corr_SF, HT, Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hdPhi0_el_no_corr_SF, dPhiVec[0], Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hdPhi1_el_no_corr_SF, dPhiVec[1], Lumiscale*puWght);
+        FillDouble(myBaseHistgram.hdPhi2_el_no_corr_SF, dPhiVec[2], Lumiscale*puWght);
   
         if( nbJets <=2 && nTops<=2 )
         {

@@ -1,5 +1,5 @@
-const double mc_lumi = 36813.714859265;
-const double data_lumi = 36813.714859265;
+const double mc_lumi = 35866.210733056;
+const double data_lumi = 35866.210733056;
 
 const double scale_mc = data_lumi/mc_lumi;
 
@@ -11,13 +11,31 @@ void PlotCSDataMC()
   std::vector<std::string> toPlot_names   = { "MET", "NbJets", "NTops", "MT2", "NJets", "HT", "MHT", "Yields", 
                                               "MET", "NbJets", "NTops", "MT2", "NJets", "HT", "MHT", "Yields", 
                                               "MET",    "MET",       "MET",       "MET",     "MET",       "MET",        "MET",    "MET",     "MET",
-                                              "MHT"
+                                              "MET",    "MET",       "MET",       "MET",     "MET",       "MET",        "MET",    "MET",     "MET",
+                                              "MHT",
+                                              "vtxSize", "vtxSize", "vtxSize", "vtxSize", "Yields", "Yields", "Yields",
+                                              "NbJets",    "NbJets",       "NbJets",       "NbJets",     "NbJets",       "NbJets",        "NbJets",    "NbJets",     "NbJets",
+                                              "NbJets",    "NbJets",       "NbJets",       "NbJets",     "NbJets",       "NbJets",        "NbJets",    "NbJets",     "NbJets",
+                                              "NJets",    "NJets",       "NJets",       "NJets",     "NJets",       "NJets",        "NJets",    "NJets",     "NJets",
+                                              "NJets",    "NJets",       "NJets",       "NJets",     "NJets",       "NJets",        "NJets",    "NJets",     "NJets",
+                                              "NTops",    "NTops",       "NTops",       "NTops",     "NTops",       "NTops",        "NTops",    "NTops",     "NTops",
+                                              "NTops",    "NTops",       "NTops",       "NTops",     "NTops",       "NTops",        "NTops",    "NTops",     "NTops",
                                             };
   std::vector<std::string> toPlot_suffixs = { "",    "",       "",      "",    "",      "",    "",    "", 
                                               "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF", "no_corr_SF",
-                                              "noCuts", "passnJets", "passdPhis", "passMET", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw",
-                                              "noCuts"
+                                              "noCuts", "passMET", "passnJets", "passdPhis", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw",
+                                              "noCuts_no_corr_SF", "passMET_no_corr_SF", "passnJets_no_corr_SF", "passdPhis_no_corr_SF", "passBJets_no_corr_SF", "passTagger_no_corr_SF", "passHT_no_corr_SF", "passMT2_no_corr_SF", "pass_mtw_no_corr_SF",
+                                              "noCuts",
+                                              "noCuts", "noCuts_aft_puWght", "", "aft_puWght", "aft_puWght", "aft_puSysup", "aft_puSysdown",
+                                              "noCuts", "passMET", "passnJets", "passdPhis", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw",
+                                              "noCuts_no_corr_SF", "passMET_no_corr_SF", "passnJets_no_corr_SF", "passdPhis_no_corr_SF", "passBJets_no_corr_SF", "passTagger_no_corr_SF", "passHT_no_corr_SF", "passMT2_no_corr_SF", "pass_mtw_no_corr_SF",
+                                              "noCuts", "passMET", "passnJets", "passdPhis", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw",
+                                              "noCuts_no_corr_SF", "passMET_no_corr_SF", "passnJets_no_corr_SF", "passdPhis_no_corr_SF", "passBJets_no_corr_SF", "passTagger_no_corr_SF", "passHT_no_corr_SF", "passMT2_no_corr_SF", "pass_mtw_no_corr_SF",
+                                              "noCuts", "passMET", "passnJets", "passdPhis", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw",
+                                              "noCuts_no_corr_SF", "passMET_no_corr_SF", "passnJets_no_corr_SF", "passdPhis_no_corr_SF", "passBJets_no_corr_SF", "passTagger_no_corr_SF", "passHT_no_corr_SF", "passMT2_no_corr_SF", "pass_mtw_no_corr_SF",
                                             };
+
+  std::vector<std::string> ratio_evol_keys = {"noCuts", "passMET", "passnJets", "passdPhis", "passBJets", "passTagger", "passHT", "passMT2", "pass_mtw"};
   
   TFile *file_Data = new TFile("Data_MET_CS.root");
   TFile *file_MC = new TFile("Mix_CS.root");
@@ -28,6 +46,11 @@ void PlotCSDataMC()
   TH1* hData_ele[kNDists];
   TH1* hRatio_mu[kNDists];
   TH1* hRatio_ele[kNDists];
+
+  TH1D* hRatio_DataMC_evol_mu = new TH1D("hRatio_DataMC_evol_mu", "hRatio_DataMC_evol_mu;cutflow;Data/MC", 20, 0, 20);
+  TH1D* hRatio_DataMC_evol_ele = new TH1D("hRatio_DataMC_evol_ele", "hRatio_DataMC_evol_ele;cutflow;Data/MC", 20, 0, 20);
+  int ratio_evol_binCnt = -1;
+
   for(unsigned int i = 0; i < kNDists; ++i)
   {
     TString name = toPlot_names[i], suffix = toPlot_suffixs[i];
@@ -50,6 +73,16 @@ void PlotCSDataMC()
     //scaling
     hMC_mu[i]->Scale(scale_mc);
     hMC_ele[i]->Scale(scale_mc);
+    if( name == "MET" && std::find(ratio_evol_keys.begin(), ratio_evol_keys.end(), suffix) != ratio_evol_keys.end() ){
+       ++ratio_evol_binCnt;
+       hRatio_DataMC_evol_mu->SetBinContent(ratio_evol_binCnt, hData_mu[i]->Integral()/hMC_mu[i]->Integral());
+       hRatio_DataMC_evol_mu->SetBinError(ratio_evol_binCnt, hData_mu[i]->Integral()/hMC_mu[i]->Integral()*sqrt(hData_mu[i]->Integral())/hData_mu[i]->Integral());
+       hRatio_DataMC_evol_mu->GetXaxis()->SetBinLabel(ratio_evol_binCnt, suffix);
+
+       hRatio_DataMC_evol_ele->SetBinContent(ratio_evol_binCnt, hData_ele[i]->Integral()/hMC_ele[i]->Integral());
+       hRatio_DataMC_evol_ele->SetBinError(ratio_evol_binCnt, hData_ele[i]->Integral()/hMC_ele[i]->Integral()*sqrt(hData_ele[i]->Integral())/hData_ele[i]->Integral());
+       hRatio_DataMC_evol_ele->GetXaxis()->SetBinLabel(ratio_evol_binCnt, suffix);
+    }
     if( doshape ){
        std::cout<<"\n"<<name<<" -->  hMC_mu[i]->Integral : "<<hMC_mu[i]->Integral()<<"  hData_mu[i]->Integral : "<<hData_mu[i]->Integral()<<std::endl;
        std::cout<<name<<" -->  hMC_ele[i]->Integral : "<<hMC_ele[i]->Integral()<<"  hData_ele[i]->Integral : "<<hData_ele[i]->Integral()<<std::endl;
@@ -148,6 +181,7 @@ void PlotCSDataMC()
     pad2_mu->SetBottomMargin(0.2);
     pad2_mu->Draw();
     pad2_mu->cd();
+    pad2_mu->SetGridy();
     hRatio_mu[i]->Draw("PE1");
     if( doshape )
     {
@@ -173,6 +207,7 @@ void PlotCSDataMC()
     pad2_ele->SetBottomMargin(0.2);
     pad2_ele->Draw();
     pad2_ele->cd();
+    pad2_ele->SetGridy();
     hRatio_ele[i]->Draw("PE1");
     if( doshape )
     {
@@ -184,6 +219,20 @@ void PlotCSDataMC()
     can_ele->SaveAs(name+"_eleCS"+suffix+".pdf");
     
   }
+
+  TCanvas * cs = new TCanvas("cs", "cs", 800, 600);
+  hRatio_DataMC_evol_mu->GetXaxis()->SetRangeUser(0.6, 1.2);
+  hRatio_DataMC_evol_mu->LabelsDeflate("X");
+  hRatio_DataMC_evol_mu->Draw();
+  cs->SaveAs("ratio_DataMC_evol_mu.pdf");
+  cs->SaveAs("ratio_DataMC_evol_mu.png");
+
+  hRatio_DataMC_evol_ele->GetXaxis()->SetRangeUser(0.6, 1.2);
+  hRatio_DataMC_evol_ele->LabelsDeflate("X");
+  hRatio_DataMC_evol_ele->Draw();
+  cs->SaveAs("ratio_DataMC_evol_ele.pdf");
+  cs->SaveAs("ratio_DataMC_evol_ele.png");
+
   if( !doshape )
   {
     std::cout << std::setprecision(2) << std::fixed;

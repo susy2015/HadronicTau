@@ -41,6 +41,14 @@ class BaseHistgram
   TH1D *hdPhi1_mu;
   TH1D *hdPhi2_mu;
 
+  TH1D *hvtxSize_mu_noCuts;
+  TH1D *hvtxSize_mu_noCuts_aft_puWght;
+  TH1D *hvtxSize_mu;
+  TH1D *hvtxSize_mu_aft_puWght;
+  TH1D *hYields_mu_aft_puWght;
+  TH1D *hYields_mu_aft_puSysup;
+  TH1D *hYields_mu_aft_puSysdown;
+
   TH1D *hMET_mu_no_corr_SF;
   TH1D *hMHT_mu_no_corr_SF;
   TH1D *hNbJets_mu_no_corr_SF;
@@ -71,6 +79,77 @@ class BaseHistgram
   TH1D *hMET_mu_pass_mtw;
   TH1D *hMHT_mu_noCuts;
 
+  TH1D *hNbJets_mu_noCuts;
+  TH1D *hNbJets_mu_passnJets;
+  TH1D *hNbJets_mu_passdPhis;
+  TH1D *hNbJets_mu_passMET;
+  TH1D *hNbJets_mu_passBJets;
+  TH1D *hNbJets_mu_passTagger;
+  TH1D *hNbJets_mu_passHT;
+  TH1D *hNbJets_mu_passMT2;
+  TH1D *hNbJets_mu_pass_mtw;
+  
+  TH1D *hNJets_mu_noCuts;
+  TH1D *hNJets_mu_passnJets;
+  TH1D *hNJets_mu_passdPhis;
+  TH1D *hNJets_mu_passMET;
+  TH1D *hNJets_mu_passBJets;
+  TH1D *hNJets_mu_passTagger;
+  TH1D *hNJets_mu_passHT;
+  TH1D *hNJets_mu_passMT2;
+  TH1D *hNJets_mu_pass_mtw;
+
+  TH1D *hNTops_mu_noCuts;
+  TH1D *hNTops_mu_passnJets;
+  TH1D *hNTops_mu_passdPhis;
+  TH1D *hNTops_mu_passMET;
+  TH1D *hNTops_mu_passBJets;
+  TH1D *hNTops_mu_passTagger;
+  TH1D *hNTops_mu_passHT;
+  TH1D *hNTops_mu_passMT2;
+  TH1D *hNTops_mu_pass_mtw;
+
+  TH1D *hMET_mu_noCuts_no_corr_SF;
+  TH1D *hMET_mu_passnJets_no_corr_SF;
+  TH1D *hMET_mu_passdPhis_no_corr_SF;
+  TH1D *hMET_mu_passMET_no_corr_SF;
+  TH1D *hMET_mu_passBJets_no_corr_SF;
+  TH1D *hMET_mu_passTagger_no_corr_SF;
+  TH1D *hMET_mu_passHT_no_corr_SF;
+  TH1D *hMET_mu_passMT2_no_corr_SF;
+  TH1D *hMET_mu_pass_mtw_no_corr_SF;
+  TH1D *hMHT_mu_noCuts_no_corr_SF;
+
+  TH1D *hNbJets_mu_noCuts_no_corr_SF;
+  TH1D *hNbJets_mu_passnJets_no_corr_SF;
+  TH1D *hNbJets_mu_passdPhis_no_corr_SF;
+  TH1D *hNbJets_mu_passMET_no_corr_SF;
+  TH1D *hNbJets_mu_passBJets_no_corr_SF;
+  TH1D *hNbJets_mu_passTagger_no_corr_SF;
+  TH1D *hNbJets_mu_passHT_no_corr_SF;
+  TH1D *hNbJets_mu_passMT2_no_corr_SF;
+  TH1D *hNbJets_mu_pass_mtw_no_corr_SF;
+  
+  TH1D *hNJets_mu_noCuts_no_corr_SF;
+  TH1D *hNJets_mu_passnJets_no_corr_SF;
+  TH1D *hNJets_mu_passdPhis_no_corr_SF;
+  TH1D *hNJets_mu_passMET_no_corr_SF;
+  TH1D *hNJets_mu_passBJets_no_corr_SF;
+  TH1D *hNJets_mu_passTagger_no_corr_SF;
+  TH1D *hNJets_mu_passHT_no_corr_SF;
+  TH1D *hNJets_mu_passMT2_no_corr_SF;
+  TH1D *hNJets_mu_pass_mtw_no_corr_SF;
+
+  TH1D *hNTops_mu_noCuts_no_corr_SF;
+  TH1D *hNTops_mu_passnJets_no_corr_SF;
+  TH1D *hNTops_mu_passdPhis_no_corr_SF;
+  TH1D *hNTops_mu_passMET_no_corr_SF;
+  TH1D *hNTops_mu_passBJets_no_corr_SF;
+  TH1D *hNTops_mu_passTagger_no_corr_SF;
+  TH1D *hNTops_mu_passHT_no_corr_SF;
+  TH1D *hNTops_mu_passMT2_no_corr_SF;
+  TH1D *hNTops_mu_pass_mtw_no_corr_SF;
+
   TH1D *hMET_el;
   TH1D *hMHT_el;
   TH1D *hNbJets_el;
@@ -82,6 +161,14 @@ class BaseHistgram
   TH1D *hdPhi0_el;
   TH1D *hdPhi1_el;
   TH1D *hdPhi2_el;
+
+  TH1D *hvtxSize_el_noCuts;
+  TH1D *hvtxSize_el_noCuts_aft_puWght;
+  TH1D *hvtxSize_el;
+  TH1D *hvtxSize_el_aft_puWght;
+  TH1D *hYields_el_aft_puWght;
+  TH1D *hYields_el_aft_puSysup;
+  TH1D *hYields_el_aft_puSysdown;
 
   TH1D *hMET_el_no_corr_SF;
   TH1D *hMHT_el_no_corr_SF;
@@ -112,6 +199,77 @@ class BaseHistgram
   TH1D *hMET_el_passMT2;
   TH1D *hMET_el_pass_mtw;
   TH1D *hMHT_el_noCuts;
+
+  TH1D *hNbJets_el_noCuts;
+  TH1D *hNbJets_el_passnJets;
+  TH1D *hNbJets_el_passdPhis;
+  TH1D *hNbJets_el_passMET;
+  TH1D *hNbJets_el_passBJets;
+  TH1D *hNbJets_el_passTagger;
+  TH1D *hNbJets_el_passHT;
+  TH1D *hNbJets_el_passMT2;
+  TH1D *hNbJets_el_pass_mtw;
+  
+  TH1D *hNJets_el_noCuts;
+  TH1D *hNJets_el_passnJets;
+  TH1D *hNJets_el_passdPhis;
+  TH1D *hNJets_el_passMET;
+  TH1D *hNJets_el_passBJets;
+  TH1D *hNJets_el_passTagger;
+  TH1D *hNJets_el_passHT;
+  TH1D *hNJets_el_passMT2;
+  TH1D *hNJets_el_pass_mtw;
+
+  TH1D *hNTops_el_noCuts;
+  TH1D *hNTops_el_passnJets;
+  TH1D *hNTops_el_passdPhis;
+  TH1D *hNTops_el_passMET;
+  TH1D *hNTops_el_passBJets;
+  TH1D *hNTops_el_passTagger;
+  TH1D *hNTops_el_passHT;
+  TH1D *hNTops_el_passMT2;
+  TH1D *hNTops_el_pass_mtw;
+
+  TH1D *hMET_el_noCuts_no_corr_SF;
+  TH1D *hMET_el_passnJets_no_corr_SF;
+  TH1D *hMET_el_passdPhis_no_corr_SF;
+  TH1D *hMET_el_passMET_no_corr_SF;
+  TH1D *hMET_el_passBJets_no_corr_SF;
+  TH1D *hMET_el_passTagger_no_corr_SF;
+  TH1D *hMET_el_passHT_no_corr_SF;
+  TH1D *hMET_el_passMT2_no_corr_SF;
+  TH1D *hMET_el_pass_mtw_no_corr_SF;
+  TH1D *hMHT_el_noCuts_no_corr_SF;
+
+  TH1D *hNbJets_el_noCuts_no_corr_SF;
+  TH1D *hNbJets_el_passnJets_no_corr_SF;
+  TH1D *hNbJets_el_passdPhis_no_corr_SF;
+  TH1D *hNbJets_el_passMET_no_corr_SF;
+  TH1D *hNbJets_el_passBJets_no_corr_SF;
+  TH1D *hNbJets_el_passTagger_no_corr_SF;
+  TH1D *hNbJets_el_passHT_no_corr_SF;
+  TH1D *hNbJets_el_passMT2_no_corr_SF;
+  TH1D *hNbJets_el_pass_mtw_no_corr_SF;
+  
+  TH1D *hNJets_el_noCuts_no_corr_SF;
+  TH1D *hNJets_el_passnJets_no_corr_SF;
+  TH1D *hNJets_el_passdPhis_no_corr_SF;
+  TH1D *hNJets_el_passMET_no_corr_SF;
+  TH1D *hNJets_el_passBJets_no_corr_SF;
+  TH1D *hNJets_el_passTagger_no_corr_SF;
+  TH1D *hNJets_el_passHT_no_corr_SF;
+  TH1D *hNJets_el_passMT2_no_corr_SF;
+  TH1D *hNJets_el_pass_mtw_no_corr_SF;
+
+  TH1D *hNTops_el_noCuts_no_corr_SF;
+  TH1D *hNTops_el_passnJets_no_corr_SF;
+  TH1D *hNTops_el_passdPhis_no_corr_SF;
+  TH1D *hNTops_el_passMET_no_corr_SF;
+  TH1D *hNTops_el_passBJets_no_corr_SF;
+  TH1D *hNTops_el_passTagger_no_corr_SF;
+  TH1D *hNTops_el_passHT_no_corr_SF;
+  TH1D *hNTops_el_passMT2_no_corr_SF;
+  TH1D *hNTops_el_pass_mtw_no_corr_SF;
 
   TH1D *hYields_mu_bSFup;
   TH1D *hYields_mu_bSFdown;
@@ -177,6 +335,14 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi1_mu = new TH1D("hdPhi1_mu", title+";dPhi1;Events", 16, 0, 3.2); hdPhi1_mu->Sumw2();
   hdPhi2_mu = new TH1D("hdPhi2_mu", title+";dPhi2;Events", 16, 0, 3.2); hdPhi2_mu->Sumw2();
 
+  hvtxSize_mu_noCuts = new TH1D("hvtxSize_mu_noCuts",title+";N_{vtx};Events",50,0,50); hvtxSize_mu_noCuts->Sumw2();
+  hvtxSize_mu_noCuts_aft_puWght = new TH1D("hvtxSize_mu_noCuts_aft_puWght",title+";N_{vtx};Events",50,0,50); hvtxSize_mu_noCuts_aft_puWght->Sumw2();
+  hvtxSize_mu = new TH1D("hvtxSize_mu",title+";N_{vtx};Events",50,0,50); hvtxSize_mu->Sumw2();
+  hvtxSize_mu_aft_puWght = new TH1D("hvtxSize_mu_aft_puWght",title+";N_{vtx};Events",50,0,50); hvtxSize_mu_aft_puWght->Sumw2();
+  hYields_mu_aft_puWght = new TH1D("hYields_mu_aft_puWght", title+";search bin;Events",nSB,0,nSB); hYields_mu_aft_puWght->Sumw2();
+  hYields_mu_aft_puSysup = new TH1D("hYields_mu_aft_puSysup", title+";search bin;Events",nSB,0,nSB); hYields_mu_aft_puSysup->Sumw2();
+  hYields_mu_aft_puSysdown = new TH1D("hYields_mu_aft_puSysdown", title+";search bin;Events",nSB,0,nSB); hYields_mu_aft_puSysdown->Sumw2();
+
   hMET_mu_no_corr_SF = new TH1D("hMET_mu_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_no_corr_SF->Sumw2();
   hMHT_mu_no_corr_SF = new TH1D("hMHT_mu_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMHT_mu_no_corr_SF->Sumw2();
   hNbJets_mu_no_corr_SF = new TH1D("hNbJets_mu_no_corr_SF",title+";N_{bjets};Events",4, 1, 5); hNbJets_mu_no_corr_SF->Sumw2();
@@ -196,6 +362,8 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hYields_mu_bSF_mu_SF = new TH1D("hYields_mu_bSF_mu_SF", title+";search bin;Events",nSB,0,nSB); hYields_mu_bSF_mu_SF->Sumw2();
   hYields_mu_isrWght_mu_SF = new TH1D("hYields_mu_isrWght_mu_SF", title+";search bin;Events",nSB,0,nSB); hYields_mu_isrWght_mu_SF->Sumw2();
 
+  hMHT_mu_noCuts = new TH1D("hMHT_mu_noCuts",title+";met [GeV];Events",24,250.,850.); hMHT_mu_noCuts->Sumw2();
+
   hMET_mu_noCuts = new TH1D("hMET_mu_noCuts",title+";met [GeV];Events",24,250.,850.); hMET_mu_noCuts->Sumw2();
   hMET_mu_passnJets = new TH1D("hMET_mu_passnJets",title+";met [GeV];Events",24,250.,850.); hMET_mu_passnJets->Sumw2();
   hMET_mu_passdPhis = new TH1D("hMET_mu_passdPhis",title+";met [GeV];Events",24,250.,850.); hMET_mu_passdPhis->Sumw2();
@@ -205,8 +373,79 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hMET_mu_passHT = new TH1D("hMET_mu_passHT",title+";met [GeV];Events",24,250.,850.); hMET_mu_passHT->Sumw2();
   hMET_mu_passMT2 = new TH1D("hMET_mu_passMT2",title+";met [GeV];Events",24,250.,850.); hMET_mu_passMT2->Sumw2();
   hMET_mu_pass_mtw = new TH1D("hMET_mu_pass_mtw",title+";met [GeV];Events",24,250.,850.); hMET_mu_pass_mtw->Sumw2();
-  hMHT_mu_noCuts = new TH1D("hMHT_mu_noCuts",title+";met [GeV];Events",24,250.,850.); hMHT_mu_noCuts->Sumw2();
+
+  hNbJets_mu_noCuts = new TH1D("hNbJets_mu_noCuts",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_noCuts->Sumw2();
+  hNbJets_mu_passnJets = new TH1D("hNbJets_mu_passnJets",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passnJets->Sumw2();
+  hNbJets_mu_passdPhis = new TH1D("hNbJets_mu_passdPhis",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passdPhis->Sumw2();
+  hNbJets_mu_passMET = new TH1D("hNbJets_mu_passMET",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passMET->Sumw2();
+  hNbJets_mu_passBJets = new TH1D("hNbJets_mu_passBJets",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passBJets->Sumw2();
+  hNbJets_mu_passTagger = new TH1D("hNbJets_mu_passTagger",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passTagger->Sumw2();
+  hNbJets_mu_passHT = new TH1D("hNbJets_mu_passHT",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passHT->Sumw2();
+  hNbJets_mu_passMT2 = new TH1D("hNbJets_mu_passMT2",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passMT2->Sumw2();
+  hNbJets_mu_pass_mtw = new TH1D("hNbJets_mu_pass_mtw",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_pass_mtw->Sumw2();
   
+  hNJets_mu_noCuts = new TH1D("hNJets_mu_noCuts",title+";N_{jets};Events",10, 0, 10); hNJets_mu_noCuts->Sumw2();
+  hNJets_mu_passnJets = new TH1D("hNJets_mu_passnJets",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passnJets->Sumw2();
+  hNJets_mu_passdPhis = new TH1D("hNJets_mu_passdPhis",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passdPhis->Sumw2();
+  hNJets_mu_passMET = new TH1D("hNJets_mu_passMET",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passMET->Sumw2();
+  hNJets_mu_passBJets = new TH1D("hNJets_mu_passBJets",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passBJets->Sumw2();
+  hNJets_mu_passTagger = new TH1D("hNJets_mu_passTagger",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passTagger->Sumw2();
+  hNJets_mu_passHT = new TH1D("hNJets_mu_passHT",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passHT->Sumw2();
+  hNJets_mu_passMT2 = new TH1D("hNJets_mu_passMT2",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passMT2->Sumw2();
+  hNJets_mu_pass_mtw = new TH1D("hNJets_mu_pass_mtw",title+";N_{jets};Events",10, 0, 10); hNJets_mu_pass_mtw->Sumw2();
+
+  hNTops_mu_noCuts = new TH1D("hNTops_mu_noCuts",title+";N_{tops};Events",5, 0, 5); hNTops_mu_noCuts->Sumw2();
+  hNTops_mu_passnJets = new TH1D("hNTops_mu_passnJets",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passnJets->Sumw2();
+  hNTops_mu_passdPhis = new TH1D("hNTops_mu_passdPhis",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passdPhis->Sumw2();
+  hNTops_mu_passMET = new TH1D("hNTops_mu_passMET",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passMET->Sumw2();
+  hNTops_mu_passBJets = new TH1D("hNTops_mu_passBJets",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passBJets->Sumw2();
+  hNTops_mu_passTagger = new TH1D("hNTops_mu_passTagger",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passTagger->Sumw2();
+  hNTops_mu_passHT = new TH1D("hNTops_mu_passHT",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passHT->Sumw2();
+  hNTops_mu_passMT2 = new TH1D("hNTops_mu_passMT2",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passMT2->Sumw2();
+  hNTops_mu_pass_mtw = new TH1D("hNTops_mu_pass_mtw",title+";N_{tops};Events",5, 0, 5); hNTops_mu_pass_mtw->Sumw2();
+
+  hMHT_mu_noCuts_no_corr_SF = new TH1D("hMHT_mu_noCuts_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMHT_mu_noCuts_no_corr_SF->Sumw2();
+
+  hMET_mu_noCuts_no_corr_SF = new TH1D("hMET_mu_noCuts_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_noCuts_no_corr_SF->Sumw2();
+  hMET_mu_passnJets_no_corr_SF = new TH1D("hMET_mu_passnJets_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_passnJets_no_corr_SF->Sumw2();
+  hMET_mu_passdPhis_no_corr_SF = new TH1D("hMET_mu_passdPhis_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_passdPhis_no_corr_SF->Sumw2();
+  hMET_mu_passMET_no_corr_SF = new TH1D("hMET_mu_passMET_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_passMET_no_corr_SF->Sumw2();
+  hMET_mu_passBJets_no_corr_SF = new TH1D("hMET_mu_passBJets_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_passBJets_no_corr_SF->Sumw2();
+  hMET_mu_passTagger_no_corr_SF = new TH1D("hMET_mu_passTagger_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_passTagger_no_corr_SF->Sumw2();
+  hMET_mu_passHT_no_corr_SF = new TH1D("hMET_mu_passHT_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_passHT_no_corr_SF->Sumw2();
+  hMET_mu_passMT2_no_corr_SF = new TH1D("hMET_mu_passMT2_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_passMT2_no_corr_SF->Sumw2();
+  hMET_mu_pass_mtw_no_corr_SF = new TH1D("hMET_mu_pass_mtw_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_mu_pass_mtw_no_corr_SF->Sumw2();
+
+  hNbJets_mu_noCuts_no_corr_SF = new TH1D("hNbJets_mu_noCuts_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_noCuts_no_corr_SF->Sumw2();
+  hNbJets_mu_passnJets_no_corr_SF = new TH1D("hNbJets_mu_passnJets_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passnJets_no_corr_SF->Sumw2();
+  hNbJets_mu_passdPhis_no_corr_SF = new TH1D("hNbJets_mu_passdPhis_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passdPhis_no_corr_SF->Sumw2();
+  hNbJets_mu_passMET_no_corr_SF = new TH1D("hNbJets_mu_passMET_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passMET_no_corr_SF->Sumw2();
+  hNbJets_mu_passBJets_no_corr_SF = new TH1D("hNbJets_mu_passBJets_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passBJets_no_corr_SF->Sumw2();
+  hNbJets_mu_passTagger_no_corr_SF = new TH1D("hNbJets_mu_passTagger_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passTagger_no_corr_SF->Sumw2();
+  hNbJets_mu_passHT_no_corr_SF = new TH1D("hNbJets_mu_passHT_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passHT_no_corr_SF->Sumw2();
+  hNbJets_mu_passMT2_no_corr_SF = new TH1D("hNbJets_mu_passMT2_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_passMT2_no_corr_SF->Sumw2();
+  hNbJets_mu_pass_mtw_no_corr_SF = new TH1D("hNbJets_mu_pass_mtw_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_mu_pass_mtw_no_corr_SF->Sumw2();
+  
+  hNJets_mu_noCuts_no_corr_SF = new TH1D("hNJets_mu_noCuts_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_noCuts_no_corr_SF->Sumw2();
+  hNJets_mu_passnJets_no_corr_SF = new TH1D("hNJets_mu_passnJets_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passnJets_no_corr_SF->Sumw2();
+  hNJets_mu_passdPhis_no_corr_SF = new TH1D("hNJets_mu_passdPhis_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passdPhis_no_corr_SF->Sumw2();
+  hNJets_mu_passMET_no_corr_SF = new TH1D("hNJets_mu_passMET_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passMET_no_corr_SF->Sumw2();
+  hNJets_mu_passBJets_no_corr_SF = new TH1D("hNJets_mu_passBJets_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passBJets_no_corr_SF->Sumw2();
+  hNJets_mu_passTagger_no_corr_SF = new TH1D("hNJets_mu_passTagger_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passTagger_no_corr_SF->Sumw2();
+  hNJets_mu_passHT_no_corr_SF = new TH1D("hNJets_mu_passHT_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passHT_no_corr_SF->Sumw2();
+  hNJets_mu_passMT2_no_corr_SF = new TH1D("hNJets_mu_passMT2_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_passMT2_no_corr_SF->Sumw2();
+  hNJets_mu_pass_mtw_no_corr_SF = new TH1D("hNJets_mu_pass_mtw_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_mu_pass_mtw_no_corr_SF->Sumw2();
+
+  hNTops_mu_noCuts_no_corr_SF = new TH1D("hNTops_mu_noCuts_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_noCuts_no_corr_SF->Sumw2();
+  hNTops_mu_passnJets_no_corr_SF = new TH1D("hNTops_mu_passnJets_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passnJets_no_corr_SF->Sumw2();
+  hNTops_mu_passdPhis_no_corr_SF = new TH1D("hNTops_mu_passdPhis_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passdPhis_no_corr_SF->Sumw2();
+  hNTops_mu_passMET_no_corr_SF = new TH1D("hNTops_mu_passMET_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passMET_no_corr_SF->Sumw2();
+  hNTops_mu_passBJets_no_corr_SF = new TH1D("hNTops_mu_passBJets_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passBJets_no_corr_SF->Sumw2();
+  hNTops_mu_passTagger_no_corr_SF = new TH1D("hNTops_mu_passTagger_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passTagger_no_corr_SF->Sumw2();
+  hNTops_mu_passHT_no_corr_SF = new TH1D("hNTops_mu_passHT_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passHT_no_corr_SF->Sumw2();
+  hNTops_mu_passMT2_no_corr_SF = new TH1D("hNTops_mu_passMT2_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_passMT2_no_corr_SF->Sumw2();
+  hNTops_mu_pass_mtw_no_corr_SF = new TH1D("hNTops_mu_pass_mtw_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_mu_pass_mtw_no_corr_SF->Sumw2();
+
   hMET_el = new TH1D("hMET_el",title_el+";met [GeV];Events",24,250.,850.); hMET_el->Sumw2();
   hMHT_el = new TH1D("hMHT_el",title_el+";met [GeV];Events",24,250.,850.); hMHT_el->Sumw2();
   hNbJets_el = new TH1D("hNbJets_el",title_el+";N_{bjets};Events",4, 1, 5); hNbJets_el->Sumw2();
@@ -219,6 +458,14 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hdPhi1_el = new TH1D("hdPhi1_el", title_el+";dPhi1;Events", 16, 0, 3.2); hdPhi1_el->Sumw2();
   hdPhi2_el = new TH1D("hdPhi2_el", title_el+";dPhi2;Events", 16, 0, 3.2); hdPhi2_el->Sumw2();
   
+  hvtxSize_el_noCuts = new TH1D("hvtxSize_el_noCuts",title+";N_{vtx};Events",50,0,50); hvtxSize_el_noCuts->Sumw2();
+  hvtxSize_el_noCuts_aft_puWght = new TH1D("hvtxSize_el_noCuts_aft_puWght",title+";N_{vtx};Events",50,0,50); hvtxSize_el_noCuts_aft_puWght->Sumw2();
+  hvtxSize_el = new TH1D("hvtxSize_el",title+";N_{vtx};Events",50,0,50); hvtxSize_el->Sumw2();
+  hvtxSize_el_aft_puWght = new TH1D("hvtxSize_el_aft_puWght",title+";N_{vtx};Events",50,0,50); hvtxSize_el_aft_puWght->Sumw2();
+  hYields_el_aft_puWght = new TH1D("hYields_el_aft_puWght", title+";search bin;Events",nSB,0,nSB); hYields_el_aft_puWght->Sumw2();
+  hYields_el_aft_puSysup = new TH1D("hYields_el_aft_puSysup", title+";search bin;Events",nSB,0,nSB); hYields_el_aft_puSysup->Sumw2();
+  hYields_el_aft_puSysdown = new TH1D("hYields_el_aft_puSysdown", title+";search bin;Events",nSB,0,nSB); hYields_el_aft_puSysdown->Sumw2();
+
   hMET_el_no_corr_SF = new TH1D("hMET_el_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_no_corr_SF->Sumw2();
   hMHT_el_no_corr_SF = new TH1D("hMHT_el_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMHT_el_no_corr_SF->Sumw2();
   hNbJets_el_no_corr_SF = new TH1D("hNbJets_el_no_corr_SF",title+";N_{bjets};Events",4, 1, 5); hNbJets_el_no_corr_SF->Sumw2();
@@ -238,6 +485,8 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hYields_el_bSF_ele_SF = new TH1D("hYields_el_bSF_ele_SF", title+";search bin;Events",nSB,0,nSB); hYields_el_bSF_ele_SF->Sumw2();
   hYields_el_isrWght_ele_SF = new TH1D("hYields_el_isrWght_ele_SF", title+";search bin;Events",nSB,0,nSB); hYields_el_isrWght_ele_SF->Sumw2();
 
+  hMHT_el_noCuts = new TH1D("hMHT_el_noCuts",title+";met [GeV];Events",24,250.,850.); hMHT_el_noCuts->Sumw2();
+
   hMET_el_noCuts = new TH1D("hMET_el_noCuts",title+";met [GeV];Events",24,250.,850.); hMET_el_noCuts->Sumw2();
   hMET_el_passnJets = new TH1D("hMET_el_passnJets",title+";met [GeV];Events",24,250.,850.); hMET_el_passnJets->Sumw2();
   hMET_el_passdPhis = new TH1D("hMET_el_passdPhis",title+";met [GeV];Events",24,250.,850.); hMET_el_passdPhis->Sumw2();
@@ -247,8 +496,79 @@ void BaseHistgram::BookHistgram(const char *outFileName, const int& filerun)
   hMET_el_passHT = new TH1D("hMET_el_passHT",title+";met [GeV];Events",24,250.,850.); hMET_el_passHT->Sumw2();
   hMET_el_passMT2 = new TH1D("hMET_el_passMT2",title+";met [GeV];Events",24,250.,850.); hMET_el_passMT2->Sumw2();
   hMET_el_pass_mtw = new TH1D("hMET_el_pass_mtw",title+";met [GeV];Events",24,250.,850.); hMET_el_pass_mtw->Sumw2();
-  hMHT_el_noCuts = new TH1D("hMHT_el_noCuts",title+";met [GeV];Events",24,250.,850.); hMHT_el_noCuts->Sumw2();
   
+  hNbJets_el_noCuts = new TH1D("hNbJets_el_noCuts",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_noCuts->Sumw2();
+  hNbJets_el_passnJets = new TH1D("hNbJets_el_passnJets",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passnJets->Sumw2();
+  hNbJets_el_passdPhis = new TH1D("hNbJets_el_passdPhis",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passdPhis->Sumw2();
+  hNbJets_el_passMET = new TH1D("hNbJets_el_passMET",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passMET->Sumw2();
+  hNbJets_el_passBJets = new TH1D("hNbJets_el_passBJets",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passBJets->Sumw2();
+  hNbJets_el_passTagger = new TH1D("hNbJets_el_passTagger",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passTagger->Sumw2();
+  hNbJets_el_passHT = new TH1D("hNbJets_el_passHT",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passHT->Sumw2();
+  hNbJets_el_passMT2 = new TH1D("hNbJets_el_passMT2",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passMT2->Sumw2();
+  hNbJets_el_pass_mtw = new TH1D("hNbJets_el_pass_mtw",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_pass_mtw->Sumw2();
+  
+  hNJets_el_noCuts = new TH1D("hNJets_el_noCuts",title+";N_{jets};Events",10, 0, 10); hNJets_el_noCuts->Sumw2();
+  hNJets_el_passnJets = new TH1D("hNJets_el_passnJets",title+";N_{jets};Events",10, 0, 10); hNJets_el_passnJets->Sumw2();
+  hNJets_el_passdPhis = new TH1D("hNJets_el_passdPhis",title+";N_{jets};Events",10, 0, 10); hNJets_el_passdPhis->Sumw2();
+  hNJets_el_passMET = new TH1D("hNJets_el_passMET",title+";N_{jets};Events",10, 0, 10); hNJets_el_passMET->Sumw2();
+  hNJets_el_passBJets = new TH1D("hNJets_el_passBJets",title+";N_{jets};Events",10, 0, 10); hNJets_el_passBJets->Sumw2();
+  hNJets_el_passTagger = new TH1D("hNJets_el_passTagger",title+";N_{jets};Events",10, 0, 10); hNJets_el_passTagger->Sumw2();
+  hNJets_el_passHT = new TH1D("hNJets_el_passHT",title+";N_{jets};Events",10, 0, 10); hNJets_el_passHT->Sumw2();
+  hNJets_el_passMT2 = new TH1D("hNJets_el_passMT2",title+";N_{jets};Events",10, 0, 10); hNJets_el_passMT2->Sumw2();
+  hNJets_el_pass_mtw = new TH1D("hNJets_el_pass_mtw",title+";N_{jets};Events",10, 0, 10); hNJets_el_pass_mtw->Sumw2();
+
+  hNTops_el_noCuts = new TH1D("hNTops_el_noCuts",title+";N_{tops};Events",5, 0, 5); hNTops_el_noCuts->Sumw2();
+  hNTops_el_passnJets = new TH1D("hNTops_el_passnJets",title+";N_{tops};Events",5, 0, 5); hNTops_el_passnJets->Sumw2();
+  hNTops_el_passdPhis = new TH1D("hNTops_el_passdPhis",title+";N_{tops};Events",5, 0, 5); hNTops_el_passdPhis->Sumw2();
+  hNTops_el_passMET = new TH1D("hNTops_el_passMET",title+";N_{tops};Events",5, 0, 5); hNTops_el_passMET->Sumw2();
+  hNTops_el_passBJets = new TH1D("hNTops_el_passBJets",title+";N_{tops};Events",5, 0, 5); hNTops_el_passBJets->Sumw2();
+  hNTops_el_passTagger = new TH1D("hNTops_el_passTagger",title+";N_{tops};Events",5, 0, 5); hNTops_el_passTagger->Sumw2();
+  hNTops_el_passHT = new TH1D("hNTops_el_passHT",title+";N_{tops};Events",5, 0, 5); hNTops_el_passHT->Sumw2();
+  hNTops_el_passMT2 = new TH1D("hNTops_el_passMT2",title+";N_{tops};Events",5, 0, 5); hNTops_el_passMT2->Sumw2();
+  hNTops_el_pass_mtw = new TH1D("hNTops_el_pass_mtw",title+";N_{tops};Events",5, 0, 5); hNTops_el_pass_mtw->Sumw2();
+
+  hMHT_el_noCuts_no_corr_SF = new TH1D("hMHT_el_noCuts_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMHT_el_noCuts_no_corr_SF->Sumw2();
+
+  hMET_el_noCuts_no_corr_SF = new TH1D("hMET_el_noCuts_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_noCuts_no_corr_SF->Sumw2();
+  hMET_el_passnJets_no_corr_SF = new TH1D("hMET_el_passnJets_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_passnJets_no_corr_SF->Sumw2();
+  hMET_el_passdPhis_no_corr_SF = new TH1D("hMET_el_passdPhis_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_passdPhis_no_corr_SF->Sumw2();
+  hMET_el_passMET_no_corr_SF = new TH1D("hMET_el_passMET_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_passMET_no_corr_SF->Sumw2();
+  hMET_el_passBJets_no_corr_SF = new TH1D("hMET_el_passBJets_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_passBJets_no_corr_SF->Sumw2();
+  hMET_el_passTagger_no_corr_SF = new TH1D("hMET_el_passTagger_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_passTagger_no_corr_SF->Sumw2();
+  hMET_el_passHT_no_corr_SF = new TH1D("hMET_el_passHT_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_passHT_no_corr_SF->Sumw2();
+  hMET_el_passMT2_no_corr_SF = new TH1D("hMET_el_passMT2_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_passMT2_no_corr_SF->Sumw2();
+  hMET_el_pass_mtw_no_corr_SF = new TH1D("hMET_el_pass_mtw_no_corr_SF",title+";met [GeV];Events",24,250.,850.); hMET_el_pass_mtw_no_corr_SF->Sumw2();
+  
+  hNbJets_el_noCuts_no_corr_SF = new TH1D("hNbJets_el_noCuts_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_noCuts_no_corr_SF->Sumw2();
+  hNbJets_el_passnJets_no_corr_SF = new TH1D("hNbJets_el_passnJets_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passnJets_no_corr_SF->Sumw2();
+  hNbJets_el_passdPhis_no_corr_SF = new TH1D("hNbJets_el_passdPhis_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passdPhis_no_corr_SF->Sumw2();
+  hNbJets_el_passMET_no_corr_SF = new TH1D("hNbJets_el_passMET_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passMET_no_corr_SF->Sumw2();
+  hNbJets_el_passBJets_no_corr_SF = new TH1D("hNbJets_el_passBJets_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passBJets_no_corr_SF->Sumw2();
+  hNbJets_el_passTagger_no_corr_SF = new TH1D("hNbJets_el_passTagger_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passTagger_no_corr_SF->Sumw2();
+  hNbJets_el_passHT_no_corr_SF = new TH1D("hNbJets_el_passHT_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passHT_no_corr_SF->Sumw2();
+  hNbJets_el_passMT2_no_corr_SF = new TH1D("hNbJets_el_passMT2_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_passMT2_no_corr_SF->Sumw2();
+  hNbJets_el_pass_mtw_no_corr_SF = new TH1D("hNbJets_el_pass_mtw_no_corr_SF",title+";N_{bjets};Events",5, 0, 5); hNbJets_el_pass_mtw_no_corr_SF->Sumw2();
+  
+  hNJets_el_noCuts_no_corr_SF = new TH1D("hNJets_el_noCuts_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_noCuts_no_corr_SF->Sumw2();
+  hNJets_el_passnJets_no_corr_SF = new TH1D("hNJets_el_passnJets_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_passnJets_no_corr_SF->Sumw2();
+  hNJets_el_passdPhis_no_corr_SF = new TH1D("hNJets_el_passdPhis_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_passdPhis_no_corr_SF->Sumw2();
+  hNJets_el_passMET_no_corr_SF = new TH1D("hNJets_el_passMET_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_passMET_no_corr_SF->Sumw2();
+  hNJets_el_passBJets_no_corr_SF = new TH1D("hNJets_el_passBJets_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_passBJets_no_corr_SF->Sumw2();
+  hNJets_el_passTagger_no_corr_SF = new TH1D("hNJets_el_passTagger_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_passTagger_no_corr_SF->Sumw2();
+  hNJets_el_passHT_no_corr_SF = new TH1D("hNJets_el_passHT_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_passHT_no_corr_SF->Sumw2();
+  hNJets_el_passMT2_no_corr_SF = new TH1D("hNJets_el_passMT2_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_passMT2_no_corr_SF->Sumw2();
+  hNJets_el_pass_mtw_no_corr_SF = new TH1D("hNJets_el_pass_mtw_no_corr_SF",title+";N_{jets};Events",10, 0, 10); hNJets_el_pass_mtw_no_corr_SF->Sumw2();
+
+  hNTops_el_noCuts_no_corr_SF = new TH1D("hNTops_el_noCuts_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_noCuts_no_corr_SF->Sumw2();
+  hNTops_el_passnJets_no_corr_SF = new TH1D("hNTops_el_passnJets_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_passnJets_no_corr_SF->Sumw2();
+  hNTops_el_passdPhis_no_corr_SF = new TH1D("hNTops_el_passdPhis_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_passdPhis_no_corr_SF->Sumw2();
+  hNTops_el_passMET_no_corr_SF = new TH1D("hNTops_el_passMET_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_passMET_no_corr_SF->Sumw2();
+  hNTops_el_passBJets_no_corr_SF = new TH1D("hNTops_el_passBJets_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_passBJets_no_corr_SF->Sumw2();
+  hNTops_el_passTagger_no_corr_SF = new TH1D("hNTops_el_passTagger_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_passTagger_no_corr_SF->Sumw2();
+  hNTops_el_passHT_no_corr_SF = new TH1D("hNTops_el_passHT_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_passHT_no_corr_SF->Sumw2();
+  hNTops_el_passMT2_no_corr_SF = new TH1D("hNTops_el_passMT2_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_passMT2_no_corr_SF->Sumw2();
+  hNTops_el_pass_mtw_no_corr_SF = new TH1D("hNTops_el_pass_mtw_no_corr_SF",title+";N_{tops};Events",5, 0, 5); hNTops_el_pass_mtw_no_corr_SF->Sumw2();
+
   hYields_mu_bSFup = new TH1D("hYields_mu_bSFup", title+";search bin;Events",nSB,0,nSB); hYields_mu_bSFup->Sumw2();
   hYields_mu_bSFdown = new TH1D("hYields_mu_bSFdown", title+";search bin;Events",nSB,0,nSB); hYields_mu_bSFdown->Sumw2();
   hYields_el_bSFup = new TH1D("hYields_el_bSFup", title_el+";search bin;Events",nSB,0,nSB); hYields_el_bSFup->Sumw2();

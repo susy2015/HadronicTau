@@ -29,6 +29,8 @@
 #include "TTree.h"
 #include "TChain.h"
 
+#include "TGraphAsymmErrors.h"
+
 #include "SusyAnaTools/Tools/ISRCorrector.h"
 
 #include "PrepSystematics.h"
@@ -44,7 +46,7 @@ const bool useTTbarHTsamples = true;
 TFile * bTagEffFile =0;
 
 TH2D * mu_mediumID_SF = 0, * mu_miniISO_SF = 0;
-TH1D * mu_trkptGT10_SF = 0, * mu_trkptLT10_SF = 0;
+TGraphAsymmErrors * mu_trkptGT10_SF = 0, * mu_trkptLT10_SF = 0;
 
 TH2D * ele_VetoID_SF = 0, * ele_miniISO_SF = 0;
 TH2D * ele_trkpt_SF = 0;
@@ -84,8 +86,8 @@ int main(int argc, char* argv[])
   if( !allINone_leptonSF_file->IsZombie() ){
     mu_mediumID_SF = (TH2D*) allINone_leptonSF_file->Get("pt_abseta_PLOT_pair_probeMultiplicity_bin0");
     mu_miniISO_SF = (TH2D*) allINone_leptonSF_file->Get("pt_abseta_PLOT_pair_probeMultiplicity_bin0_&_Medium2016_pass");
-    mu_trkptGT10_SF = (TH1D*) allINone_leptonSF_file->Get("mutrksfptg10");
-    mu_trkptLT10_SF = (TH1D*) allINone_leptonSF_file->Get("mutrksfptl10");
+    mu_trkptGT10_SF = (TGraphAsymmErrors*) allINone_leptonSF_file->Get("ratio_eff_eta3_dr030e030_corr");
+    mu_trkptLT10_SF = (TGraphAsymmErrors*) allINone_leptonSF_file->Get("ratio_eff_eta3_tk0_dr030e030_corr");
 
     ele_VetoID_SF = (TH2D*) allINone_leptonSF_file->Get("GsfElectronToVeto");
     ele_miniISO_SF = (TH2D*) allINone_leptonSF_file->Get("MVAVLooseElectronToMini");
@@ -407,8 +409,8 @@ int main(int argc, char* argv[])
         {
           if( mu_mediumID_SF ){ lep_id_SF = mu_mediumID_SF->GetBinContent(mu_mediumID_SF->FindBin(pt, abseta)); if( lep_id_SF == 0 ) lep_id_SF = 1.0; } // very simple way dealing with out of range issue of the TH2D
           if( mu_miniISO_SF ){ lep_iso_SF = mu_miniISO_SF->GetBinContent(mu_miniISO_SF->FindBin(pt, abseta)); if( lep_iso_SF == 0 ) lep_iso_SF = 1.0; }
-          if( pt < 10 && mu_trkptLT10_SF ){ lep_trk_SF = mu_trkptLT10_SF->GetBinContent(mu_trkptLT10_SF->FindBin(eta)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
-          if( pt >= 10 && mu_trkptGT10_SF ){ lep_trk_SF = mu_trkptGT10_SF->GetBinContent(mu_trkptGT10_SF->FindBin(eta)); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
+          if( pt < 10 && mu_trkptLT10_SF ){ lep_trk_SF = mu_trkptLT10_SF->Eval(eta); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
+          if( pt >= 10 && mu_trkptGT10_SF ){ lep_trk_SF = mu_trkptGT10_SF->Eval(eta); if( lep_trk_SF == 0 ) lep_trk_SF = 1.0; }
           lep_id_SF_err = lep_id_SF * 0.03; // only use id_SF for error to assume a flat 3% for muon case
         }else if( pickedLepType ==1 )
         {
@@ -427,7 +429,7 @@ int main(int argc, char* argv[])
           if( ele_trkpt_SF )
           {
             lep_trk_SF = ele_trkpt_SF->GetBinContent(ele_trkpt_SF->FindBin(eta, pt));
-            lep_trk_SF_err = pt<20? 0.03: 0.00;
+            lep_trk_SF_err = pt<20 || pt>80? 0.01: 0.00;
             if( lep_trk_SF == 0 ){ lep_trk_SF = 1.0; lep_trk_SF_err = 0.0; }
           }
         }else if( pickedLepType ==2 )

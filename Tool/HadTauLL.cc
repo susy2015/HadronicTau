@@ -80,7 +80,8 @@ int main(int argc, char* argv[])
   TString sampleString(subsamplename);
 
   //Searchbin                          
-  SearchBins SB("SB_v1_2017");
+  //SearchBins SB("SB_v1_2017");
+  SearchBins SB("SB_Aggregate_2017");
 
   TFile * allINone_leptonSF_file = new TFile("allINone_leptonSF_Moriond17.root");
   if( !allINone_leptonSF_file->IsZombie() ){
@@ -100,7 +101,8 @@ int main(int argc, char* argv[])
   NTupleReader *tr =0;
   tr = new NTupleReader(fChain, AnaConsts::activatedBranchNames);
   ExpBaseline = new BaselineVessel(*tr, spec);
-  ExpBaseline->SetupTopTagger(true,"TopTagger.cfg");
+  // ExpBaseline->SetupTopTagger(true,"TopTagger.cfg");
+  ExpBaseline->SetupTopTagger(true,"TopTagger_Simplified.cfg");
   tr->registerFunction((*ExpBaseline));
  
   //Assume ONLY run this on MC samples!

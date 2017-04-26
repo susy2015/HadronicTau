@@ -16,7 +16,8 @@
 #include "SusyAnaTools/Tools/samples.h"
 #include "SusyAnaTools/Tools/baselineDef.h"
 
-static const int nSB = 84; //We use nSB serach bins depending on Nbjet, Ntop, met and MT2 value.
+//static const int nSB = 84; //We use nSB serach bins depending on Nbjet, Ntop, met and MT2 value.
+static const int nSB = 10; //We use Aggregate serach bins depending on Nbjet, Ntop, met and MT2 value.
 
 
 using namespace std;

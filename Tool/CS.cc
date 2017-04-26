@@ -86,7 +86,8 @@ int main(int argc, char* argv[]) {
   TString sampleString(subsamplename);
   if(sampleString.Contains("Data")){Lumiscale = 1.0; isData = true;}
   //Searchbin                                                                                                                                                                                    
-  SearchBins SB("SB_v1_2017");
+  // SearchBins SB("SB_v1_2017");
+  SearchBins SB("SB_Aggregate_2017");
 
 //  const int nTotBins = SB.nSearchBins();
   std::vector<int> cached_MT2_binIdx_mu_3DVec, cached_HT_binIdx_mu_3DVec;
@@ -109,7 +110,8 @@ int main(int argc, char* argv[]) {
   if( isData ) tr = new NTupleReader(fChain, AnaConsts::activatedBranchNames_DataOnly);
   else tr = new NTupleReader(fChain, AnaConsts::activatedBranchNames);
   CSBaseline = new BaselineVessel(*tr, spec);
-  CSBaseline->SetupTopTagger(true,"TopTagger.cfg");
+  //CSBaseline->SetupTopTagger(true,"TopTagger.cfg");
+  CSBaseline->SetupTopTagger(true,"TopTagger_Simplified.cfg");
   tr->registerFunction((*CSBaseline));
 
   ttPtr = CSBaseline->GetTopTaggerPtr();

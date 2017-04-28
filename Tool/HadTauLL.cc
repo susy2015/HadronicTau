@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
   TString sampleString(subsamplename);
 
   //Searchbin                          
-  //SearchBins SB("SB_v1_2017");
-  SearchBins SB("SB_Aggregate_2017");
+  SearchBins SB("SB_v1_2017");
+  //SearchBins SB("SB_Aggregate_2017");		//Aggregate sb
 
   TFile * allINone_leptonSF_file = new TFile("allINone_leptonSF_Moriond17.root");
   if( !allINone_leptonSF_file->IsZombie() ){
@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
   NTupleReader *tr =0;
   tr = new NTupleReader(fChain, AnaConsts::activatedBranchNames);
   ExpBaseline = new BaselineVessel(*tr, spec);
-  // ExpBaseline->SetupTopTagger(true,"TopTagger.cfg");
-  ExpBaseline->SetupTopTagger(true,"TopTagger_Simplified.cfg");
+  ExpBaseline->SetupTopTagger(true,"TopTagger.cfg");
+  //ExpBaseline->SetupTopTagger(true,"TopTagger_Simplified.cfg");	//Aggregate sb
   tr->registerFunction((*ExpBaseline));
  
   //Assume ONLY run this on MC samples!
@@ -448,10 +448,13 @@ int main(int argc, char* argv[])
         const double lep_SF_up = lep_SF * (1 + rel_lep_SF_err);
         const double lep_SF_dn = lep_SF * (1 - rel_lep_SF_err);
 
-        const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        //const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets, nTops, MT2, met, ht); 
+
         if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0)
         {
-          if( kSR!= -1 )
+          //if( kSR!= -1 )
+          for(auto kSR : jSR_vec)
           {
             myBaseHistgram.hYields_Veto_LL->Fill(kSR, Lumiscale);
             myBaseHistgram.hYields_Veto_LL_SF->Fill(kSR, Lumiscale*lep_SF);
@@ -461,7 +464,8 @@ int main(int argc, char* argv[])
         }
         else if(W_tau_prongsVec.size() !=0)
         {
-          if( kSR!= -1 )
+          //if( kSR!= -1 )
+          for(auto kSR : jSR_vec)
           {
             myBaseHistgram.hYields_Veto_tau->Fill(kSR, Lumiscale);
             myBaseHistgram.hYields_Veto_tau_SF->Fill(kSR, Lumiscale*lep_SF);
@@ -471,17 +475,20 @@ int main(int argc, char* argv[])
         }
       }else
       {
-        const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        //const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets, nTops, MT2, met, ht); 
         if(W_emuVec.size() !=0 || W_tau_emuVec.size() !=0)
         {
-          if( kSR!= -1 )
+          //if( kSR!= -1 )
+          for(auto kSR : jSR_vec)
           {
             myBaseHistgram.hYields_Pass_LL->Fill(kSR, Lumiscale);
           }
         }
         else if(W_tau_prongsVec.size() !=0)
         {
-          if( kSR!= -1 )
+          //if( kSR!= -1 )
+          for(auto kSR : jSR_vec)
           {
             myBaseHistgram.hYields_Pass_tau->Fill(kSR, Lumiscale);
           }
@@ -504,9 +511,11 @@ int main(int argc, char* argv[])
     {
       if( passBaselineFull )
       {
-        const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        //const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets, nTops, MT2, met, ht); 
+        for(auto kSR : jSR_vec)
   
-        if( kSR!= -1 )
+        //if( kSR!= -1 )
         {
   	  myBaseHistgram.hYields_LL_no_corr_SF->Fill(kSR, Lumiscale);
   	  myBaseHistgram.hYields_LL_bSF->Fill(kSR, Lumiscale*bSF);
@@ -541,33 +550,51 @@ int main(int argc, char* argv[])
 
       if( passBaseline_metMagUp )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp);
-        if( kSR != -1 ) myBaseHistgram.hYields_LL_metMagUp->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_LL_metMagUp->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_metMagDn )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn);
-        if( kSR != -1 ) myBaseHistgram.hYields_LL_metMagDn->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_LL_metMagDn->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_metPhiUp )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp);
-        if( kSR != -1 ) myBaseHistgram.hYields_LL_metPhiUp->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 )
+	{myBaseHistgram.hYields_LL_metPhiUp->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_metPhiDn )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn);
-        if( kSR != -1 ) myBaseHistgram.hYields_LL_metPhiDn->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_LL_metPhiDn->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_jecUp )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp);
-        if( kSR != -1 ) myBaseHistgram.hYields_LL_jecUp->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_LL_jecUp->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_jecDn )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn);
-        if( kSR != -1 ) myBaseHistgram.hYields_LL_jecDn->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_LL_jecDn->Fill(kSR, Lumiscale*corr_SF);}
       }
     }
     //Exp Hadtau Dist.
@@ -575,9 +602,11 @@ int main(int argc, char* argv[])
     {
       if( passBaselineFull )
       {
-        const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        //const int kSR = SB.find_Binning_Index(nbJets, nTops, MT2, met, ht);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets, nTops, MT2, met, ht); 
+        for(auto kSR : jSR_vec)
 
-        if( kSR!= -1 )
+        //if( kSR!= -1 )
         {
   	  myBaseHistgram.hYields_tau_no_corr_SF->Fill(kSR, Lumiscale);
   	  myBaseHistgram.hYields_tau_bSF->Fill(kSR, Lumiscale*bSF);
@@ -611,33 +640,51 @@ int main(int argc, char* argv[])
       }
       if( passBaseline_metMagUp )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp);
-        if( kSR != -1 ) myBaseHistgram.hYields_tau_metMagUp->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metMagUp, nTops_metMagUp, MT2_metMagUp, met_metMagUp, HT_metMagUp); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_tau_metMagUp->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_metMagDn )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn);
-        if( kSR != -1 ) myBaseHistgram.hYields_tau_metMagDn->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metMagDn, nTops_metMagDn, MT2_metMagDn, met_metMagDn, HT_metMagDn); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_tau_metMagDn->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_metPhiUp )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp);
-        if( kSR != -1 ) myBaseHistgram.hYields_tau_metPhiUp->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metPhiUp, nTops_metPhiUp, MT2_metPhiUp, met_metPhiUp, HT_metPhiUp); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_tau_metPhiUp->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_metPhiDn )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn);
-        if( kSR != -1 ) myBaseHistgram.hYields_tau_metPhiDn->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_metPhiDn, nTops_metPhiDn, MT2_metPhiDn, met_metPhiDn, HT_metPhiDn); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_tau_metPhiDn->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_jecUp )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp);
-        if( kSR != -1 ) myBaseHistgram.hYields_tau_jecUp->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_jecUp, nTops_jecUp, MT2_jecUp, met_jecUp, HT_jecUp); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_tau_jecUp->Fill(kSR, Lumiscale*corr_SF);}
       }
       if( passBaseline_jecDn )
       {
-        const int kSR = SB.find_Binning_Index(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn);
-        if( kSR != -1 ) myBaseHistgram.hYields_tau_jecDn->Fill(kSR, Lumiscale*corr_SF);
+        //const int kSR = SB.find_Binning_Index(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn);
+        std::vector<int> jSR_vec = SB.find_Binning_Indices(nbJets_jecDn, nTops_jecDn, MT2_jecDn, met_jecDn, HT_jecDn); 
+        for(auto kSR : jSR_vec)
+        //if( kSR != -1 ) 
+	{myBaseHistgram.hYields_tau_jecDn->Fill(kSR, Lumiscale*corr_SF);}
       }
 
     }

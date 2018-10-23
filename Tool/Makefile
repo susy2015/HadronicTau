@@ -1,32 +1,46 @@
-IDIR = .
-ODIR = obj
-SDIR = ../../SusyAnaTools/Tools/
+IDIR       = .
+ODIR       = obj
+SDIR       = $(CMSSW_BASE)/src/SusyAnaTools/Tools
 
-CXX = g++
-CXXFLAGS += -I. -std=c++0x -I${CMSSW_BASE}/src/ -I$(LHAPDF_DATA_PATH)/../../include
+
+OPENCV_DIRECTORY=$(CMSSW_BASE)/src/opencv
+
+CXX        = g++
+
+CXXFLAGS  += -I. -I$(CMSSW_BASE)/src -I$(OPENCV_DIRECTORY)/include/ -I$(OPENCV_DIRECTORY)/modules/core/include -I$(OPENCV_DIRECTORY)/modules/video/include -I$(OPENCV_DIRECTORY)/modules/objdetect/include -I$(OPENCV_DIRECTORY)/modules/ml/include/ -I$(OPENCV_DIRECTORY)/modules/photo/include/ -I$(OPENCV_DIRECTORY)/modules/imgproc/include/ -std=c++0x
+CXXFLAGS += -I$(LHAPDF_DATA_PATH)/../../include -I$(CMSSW_RELEASE_BASE)/src
+CXXFLAGS += -I$(shell scram tool info fastjet | grep '^INCLUDE' | sed 's/INCLUDE=//')
+CXXFLAGS += -I$(shell scram tool info boost | grep '^INCLUDE' | sed 's/INCLUDE=//')
+
 ## Optimization flag
 CXXFLAGS += -g
 ## Enable the maximun warning
 #CXXFLAGS += -Wall -Wextra -Weffc++ -g
 
 ## Include ROOT
-CXXFLAGS += $(shell root-config --cflags)
+CXXFLAGS  += $(shell root-config --cflags)
+
 CXXDEPFLAGS = -MMD -MP
-LD = g++
-LDFLAGS =
-LIBS = $(shell root-config --glibs)
 
-LHAPDFLIB = -L$(LHAPDF_DATA_PATH)/../../lib -lLHAPDF
-#OBJS = $(patsubst %, $(ODIR)/%, $(OBJ))
+LD         = g++
+LDFLAGS    =
 
-PROGRAMS = Template Closure Acc FakeRate IsoTrack DataMC Data Systematic SignalCont PrintSearchBins
+ROOTLIBS   = $(shell root-config --glibs)
+MT2LIB     = -L$(CMSSW_BASE)/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2
+TOPLIB     = -L$(CMSSW_BASE)/lib/${SCRAM_ARCH}/ -lTopTaggerTopTagger -lTopTaggerCfgParser
+OPENVCLIBS = -L$(OPENCV_DIRECTORY)/lib/ -lopencv_ml -lopencv_core
+LHAPDFLIB  = -L$(LHAPDF_DATA_PATH)/../../lib -lLHAPDF
 
-all: sampPyWrap $(PROGRAMS)
+#OBJS       = $(patsubst %, $(ODIR)/%, $(OBJ))
 
-#mkobj:
-#	@mkdir -p obj
+PROGRAMS = CS HadTauLL makePred plotSystematic
 
-#code to compile shared library to link samples to python
+all: mkobj sampPyWrap $(PROGRAMS)
+
+mkobj:
+	@mkdir -p obj
+
+#code to compile shared library to link samples to python                                                                                                                               
 sampPyWrap: $(ODIR)/samplesModule.so
 
 $(ODIR)/samplesModule.so: $(ODIR)/samplesPyWrap.o $(ODIR)/samplesModulePyWrap.o
@@ -39,49 +53,36 @@ $(ODIR)/samplesModulePyWrap.o: $(SDIR)/samplesModule.cc
 	$(CXX) --std=c++11 -c -fPIC -o $@ $<
 
 
-$(ODIR)/%.o : $(SDIR)/%.C
-	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
-
-$(ODIR)/%.o : $(SDIR)/%.cc
-	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
-
 $(ODIR)/%.o : $(IDIR)/%.C
 	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
 $(ODIR)/%.o : $(IDIR)/%.cc
 	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-Template: $(ODIR)/Template.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+$(ODIR)/%.o : $(SDIR)/%.C
+	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-Closure: $(ODIR)/Closure.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+$(ODIR)/%.o : $(SDIR)/%.cc
+	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-Acc: $(ODIR)/Acc.o $(ODIR)/NTupleReader.o $(ODIR)/PDFUncertainty.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 $(LHAPDFLIB) -o $@
+$(ODIR)/%.o : $(SDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXDEPFLAGS) -o $@ -c $<
 
-FakeRate: $(ODIR)/FakeRate.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
-IsoTrack: $(ODIR)/IsoTrack.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+CS: $(ODIR)/CS.o $(ODIR)/NTupleReader.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o $(ODIR)/baselineDef.o $(ODIR)/BTagCorrector.o $(ODIR)/BTagCalibrationStandalone.o $(ODIR)/ISRCorrector.o $(ODIR)/PrepSystematics.o $(ODIR)/PDFUncertainty.o $(ODIR)/PileupWeights.o
+	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) $(LHAPDFLIB) -o $@
 
-DataMC: $(ODIR)/DataMC.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+HadTauLL: $(ODIR)/HadTauLL.o $(ODIR)/NTupleReader.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o $(ODIR)/baselineDef.o $(ODIR)/BTagCorrector.o $(ODIR)/BTagCalibrationStandalone.o $(ODIR)/ISRCorrector.o $(ODIR)/PrepSystematics.o $(ODIR)/PDFUncertainty.o $(ODIR)/PileupWeights.o
+	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) $(LHAPDFLIB) -o $@
 
-Data: $(ODIR)/Data.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+makePred: $(ODIR)/makePred.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o
+	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) -o $@
 
-Systematic: $(ODIR)/Systematic.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
+plotSystematic: $(ODIR)/plotSystematic.o $(ODIR)/SATException.o $(ODIR)/samples.o $(ODIR)/searchBins.o $(ODIR)/customize.o
+	$(LD) $^ $(TOPLIB) $(OPENVCLIBS) $(MT2LIB) $(ROOTLIBS) -o $@
 
-SignalCont: $(ODIR)/SignalCont.o $(ODIR)/NTupleReader.o $(ODIR)/samples.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
-
-PrintSearchBins: $(ODIR)/PrintSearchBins.o
-	$(LD) $^ $(LIBS) -L${CMSSW_BASE}/lib/${SCRAM_ARCH}/ -lrecipeAUXOxbridgeMT2 -o $@
 
 clean:
-	rm -f $(ODIR)/*.o $(ODIR)/*.d $(PROGRAMS) core
+	rm -f $(ODIR)/*.o $(ODIR)/*.so $(ODIR)/*.d $(PROGRAMS) core 
 
 -include $(ODIR)/*.d

@@ -1,0 +1,5 @@
+rm -fr Data_MET/logs; rm -fr Data_MET/*.root; echo '\nData_MET\n'; ls -l -t -r Data_MET
+rm -fr TTbarNoHad/logs; rm -fr TTbarNoHad/*.root; echo '\nTTbarNoHad\n'; ls -l -t -r TTbarNoHad
+rm -fr TTbarHT/logs; rm -fr TTbarHT/*.root; echo '\nTTbarHT\n'; ls -l -t -r TTbarHT
+rm -fr WJetsToLNu/logs; rm -fr WJetsToLNu/*.root; echo '\nWJetsToLNu\n'; ls -l -t -r WJetsToLNu
+rm -fr tW/logs; rm -fr tW/*.root; echo '\ntW\n'; ls -l -t -r tW
